@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+artifacts/
+publish/
+
+# IDE state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+
+# Node (only the editor bundle in wwwroot is committed)
+node_modules/
+
+# User data must never be committed
+*.db
+*.db-shm
+*.db-wal
+WorriorNotesData/
+
+# Secrets
+.env
+*.pfx
+
+# Reference material kept locally, not redistributed here (see docs/keepnote-analysis.md)
+keepnote-*.tar.gz
