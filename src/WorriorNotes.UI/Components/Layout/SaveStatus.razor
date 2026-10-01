@@ -1,0 +1,23 @@
+<div class="wn-status" role="status" aria-live="polite">
+    @switch (State)
+    {
+        case SaveState.Saved:
+            <span class="wn-status-saved"><span aria-hidden="true">✓</span> Saved</span>
+            break;
+        case SaveState.Unsaved:
+            <span><span aria-hidden="true">●</span> Unsaved changes</span>
+            break;
+        case SaveState.Saving:
+            <span><span aria-hidden="true">…</span> Saving</span>
+            break;
+        case SaveState.Failed:
+            <span class="wn-status-failed"><span aria-hidden="true">!</span> Unable to save. Your changes are kept in memory.</span>
+            <button type="button" class="wn-button" @onclick="OnRetry">Retry</button>
+            break;
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SaveState State { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+}

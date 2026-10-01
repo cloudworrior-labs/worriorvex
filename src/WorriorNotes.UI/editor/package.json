@@ -1,0 +1,18 @@
+{
+  "name": "worriornotes-editor",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rich text editor bundle for WorriorNotes (TipTap / ProseMirror).",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/editor.js --bundle --format=esm --minify --target=es2020 --legal-comments=linked --outfile=../wwwroot/editor/editor.bundle.js"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0",
+    "@tiptap/extension-list": "^3.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

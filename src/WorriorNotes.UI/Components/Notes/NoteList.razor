@@ -1,0 +1,42 @@
+<section class="wn-notelist" aria-label="Notes">
+    <header class="wn-pane-header">
+        <h2>@Heading</h2>
+        <span class="wn-count">@Notes.Count</span>
+    </header>
+    @if (Notes.Count == 0)
+    {
+        <div class="wn-empty">
+            <p>Nothing here yet.</p>
+            <button type="button" class="wn-button wn-button-primary" @onclick="OnCreate">Create your first note</button>
+        </div>
+    }
+    else
+    {
+        <ul class="wn-notelist-items" role="listbox" aria-label="@Heading">
+            @foreach (var note in Notes)
+            {
+                var selected = note.Id == SelectedId;
+                <li @key="note.Id" role="option" aria-selected="@(selected ? "true" : "false")">
+                    <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" @onclick="() => OnSelect.InvokeAsync(note.Id)">
+                        <span class="wn-noteitem-title">@note.Title</span>
+                        <span class="wn-noteitem-meta">@FormatUpdated(note.UpdatedAt)</span>
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IReadOnlyList<NoteSummary> Notes { get; set; } = [];
+    [Parameter] public Guid? SelectedId { get; set; }
+    [Parameter] public EventCallback<Guid> OnSelect { get; set; }
+    [Parameter] public EventCallback OnCreate { get; set; }
+
+    private static string FormatUpdated(DateTimeOffset updatedAt)
+    {
+        var local = updatedAt.ToLocalTime();
+        return local.Date == DateTimeOffset.Now.Date ? $"Updated {local:t}" : $"Updated {local:d}";
+    }
+}

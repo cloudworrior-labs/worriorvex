@@ -1,0 +1,81 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Photino.Blazor;
+using WorriorNotes.Application.Notes;
+using WorriorNotes.Application.Storage;
+using WorriorNotes.Infrastructure;
+using WorriorNotes.Infrastructure.Logging;
+using WorriorNotes.Infrastructure.Persistence;
+using WorriorNotes.Infrastructure.Storage;
+using WorriorNotes.UI;
+
+namespace WorriorNotes.Desktop;
+
+internal static class Program
+{
+    private static readonly TimeSpan SaveOnCloseTimeout = TimeSpan.FromSeconds(5);
+
+    [STAThread]
+    private static void Main(string[] args)
+    {
+        var paths = new ApplicationDataPathProvider();
+        var startup = new StartupStatus { DataDirectory = paths.DataDirectory };
+
+        var builder = PhotinoBlazorAppBuilder.CreateDefault(args);
+        builder.Services.AddLogging(logging =>
+        {
+            logging.SetMinimumLevel(LogLevel.Information);
+            logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
+            logging.AddProvider(new FileLoggerProvider(paths.LogsDirectory));
+        });
+        builder.Services.AddWorriorNotesInfrastructure(paths.DataDirectory);
+        builder.Services.AddSingleton(startup);
+        builder.Services.AddSingleton(provider => new NoteAutosaver(
+            provider.GetRequiredService<INoteService>(),
+            provider.GetRequiredService<TimeProvider>()));
+        builder.RootComponents.Add<App>("app");
+
+        var app = builder.Build();
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("WorriorNotes.Desktop");
+        logger.LogInformation(
+            "Starting WorriorNotes {Version} on {OS}; data in {DataDirectory}",
+            typeof(Program).Assembly.GetName().Version,
+            System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+            paths.DataDirectory);
+
+        try
+        {
+            // Off the UI thread: nothing here may wait on the window's message loop.
+            Task.Run(() => app.Services.GetRequiredService<DatabaseInitializer>().InitializeAsync()).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "The database could not be opened or migrated");
+            startup.Fail("The notes database could not be opened. Details are in the log file in the logs folder.");
+        }
+
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            logger.LogCritical(e.ExceptionObject as Exception, "Unhandled exception");
+
+        var autosaver = app.Services.GetRequiredService<NoteAutosaver>();
+        app.MainWindow
+            .SetTitle("WorriorNotes")
+            .SetSize(1280, 800)
+            .SetMinSize(760, 480)
+            .Center()
+            .RegisterWindowClosingHandler((_, _) =>
+            {
+                // Last chance to write edits still waiting for the autosave delay.
+                var flush = Task.Run(() => autosaver.FlushAsync());
+                if (!flush.Wait(SaveOnCloseTimeout) || !flush.Result)
+                {
+                    logger.LogError("Edits could not be saved while closing");
+                }
+
+                return false;
+            });
+
+        app.Run();
+        logger.LogInformation("WorriorNotes closed");
+    }
+}

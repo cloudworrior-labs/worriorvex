@@ -1,0 +1,240 @@
+@implements IAsyncDisposable
+@inject INoteService Notes
+@inject INotebookService Notebooks
+@inject NoteAutosaver Autosaver
+@inject IJSRuntime JS
+@inject ILogger<Workspace> Logger
+
+<div class="wn-app">
+    <header class="wn-topbar">
+        <span class="wn-brand">WorriorNotes</span>
+        <span class="wn-topbar-spacer"></span>
+        <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
+    </header>
+
+    <nav class="wn-nav" aria-label="Navigation">
+        <ul>
+            <li><button type="button" class="wn-navitem is-selected" aria-current="page">Inbox</button></li>
+        </ul>
+    </nav>
+
+    <NoteList Heading="Inbox" Notes="_notes" SelectedId="_current?.Id" OnSelect="OpenAsync" OnCreate="NewNoteAsync" />
+
+    <main class="wn-main">
+        @if (_error is not null)
+        {
+            <div class="wn-banner" role="alert">
+                <span>@_error</span>
+                <button type="button" class="wn-button" @onclick="() => _error = null">Dismiss</button>
+            </div>
+        }
+
+        @if (_loading)
+        {
+            <div class="wn-empty"><p>Loading…</p></div>
+        }
+        else if (_current is null)
+        {
+            <div class="wn-empty">
+                <p>No note selected.</p>
+                <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync">New note</button>
+            </div>
+        }
+        else
+        {
+            <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" />
+        }
+    </main>
+
+    <footer class="wn-statusbar">
+        <SaveStatus State="Autosaver.State" OnRetry="SaveNowAsync" />
+    </footer>
+</div>
+
+@code {
+    private List<NoteSummary> _notes = [];
+    private NotebookSummary? _inbox;
+    private NoteDetail? _current;
+    private NoteEditor? _editor;
+    private IJSObjectReference? _shortcutsModule;
+    private IJSObjectReference? _shortcuts;
+    private DotNetObjectReference<Workspace>? _self;
+    private string? _error;
+    private bool _loading = true;
+    private bool _focusNewNote;
+    private readonly string _modifier = OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Autosaver.StateChanged += OnSaveStateChanged;
+        Autosaver.NoteSaved += OnNoteSaved;
+
+        try
+        {
+            _inbox = await Notebooks.GetInboxAsync();
+            _notes = [.. await Notes.ListAsync(_inbox.Id)];
+            if (_notes.Count > 0)
+            {
+                _current = await Notes.GetAsync(_notes[0].Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading notes failed");
+            _error = "Your notes could not be loaded. Nothing has been changed on disk.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _self = DotNetObjectReference.Create(this);
+            _shortcutsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/WorriorNotes.UI/js/shortcuts.js");
+            _shortcuts = await _shortcutsModule.InvokeAsync<IJSObjectReference>("register", _self);
+        }
+
+        if (_focusNewNote && _editor is not null)
+        {
+            _focusNewNote = false;
+            _editor.FocusTitleOnNextLoad();
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public Task OnShortcut(string action) => action switch
+    {
+        "newNote" => InvokeAsync(NewNoteAsync),
+        "save" => InvokeAsync(SaveNowAsync),
+        _ => Task.CompletedTask,
+    };
+
+    private async Task NewNoteAsync()
+    {
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        try
+        {
+            var note = await Notes.CreateAsync(_inbox?.Id);
+            _notes.Insert(0, new NoteSummary(note.Id, note.NotebookId, note.Title, note.CreatedAt, note.UpdatedAt));
+            _current = note;
+            _focusNewNote = true;
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Creating a note failed");
+            _error = "The note could not be created.";
+        }
+    }
+
+    private async Task OpenAsync(Guid id)
+    {
+        if (id == _current?.Id || !await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        try
+        {
+            var note = await Notes.GetAsync(id);
+            if (note is null)
+            {
+                _notes.RemoveAll(n => n.Id == id);
+                _error = "That note no longer exists.";
+                return;
+            }
+
+            _current = note;
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Opening note {NoteId} failed", id);
+            _error = "The note could not be opened.";
+        }
+    }
+
+    private void OnEdited(NoteEdit edit) => Autosaver.Edit(edit.NoteId, edit.Title, edit.Content);
+
+    private async Task SaveNowAsync()
+    {
+        if (_editor is not null)
+        {
+            await _editor.FlushAsync();
+        }
+
+        await Autosaver.FlushAsync();
+    }
+
+    /// <summary>Leaving a note with edits that cannot be saved would lose them, so stay put and say why.</summary>
+    private async Task<bool> SaveBeforeLeavingAsync()
+    {
+        if (_editor is not null)
+        {
+            await _editor.FlushAsync();
+        }
+
+        if (await Autosaver.FlushAsync())
+        {
+            return true;
+        }
+
+        _error = "This note could not be saved, so it stays open. Retry the save before switching notes.";
+        return false;
+    }
+
+    private void OnSaveStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void OnNoteSaved(NoteDetail saved) => _ = InvokeAsync(() =>
+    {
+        var summary = new NoteSummary(saved.Id, saved.NotebookId, saved.Title, saved.CreatedAt, saved.UpdatedAt);
+        var index = _notes.FindIndex(n => n.Id == saved.Id);
+        if (index >= 0 && _notes[index] == summary)
+        {
+            return;
+        }
+
+        if (index >= 0)
+        {
+            _notes.RemoveAt(index);
+        }
+
+        _notes.Insert(0, summary);
+        _notes = [.. _notes.OrderByDescending(n => n.UpdatedAt)];
+        StateHasChanged();
+    });
+
+    public async ValueTask DisposeAsync()
+    {
+        Autosaver.StateChanged -= OnSaveStateChanged;
+        Autosaver.NoteSaved -= OnNoteSaved;
+
+        try
+        {
+            if (_shortcuts is not null)
+            {
+                await _shortcuts.InvokeVoidAsync("dispose");
+                await _shortcuts.DisposeAsync();
+            }
+
+            if (_shortcutsModule is not null)
+            {
+                await _shortcutsModule.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+
+        _self?.Dispose();
+    }
+}
