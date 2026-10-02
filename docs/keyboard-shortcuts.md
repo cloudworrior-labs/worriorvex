@@ -13,7 +13,8 @@
 | `↑` `↓` `Enter` in the search box | Move through the results, open one |
 | `Esc` in the search box | Leave the search |
 | `Enter` in the title | Move to the note body |
-| `Esc` | Close a dialog |
+| `Esc` | Close a dialog or context menu |
+| `Enter` / `Backspace` in the tag row | Add a tag / remove the last tag |
 | `Enter` in a dialog | Confirm the name |
 
 ## Editor

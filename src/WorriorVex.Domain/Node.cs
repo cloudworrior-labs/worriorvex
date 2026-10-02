@@ -21,6 +21,9 @@ public sealed class Node
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
 
+    /// <summary>When the note was last opened. Opening is not editing: <see cref="UpdatedAt"/> stays as it is.</summary>
+    public DateTimeOffset? LastOpenedAt { get; private set; }
+
     /// <summary>Easy to reach from anywhere. Independent of <see cref="IsPinned"/>.</summary>
     public bool IsFavorite { get; private set; }
 
@@ -125,6 +128,12 @@ public sealed class Node
     }
 
     public void SetSortOrder(int sortOrder) => SortOrder = sortOrder;
+
+    public void RecordOpened(DateTimeOffset now)
+    {
+        EnsureNote("Only a note can be opened.");
+        LastOpenedAt = now;
+    }
 
     public void SetFavorite(bool isFavorite)
     {

@@ -3,9 +3,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Search;
+using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
 using WorriorVex.Domain;
+using Microsoft.AspNetCore.Components.Web;
+using WorriorVex.UI.Components.Dialogs;
 using WorriorVex.UI.Components.Navigation;
 using WorriorVex.UI.Components.Notes;
 using WorriorVex.UI.Components.Search;
@@ -24,6 +27,10 @@ public partial class Workspace
     private List<FolderSummary> _folders = [];
     private List<NoteSummary> _notes = [];
     private List<TrashItem> _trash = [];
+    private List<TagSummary> _tags = [];
+    private MenuState? _menu;
+    private MoveRequest? _move;
+    private (Guid Id, bool IsFolder)? _dragging;
     private NavSelection _selection = new NavSelection.AllNotes();
     private NoteDetail? _current;
     private TrashItem? _trashItem;
@@ -54,6 +61,7 @@ public partial class Workspace
     [Inject] private ITreeService Tree { get; set; } = default!;
     [Inject] private ITrashService Trash { get; set; } = default!;
     [Inject] private INoteSearchService Search { get; set; } = default!;
+    [Inject] private ITagService TagService { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private ILogger<Workspace> Logger { get; set; } = default!;
@@ -67,7 +75,21 @@ public partial class Workspace
         NavSelection.Notebook notebook => _notebooks.FirstOrDefault(n => n.Id == notebook.NotebookId)?.Name ?? "Notebook",
         NavSelection.Folder folder => _folders.FirstOrDefault(f => f.Id == folder.FolderId)?.Name ?? "Folder",
         NavSelection.Trash => "Trash",
+        NavSelection.Favorites => "Favorites",
+        NavSelection.Recent => "Recent",
+        NavSelection.Tag tag => _tags.FirstOrDefault(t => t.Id == tag.TagId)?.Name ?? "Tag",
         _ => "All Notes",
+    };
+
+    /// <summary>Lists that gather notes from several notebooks say which notebook each note is in.</summary>
+    private bool ShowsManyPlaces => _selection is NavSelection.AllNotes or NavSelection.Favorites or NavSelection.Recent or NavSelection.Tag;
+
+    private string? EmptyMessage => _selection switch
+    {
+        NavSelection.Favorites => "No favorites yet. Mark a note with ★ to find it here.",
+        NavSelection.Recent => "Notes you open appear here, most recent first.",
+        NavSelection.Tag => "No notes carry this tag.",
+        _ => null,
     };
 
     private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About;
@@ -125,7 +147,7 @@ public partial class Workspace
     [JSInvokable]
     public Task OnShortcut(string action)
     {
-        if (_prompt is not null || _confirm is not null)
+        if (_prompt is not null || _confirm is not null || _move is not null || _menu is not null)
         {
             return Task.CompletedTask;
         }
@@ -151,6 +173,19 @@ public partial class Workspace
     {
         _notebooks = [.. await Notebooks.ListAsync()];
         _folders = [.. await Tree.ListFoldersAsync()];
+        await LoadTagsAsync();
+    }
+
+    private async Task LoadTagsAsync()
+    {
+        try
+        {
+            _tags = [.. await TagService.ListAsync()];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Tags could not be loaded");
+        }
     }
 
     private async Task LoadListAsync(bool openFirst)
@@ -172,6 +207,15 @@ public partial class Workspace
                 break;
             case NavSelection.Folder folder:
                 _notes = [.. await Notes.ListAsync(folder.NotebookId, folder.FolderId)];
+                break;
+            case NavSelection.Favorites:
+                _notes = [.. await Notes.ListFavoritesAsync()];
+                break;
+            case NavSelection.Recent:
+                _notes = [.. await Notes.ListRecentAsync()];
+                break;
+            case NavSelection.Tag tag:
+                _notes = [.. await Notes.ListByTagAsync(tag.TagId)];
                 break;
             default:
                 _notes = [.. await Notes.ListAllAsync()];
@@ -227,6 +271,21 @@ public partial class Workspace
                     _selection = new NavSelection.Notebook(note.NotebookId);
                     await LoadListAsync(openFirst: false);
                     break;
+                case NavSelection.Tag tag:
+                    // A note made while looking at a tag gets that tag, so it stays in view.
+                    note = await Notes.CreateAsync();
+                    if (_tags.FirstOrDefault(t => t.Id == tag.TagId) is { } tagged)
+                    {
+                        await TagService.AddToNoteAsync(note.Id, tagged.Name);
+                        await LoadTagsAsync();
+                    }
+
+                    break;
+                case NavSelection.Favorites:
+                    note = await Notes.CreateAsync();
+                    await Notes.SetFavoriteAsync(note.Id, true);
+                    note = note with { IsFavorite = true };
+                    break;
                 default:
                     note = await Notes.CreateAsync();
                     break;
@@ -237,6 +296,7 @@ public partial class Workspace
             _current = note;
             _focusNewNote = true;
             _notice = null;
+            await RecordOpenedAsync(note.Id);
         });
     }
 
@@ -258,7 +318,79 @@ public partial class Workspace
             }
 
             _current = note;
+            await RecordOpenedAsync(note.Id);
         });
+    }
+
+    /// <summary>Remembers the note for the Recent list. Not worth an error if it fails.</summary>
+    private async Task RecordOpenedAsync(Guid id)
+    {
+        try
+        {
+            await Notes.RecordOpenedAsync(id);
+            var index = _notes.FindIndex(n => n.Id == id);
+            if (index >= 0)
+            {
+                _notes[index] = _notes[index] with { LastOpenedAt = DateTimeOffset.UtcNow };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "The note could not be marked as opened");
+        }
+    }
+
+    private async Task ToggleFavoriteAsync()
+    {
+        if (_current is not { } note)
+        {
+            return;
+        }
+
+        await RunAsync("The favorite could not be changed.", async () =>
+        {
+            var favorite = !note.IsFavorite;
+            await Notes.SetFavoriteAsync(note.Id, favorite);
+            _current = note with { IsFavorite = favorite };
+            ReplaceSummary(_current.ToSummary());
+            if (_selection is NavSelection.Favorites && !favorite)
+            {
+                _notes.RemoveAll(n => n.Id == note.Id);
+            }
+        });
+    }
+
+    private async Task TogglePinnedAsync()
+    {
+        if (_current is not { } note)
+        {
+            return;
+        }
+
+        await RunAsync("The pin could not be changed.", async () =>
+        {
+            var pinned = !note.IsPinned;
+            await Notes.SetPinnedAsync(note.Id, pinned);
+            _current = note with { IsPinned = pinned };
+            ReplaceSummary(_current.ToSummary());
+            SortNotes();
+        });
+    }
+
+    private void ReplaceSummary(NoteSummary summary)
+    {
+        var index = _notes.FindIndex(n => n.Id == summary.Id);
+        if (index >= 0)
+        {
+            _notes[index] = summary with { LastOpenedAt = _notes[index].LastOpenedAt };
+        }
+    }
+
+    private void SortNotes()
+    {
+        _notes = _selection is NavSelection.Notebook or NavSelection.Folder
+            ? [.. _notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.UpdatedAt)]
+            : _notes;
     }
 
     private async Task DeleteCurrentNoteAsync()
@@ -417,6 +549,248 @@ public partial class Workspace
         _beforeSearch = null;
     }
 
+    // ---- Context menus -------------------------------------------------------------------------
+
+    private void ShowNavMenu((NavSelection Target, MouseEventArgs Mouse) at)
+    {
+        var items = new List<ContextMenu.Item>();
+        switch (at.Target)
+        {
+            case NavSelection.Notebook notebook when notebook.NotebookId == Inbox?.Id:
+                items.Add(new("New note", () => NewNoteInAsync(notebook.NotebookId, null)));
+                break;
+            case NavSelection.Notebook notebook:
+                var notebookName = _notebooks.FirstOrDefault(n => n.Id == notebook.NotebookId)?.Name ?? "Notebook";
+                items.Add(new("New note", () => NewNoteInAsync(notebook.NotebookId, null)));
+                items.Add(new("New folder", () => { PromptNewFolderIn(notebook.NotebookId, null, notebookName); return Task.CompletedTask; }));
+                items.Add(ContextMenu.Item.Line());
+                items.Add(new("Rename…", () => { PromptRenameNotebook(notebook.NotebookId, notebookName); return Task.CompletedTask; }));
+                items.Add(new("Delete", () => { ConfirmDeleteNotebook(notebook.NotebookId, notebookName); return Task.CompletedTask; }));
+                break;
+            case NavSelection.Folder folder:
+                var folderName = _folders.FirstOrDefault(f => f.Id == folder.FolderId)?.Name ?? "Folder";
+                items.Add(new("New note", () => NewNoteInAsync(folder.NotebookId, folder.FolderId)));
+                items.Add(new("New folder", () => { PromptNewFolderIn(folder.NotebookId, folder.FolderId, folderName); return Task.CompletedTask; }));
+                items.Add(ContextMenu.Item.Line());
+                items.Add(new("Rename…", () => { PromptRenameFolder(folder.FolderId, folderName); return Task.CompletedTask; }));
+                items.Add(new("Move…", () => { OpenMove(folder.FolderId, isFolder: true, folderName); return Task.CompletedTask; }));
+                items.Add(new("Delete", () => { ConfirmDeleteFolder(folder.FolderId, folderName); return Task.CompletedTask; }));
+                break;
+            case NavSelection.Tag tag:
+                var tagName = _tags.FirstOrDefault(t => t.Id == tag.TagId)?.Name ?? "Tag";
+                items.Add(new("Rename tag…", () => { PromptRenameTag(tag.TagId, tagName); return Task.CompletedTask; }));
+                items.Add(new("Delete tag", () => { ConfirmDeleteTag(tag.TagId, tagName); return Task.CompletedTask; }));
+                break;
+            default:
+                return;
+        }
+
+        _menu = new MenuState(items, at.Mouse.ClientX, at.Mouse.ClientY, "Actions");
+    }
+
+    private void ShowNoteMenu((NoteSummary Note, MouseEventArgs Mouse) at)
+    {
+        var note = at.Note;
+        var items = new List<ContextMenu.Item>
+        {
+            new("Open", () => OpenAsync(note.Id)),
+            new(note.IsFavorite ? "Remove from favorites" : "Add to favorites", () => SetFavoriteAsync(note, !note.IsFavorite)),
+            new(note.IsPinned ? "Unpin" : "Pin to top", () => SetPinnedAsync(note, !note.IsPinned)),
+            ContextMenu.Item.Line(),
+            new("Move…", () => { OpenMove(note.Id, isFolder: false, note.Title); return Task.CompletedTask; }),
+            new("Duplicate", () => DuplicateAsync(note.Id)),
+            ContextMenu.Item.Line(),
+            new("Move to trash", () => DeleteNoteAsync(note.Id)),
+        };
+        _menu = new MenuState(items, at.Mouse.ClientX, at.Mouse.ClientY, $"Actions for {note.Title}");
+    }
+
+    private async Task SetFavoriteAsync(NoteSummary note, bool favorite)
+    {
+        if (_current?.Id == note.Id)
+        {
+            await ToggleFavoriteAsync();
+            return;
+        }
+
+        await RunAsync("The favorite could not be changed.", async () =>
+        {
+            await Notes.SetFavoriteAsync(note.Id, favorite);
+            ReplaceSummary(note with { IsFavorite = favorite });
+            if (_selection is NavSelection.Favorites && !favorite)
+            {
+                _notes.RemoveAll(n => n.Id == note.Id);
+            }
+        });
+    }
+
+    private async Task SetPinnedAsync(NoteSummary note, bool pinned)
+    {
+        if (_current?.Id == note.Id)
+        {
+            await TogglePinnedAsync();
+            return;
+        }
+
+        await RunAsync("The pin could not be changed.", async () =>
+        {
+            await Notes.SetPinnedAsync(note.Id, pinned);
+            ReplaceSummary(note with { IsPinned = pinned });
+            SortNotes();
+        });
+    }
+
+    private async Task DuplicateAsync(Guid id)
+    {
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        await RunAsync("The note could not be duplicated.", async () =>
+        {
+            var copy = await Notes.DuplicateAsync(id);
+            if (_selection is NavSelection.Notebook or NavSelection.Folder or NavSelection.AllNotes or NavSelection.Tag)
+            {
+                _notes.Insert(0, copy.ToSummary());
+                SortNotes();
+            }
+
+            _current = copy;
+            _focusNewNote = true;
+            await RecordOpenedAsync(copy.Id);
+            await LoadTagsAsync();
+            _notice = $"\"{copy.Title}\" was created beside the original.";
+        });
+    }
+
+    private async Task DeleteNoteAsync(Guid id)
+    {
+        if (_current?.Id == id)
+        {
+            await DeleteCurrentNoteAsync();
+            return;
+        }
+
+        var title = _notes.FirstOrDefault(n => n.Id == id)?.Title ?? "The note";
+        await RunAsync("The note could not be moved to the trash.", async () =>
+        {
+            await Trash.MoveToTrashAsync(id);
+            _notes.RemoveAll(n => n.Id == id);
+            _searchResults.RemoveAll(r => r.NoteId == id);
+            await LoadTagsAsync();
+            _notice = $"\"{title}\" was moved to the trash.";
+        });
+    }
+
+    private async Task NewNoteInAsync(Guid notebookId, Guid? parentId)
+    {
+        NavSelection target = parentId is { } folder ? new NavSelection.Folder(notebookId, folder) : new NavSelection.Notebook(notebookId);
+        if (target != _selection)
+        {
+            await SelectAsync(target);
+        }
+
+        await NewNoteAsync();
+    }
+
+    // ---- Moving --------------------------------------------------------------------------------
+
+    /// <summary>Opens the destination picker. A folder cannot go into itself or anything below it.</summary>
+    private void OpenMove(Guid nodeId, bool isFolder, string name)
+    {
+        var excluded = new HashSet<Guid>();
+        if (isFolder)
+        {
+            var pending = new Queue<Guid>([nodeId]);
+            while (pending.TryDequeue(out var id) && excluded.Add(id))
+            {
+                foreach (var child in _folders.Where(f => f.ParentId == id))
+                {
+                    pending.Enqueue(child.Id);
+                }
+            }
+        }
+
+        _dialogError = null;
+        _menu = null;
+        _move = new MoveRequest(nodeId, isFolder, name, excluded);
+    }
+
+    private async Task ConfirmMoveAsync((Guid NotebookId, Guid? ParentId) destination)
+    {
+        if (_move is not { } move || !await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        try
+        {
+            await MoveAsync(move.NodeId, move.IsFolder, move.Name, destination.NotebookId, destination.ParentId);
+            _move = null;
+        }
+        catch (DomainException ex)
+        {
+            _dialogError = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Move failed");
+            _dialogError = "That did not work. Nothing was moved.";
+        }
+    }
+
+    private async Task MoveAsync(Guid nodeId, bool isFolder, string name, Guid notebookId, Guid? parentId)
+    {
+        await Tree.MoveAsync(nodeId, notebookId, parentId);
+        await LoadStructureAsync();
+        await LoadListAsync(openFirst: false);
+        if (_current is not null && !isFolder && _current.Id == nodeId)
+        {
+            _current = await Notes.GetAsync(nodeId);
+        }
+        else if (_current is not null && _notes.Count > 0 && _notes.All(n => n.Id != _current.Id) && _selection is NavSelection.Notebook or NavSelection.Folder)
+        {
+            _current = null;
+        }
+
+        var place = parentId is { } folder
+            ? _folders.FirstOrDefault(f => f.Id == folder)?.Name
+            : _notebooks.FirstOrDefault(n => n.Id == notebookId)?.Name;
+        _notice = $"\"{name}\" was moved to {place ?? "its new place"}.";
+    }
+
+    /// <summary>A note or folder was dropped on a notebook or folder in the navigation.</summary>
+    private async Task DropAsync(NavSelection target)
+    {
+        if (_dragging is not { } dragged)
+        {
+            return;
+        }
+
+        _dragging = null;
+        var (notebookId, parentId) = target switch
+        {
+            NavSelection.Folder folder => (folder.NotebookId, (Guid?)folder.FolderId),
+            NavSelection.Notebook notebook => (notebook.NotebookId, null),
+            _ => (Guid.Empty, null),
+        };
+        if (notebookId == Guid.Empty || parentId == dragged.Id)
+        {
+            return;
+        }
+
+        var name = dragged.IsFolder
+            ? _folders.FirstOrDefault(f => f.Id == dragged.Id)?.Name ?? "Folder"
+            : _notes.FirstOrDefault(n => n.Id == dragged.Id)?.Title ?? _current?.Title ?? "Note";
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        await RunAsync("That could not be moved.", () => MoveAsync(dragged.Id, dragged.IsFolder, name, notebookId, parentId));
+    }
+
     // ---- Notebooks and folders -----------------------------------------------------------------
 
     private void PromptNewNotebook() => OpenPrompt(new PromptRequest(
@@ -430,83 +804,114 @@ public partial class Workspace
 
     private void PromptNewFolder()
     {
-        var (notebookId, parentId) = _selection switch
+        switch (_selection)
         {
-            NavSelection.Folder folder => (folder.NotebookId, (Guid?)folder.FolderId),
-            NavSelection.Notebook notebook => (notebook.NotebookId, null),
-            _ => (Guid.Empty, null),
-        };
-        if (notebookId == Guid.Empty)
-        {
-            return;
+            case NavSelection.Folder folder:
+                PromptNewFolderIn(folder.NotebookId, folder.FolderId, Heading);
+                break;
+            case NavSelection.Notebook notebook when CanHoldFolders:
+                PromptNewFolderIn(notebook.NotebookId, null, Heading);
+                break;
         }
-
-        OpenPrompt(new PromptRequest(
-            "New folder", $"Name of the folder in \"{Heading}\"", string.Empty, "Create", Node.MaxNameLength,
-            async name =>
-            {
-                var folder = await Tree.CreateFolderAsync(notebookId, parentId, name);
-                await LoadStructureAsync();
-                await GoToAsync(new NavSelection.Folder(folder.NotebookId, folder.Id));
-            }));
     }
+
+    private void PromptNewFolderIn(Guid notebookId, Guid? parentId, string placeName) => OpenPrompt(new PromptRequest(
+        "New folder", $"Name of the folder in \"{placeName}\"", string.Empty, "Create", Node.MaxNameLength,
+        async name =>
+        {
+            var folder = await Tree.CreateFolderAsync(notebookId, parentId, name);
+            await LoadStructureAsync();
+            await GoToAsync(new NavSelection.Folder(folder.NotebookId, folder.Id));
+        }));
 
     private void PromptRename()
     {
         switch (_selection)
         {
             case NavSelection.Folder folder:
-                OpenPrompt(new PromptRequest(
-                    "Rename folder", "Name", Heading, "Rename", Node.MaxNameLength,
-                    async name =>
-                    {
-                        await Tree.RenameFolderAsync(folder.FolderId, name);
-                        await LoadStructureAsync();
-                    }));
+                PromptRenameFolder(folder.FolderId, Heading);
                 break;
             case NavSelection.Notebook notebook when CanChangeContainer:
-                OpenPrompt(new PromptRequest(
-                    "Rename notebook", "Name", Heading, "Rename", Notebook.MaxNameLength,
-                    async name =>
-                    {
-                        await Notebooks.RenameAsync(notebook.NotebookId, name);
-                        await LoadStructureAsync();
-                    }));
+                PromptRenameNotebook(notebook.NotebookId, Heading);
                 break;
         }
     }
 
+    private void PromptRenameFolder(Guid folderId, string currentName) => OpenPrompt(new PromptRequest(
+        "Rename folder", "Name", currentName, "Rename", Node.MaxNameLength,
+        async name =>
+        {
+            await Tree.RenameFolderAsync(folderId, name);
+            await LoadStructureAsync();
+        }));
+
+    private void PromptRenameNotebook(Guid notebookId, string currentName) => OpenPrompt(new PromptRequest(
+        "Rename notebook", "Name", currentName, "Rename", Notebook.MaxNameLength,
+        async name =>
+        {
+            await Notebooks.RenameAsync(notebookId, name);
+            await LoadStructureAsync();
+        }));
+
+    private void PromptRenameTag(Guid tagId, string currentName) => OpenPrompt(new PromptRequest(
+        "Rename tag", "Name", currentName, "Rename", Domain.Tag.MaxNameLength,
+        async name =>
+        {
+            await TagService.RenameAsync(tagId, name);
+            await LoadTagsAsync();
+        }));
+
     private void ConfirmDeleteContainer()
     {
-        var name = Heading;
         switch (_selection)
         {
             case NavSelection.Folder folder:
-                OpenConfirm(new ConfirmRequest(
-                    $"Delete folder \"{name}\"?",
-                    "The folder and everything in it move to the trash. You can restore them from there.",
-                    "Move to trash",
-                    Danger: false,
-                    async () =>
-                    {
-                        await Trash.MoveToTrashAsync(folder.FolderId);
-                        await AfterContainerDeletedAsync(name);
-                    }));
+                ConfirmDeleteFolder(folder.FolderId, Heading);
                 break;
             case NavSelection.Notebook notebook when CanChangeContainer:
-                OpenConfirm(new ConfirmRequest(
-                    $"Delete notebook \"{name}\"?",
-                    "The notebook and everything in it move to the trash. You can restore them from there.",
-                    "Move to trash",
-                    Danger: false,
-                    async () =>
-                    {
-                        await Trash.MoveNotebookToTrashAsync(notebook.NotebookId);
-                        await AfterContainerDeletedAsync(name);
-                    }));
+                ConfirmDeleteNotebook(notebook.NotebookId, Heading);
                 break;
         }
     }
+
+    private void ConfirmDeleteFolder(Guid folderId, string name) => OpenConfirm(new ConfirmRequest(
+        $"Delete folder \"{name}\"?",
+        "The folder and everything in it move to the trash. You can restore them from there.",
+        "Move to trash",
+        Danger: false,
+        async () =>
+        {
+            await Trash.MoveToTrashAsync(folderId);
+            await AfterContainerDeletedAsync(name);
+        }));
+
+    private void ConfirmDeleteNotebook(Guid notebookId, string name) => OpenConfirm(new ConfirmRequest(
+        $"Delete notebook \"{name}\"?",
+        "The notebook and everything in it move to the trash. You can restore them from there.",
+        "Move to trash",
+        Danger: false,
+        async () =>
+        {
+            await Trash.MoveNotebookToTrashAsync(notebookId);
+            await AfterContainerDeletedAsync(name);
+        }));
+
+    private void ConfirmDeleteTag(Guid tagId, string name) => OpenConfirm(new ConfirmRequest(
+        $"Delete tag \"{name}\"?",
+        "The tag is removed from every note that carries it. The notes themselves stay as they are.",
+        "Delete tag",
+        Danger: true,
+        async () =>
+        {
+            await TagService.DeleteAsync(tagId);
+            await LoadTagsAsync();
+            if (_selection is NavSelection.Tag current && current.TagId == tagId)
+            {
+                await GoToAsync(new NavSelection.AllNotes());
+            }
+
+            _notice = $"The tag \"{name}\" was deleted.";
+        }));
 
     private async Task AfterContainerDeletedAsync(string name)
     {
@@ -572,6 +977,8 @@ public partial class Workspace
     {
         _dialogError = null;
         _confirm = null;
+        _move = null;
+        _menu = null;
         _prompt = request;
     }
 
@@ -579,6 +986,8 @@ public partial class Workspace
     {
         _dialogError = null;
         _prompt = null;
+        _move = null;
+        _menu = null;
         _confirm = request;
     }
 
@@ -586,6 +995,8 @@ public partial class Workspace
     {
         _prompt = null;
         _confirm = null;
+        _move = null;
+        _menu = null;
         _dialogError = null;
     }
 
@@ -698,4 +1109,8 @@ public partial class Workspace
     private sealed record PromptRequest(string Title, string Label, string InitialValue, string ConfirmText, int MaxLength, Func<string, Task> OnConfirm);
 
     private sealed record ConfirmRequest(string Title, string Message, string ConfirmText, bool Danger, Func<Task> OnConfirm);
+
+    private sealed record MoveRequest(Guid NodeId, bool IsFolder, string Name, IReadOnlySet<Guid> Excluded);
+
+    private sealed record MenuState(IReadOnlyList<ContextMenu.Item> Items, double X, double Y, string Label);
 }

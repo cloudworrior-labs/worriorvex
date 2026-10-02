@@ -20,8 +20,14 @@
                spellcheck="true"
                @oninput="OnTitleInput"
                @onkeydown="OnTitleKeyDown" />
+        <button type="button" class="wn-tool @(Note.IsFavorite ? "is-active" : null)" title="@(Note.IsFavorite ? "Remove from favorites" : "Add to favorites")"
+                aria-pressed="@(Note.IsFavorite ? "true" : "false")" @onclick="() => OnToggleFavorite.InvokeAsync()">@(Note.IsFavorite ? "★" : "☆") Favorite</button>
+        <button type="button" class="wn-tool @(Note.IsPinned ? "is-active" : null)" title="@(Note.IsPinned ? "Unpin from the top of its list" : "Pin to the top of its list")"
+                aria-pressed="@(Note.IsPinned ? "true" : "false")" @onclick="() => OnTogglePinned.InvokeAsync()">⌖ Pin</button>
         <button type="button" class="wn-tool" title="Move this note to the trash" @onclick="OnDelete">Delete</button>
     </div>
+
+    <TagEditor NoteId="Note.Id" OnChanged="OnTagsChanged" />
 
     @* Pressing a mouse button on the toolbar must not take focus (and the selection) away from the text. *@
     <div class="wn-toolbar" role="toolbar" aria-label="Formatting">
@@ -117,6 +123,12 @@
 
     /// <summary>Something the user tried did not work; the text says what and why.</summary>
     [Parameter] public EventCallback<string> OnProblem { get; set; }
+
+    [Parameter] public EventCallback OnToggleFavorite { get; set; }
+    [Parameter] public EventCallback OnTogglePinned { get; set; }
+
+    /// <summary>The note's tags were changed in the editor.</summary>
+    [Parameter] public EventCallback OnTagsChanged { get; set; }
 
     /// <summary>The user asked to move this note to the trash.</summary>
     [Parameter] public EventCallback OnDelete { get; set; }

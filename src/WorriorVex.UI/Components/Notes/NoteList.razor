@@ -7,7 +7,11 @@
     {
         <div class="wn-pane-actions">@ChildContent</div>
     }
-    @if (Notes.Count == 0)
+    @if (Notes.Count == 0 && EmptyMessage is not null)
+    {
+        <div class="wn-empty"><p>@EmptyMessage</p></div>
+    }
+    else if (Notes.Count == 0)
     {
         <div class="wn-empty">
             <p>Nothing here yet.</p>
@@ -22,14 +26,26 @@
                 var selected = note.Id == SelectedId;
                 <li @key="note.Id">
                     <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
+                            draggable="true" @ondragstart="() => OnDragStart.InvokeAsync(note.Id)" @ondragend="OnDragEnd"
+                            @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((note, e))"
                             @onclick="() => OnSelect.InvokeAsync(note.Id)">
-                        <span class="wn-noteitem-title">@note.Title</span>
+                        <span class="wn-noteitem-title">
+                            @if (note.IsPinned)
+                            {
+                                <span class="wn-noteitem-flag" title="Pinned" aria-label="Pinned">⌖</span>
+                            }
+                            @if (note.IsFavorite)
+                            {
+                                <span class="wn-noteitem-flag" title="Favorite" aria-label="Favorite">★</span>
+                            }
+                            @note.Title
+                        </span>
                         <span class="wn-noteitem-meta">
                             @if (NotebookNames is not null && NotebookNames.TryGetValue(note.NotebookId, out var notebook))
                             {
                                 <text>@notebook · </text>
                             }
-                            @FormatUpdated(note.UpdatedAt)
+                            @(ShowOpened && note.LastOpenedAt is { } opened ? Format("Opened", opened) : Format("Updated", note.UpdatedAt))
                         </span>
                     </button>
                 </li>
@@ -47,17 +63,26 @@
     [Parameter] public IReadOnlyDictionary<Guid, string>? NotebookNames { get; set; }
 
     [Parameter] public bool FirstEver { get; set; }
+
+    /// <summary>Shown instead of the "new note" invitation when the list is empty because of what it filters on.</summary>
+    [Parameter] public string? EmptyMessage { get; set; }
     [Parameter] public EventCallback<Guid> OnSelect { get; set; }
     [Parameter] public EventCallback OnCreate { get; set; }
+    [Parameter] public EventCallback<(NoteSummary Note, MouseEventArgs Mouse)> OnContextMenu { get; set; }
+    [Parameter] public EventCallback<Guid> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+
+    /// <summary>What the meta line says about the time: "Updated" or, for the Recent list, "Opened".</summary>
+    [Parameter] public bool ShowOpened { get; set; }
 
     [Parameter] public bool ShowActions { get; set; }
 
     /// <summary>Actions for the container the list shows, placed under the heading.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private static string FormatUpdated(DateTimeOffset updatedAt)
+    private static string Format(string what, DateTimeOffset at)
     {
-        var local = updatedAt.ToLocalTime();
-        return local.Date == DateTimeOffset.Now.Date ? $"Updated {local:t}" : $"Updated {local:d}";
+        var local = at.ToLocalTime();
+        return local.Date == DateTimeOffset.Now.Date ? $"{what} {local:t}" : $"{what} {local:d}";
     }
 }

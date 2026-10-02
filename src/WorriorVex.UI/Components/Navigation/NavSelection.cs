@@ -7,6 +7,13 @@ public abstract record NavSelection
 
     public sealed record AllNotes : NavSelection;
 
+    public sealed record Favorites : NavSelection;
+
+    public sealed record Recent : NavSelection;
+
+    /// <summary>Notes carrying one tag.</summary>
+    public sealed record Tag(Guid TagId) : NavSelection;
+
     /// <summary>The top of a notebook. The Inbox is a notebook too.</summary>
     public sealed record Notebook(Guid NotebookId) : NavSelection;
 

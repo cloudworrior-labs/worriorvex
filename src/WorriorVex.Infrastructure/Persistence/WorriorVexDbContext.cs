@@ -57,6 +57,7 @@ public sealed class WorriorVexDbContext(DbContextOptions<WorriorVexDbContext> op
             node.HasIndex(n => n.CreatedAt);
             node.HasIndex(n => n.UpdatedAt);
             node.HasIndex(n => n.DeletedAt);
+            node.HasIndex(n => n.LastOpenedAt);
         });
 
         modelBuilder.Entity<Note>(note =>

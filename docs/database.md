@@ -35,7 +35,8 @@ by migrations in `src/WorriorVex.Infrastructure/Persistence/Migrations` and appl
 | `Content` | the document |
 | `ContentFormat` | 0 = HTML, 1 = Markdown (reserved) |
 
-`Nodes` also carries `IsFavorite` and `IsPinned`, and `Notebooks` a `DeletedAt` for the trash.
+`Nodes` also carries `IsFavorite`, `IsPinned` and `LastOpenedAt` (for the Recent list; opening never
+touches `UpdatedAt`), and `Notebooks` a `DeletedAt` for the trash.
 Deleting a parent row removes its children: folders cascade to what they hold, notes to the rows below.
 
 **Tags** (`Id`, `Name`, `NormalizedName` unique, `CreatedAt`) and **NoteTags** (`NoteId`, `TagId`; composite key).
@@ -78,4 +79,4 @@ not part of the EF Core model.
 
 ## Planned tables
 
-A recent-access table (development plan, section 26).
+None at present; the remaining phases work with the tables above.

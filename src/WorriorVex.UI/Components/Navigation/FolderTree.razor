@@ -17,13 +17,19 @@
                 {
                     <span class="wn-twisty" aria-hidden="true"></span>
                 }
-                <button type="button" class="wn-navitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
-                        @onclick="() => OnSelect.InvokeAsync(selection)">@folder.Name</button>
+                <button type="button" class="wn-navitem @(selected ? "is-selected" : null) @(DropTarget == folder.Id ? "is-droptarget" : null)"
+                        aria-current="@(selected ? "true" : null)" draggable="true"
+                        @onclick="() => OnSelect.InvokeAsync(selection)"
+                        @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
+                        @ondragstart="() => OnDragStart.InvokeAsync(folder.Id)" @ondragend="OnDragEnd"
+                        @ondragenter="() => OnDragEnter.InvokeAsync(folder.Id)" @ondragover:preventDefault
+                        @ondrop:preventDefault @ondrop="() => OnDrop.InvokeAsync(selection)">@folder.Name</button>
             </div>
             @if (hasFolders && expanded)
             {
-                <FolderTree NotebookId="NotebookId" ParentId="folder.Id" Children="Children" Collapsed="Collapsed"
-                            Selection="Selection" OnSelect="OnSelect" OnToggle="OnToggle" Level="Level + 1" />
+                <FolderTree NotebookId="NotebookId" ParentId="folder.Id" Children="Children" Collapsed="Collapsed" DropTarget="DropTarget"
+                            Selection="Selection" OnSelect="OnSelect" OnToggle="OnToggle" OnContextMenu="OnContextMenu"
+                            OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="OnDragEnter" OnDrop="OnDrop" Level="Level + 1" />
             }
         </li>
     }
@@ -34,8 +40,14 @@
     [Parameter] public Guid? ParentId { get; set; }
     [Parameter, EditorRequired] public ILookup<(Guid NotebookId, Guid? ParentId), FolderSummary> Children { get; set; } = default!;
     [Parameter, EditorRequired] public IReadOnlySet<Guid> Collapsed { get; set; } = default!;
+    [Parameter] public Guid? DropTarget { get; set; }
     [Parameter, EditorRequired] public NavSelection Selection { get; set; } = default!;
     [Parameter] public EventCallback<NavSelection> OnSelect { get; set; }
     [Parameter] public EventCallback<Guid> OnToggle { get; set; }
+    [Parameter] public EventCallback<(NavSelection Target, MouseEventArgs Mouse)> OnContextMenu { get; set; }
+    [Parameter] public EventCallback<Guid> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+    [Parameter] public EventCallback<Guid> OnDragEnter { get; set; }
+    [Parameter] public EventCallback<NavSelection> OnDrop { get; set; }
     [Parameter] public int Level { get; set; } = 1;
 }

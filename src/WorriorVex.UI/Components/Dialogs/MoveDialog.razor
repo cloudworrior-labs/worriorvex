@@ -1,0 +1,78 @@
+@using WorriorVex.Application.Tree
+
+<div class="wn-overlay" @onkeydown="OnKeyDown">
+    <div class="wn-dialog wn-dialog-move" role="dialog" aria-modal="true" aria-labelledby="wn-move-title">
+        <h2 id="wn-move-title">@Title</h2>
+        <p class="wn-dialog-hint">Choose where it goes.</p>
+        <div class="wn-move-tree" role="radiogroup" aria-label="Destination">
+            @foreach (var notebook in Notebooks)
+            {
+                <MoveDestination Label="@notebook.Name" NotebookId="notebook.Id" ParentId="null" Level="0" Chosen="_chosen" OnChoose="Choose" Disabled="IsExcluded(notebook.Id)" />
+                @foreach (var folder in Descendants(notebook.Id, null, 1))
+                {
+                    <MoveDestination Label="@folder.Folder.Name" NotebookId="notebook.Id" ParentId="folder.Folder.Id" Level="folder.Level" Chosen="_chosen" OnChoose="Choose" Disabled="IsExcluded(folder.Folder.Id)" />
+                }
+            }
+        </div>
+        @if (Error is not null)
+        {
+            <p class="wn-dialog-error" role="alert">@Error</p>
+        }
+        <div class="wn-dialog-actions">
+            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="wn-button wn-button-primary" disabled="@(_chosen is null || _busy)" @onclick="ConfirmAsync">Move here</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private (Guid NotebookId, Guid? ParentId)? _chosen;
+    private bool _busy;
+
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IReadOnlyList<NotebookSummary> Notebooks { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<FolderSummary> Folders { get; set; } = [];
+
+    /// <summary>Places that cannot be chosen: the item itself and what is inside it.</summary>
+    [Parameter] public IReadOnlySet<Guid> Excluded { get; set; } = new HashSet<Guid>();
+
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId)> OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private bool IsExcluded(Guid id) => Excluded.Contains(id);
+
+    private void Choose((Guid NotebookId, Guid? ParentId) destination) => _chosen = destination;
+
+    private IEnumerable<(FolderSummary Folder, int Level)> Descendants(Guid notebookId, Guid? parentId, int level)
+    {
+        foreach (var folder in Folders.Where(f => f.NotebookId == notebookId && f.ParentId == parentId))
+        {
+            yield return (folder, level);
+            foreach (var below in Descendants(notebookId, folder.Id, level + 1))
+            {
+                yield return below;
+            }
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (_chosen is not { } chosen || _busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await OnConfirm.InvokeAsync(chosen);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private Task OnKeyDown(KeyboardEventArgs args) => args.Key == "Escape" ? OnCancel.InvokeAsync() : Task.CompletedTask;
+}

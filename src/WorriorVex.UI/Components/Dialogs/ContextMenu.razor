@@ -1,0 +1,62 @@
+@* A menu at the pointer. Clicking anywhere else or pressing Escape closes it. *@
+<div class="wn-menu-backdrop" @onclick="OnClose" @oncontextmenu:preventDefault @oncontextmenu="OnClose" @onkeydown="OnKeyDown">
+    <div class="wn-menu" role="menu" aria-label="@Label" style="left: @(X)px; top: @(Y)px" @onclick:stopPropagation>
+        @foreach (var item in Items)
+        {
+            if (item.Separator)
+            {
+                <hr class="wn-menu-separator" />
+            }
+            else
+            {
+                <button type="button" role="menuitem" class="wn-menu-item @(item.Danger ? "is-danger" : null)" @ref="item.Element"
+                        @onclick="() => ChooseAsync(item)">@item.Label</button>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>One entry of a context menu. A separator is a line between groups.</summary>
+    public sealed class Item(string label, Func<Task>? action = null, bool danger = false, bool separator = false)
+    {
+        public string Label { get; } = label;
+        public Func<Task>? Action { get; } = action;
+        public bool Danger { get; } = danger;
+        public bool Separator { get; } = separator;
+        internal ElementReference Element { get; set; }
+
+        public static Item Line() => new(string.Empty, separator: true);
+    }
+
+    [Parameter, EditorRequired] public IReadOnlyList<Item> Items { get; set; } = [];
+    [Parameter] public string Label { get; set; } = "Actions";
+    [Parameter] public double X { get; set; }
+    [Parameter] public double Y { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Items.FirstOrDefault(i => !i.Separator) is { } first)
+        {
+            await first.Element.FocusAsync();
+        }
+    }
+
+    private async Task ChooseAsync(Item item)
+    {
+        await OnClose.InvokeAsync();
+        if (item.Action is not null)
+        {
+            await item.Action();
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+}

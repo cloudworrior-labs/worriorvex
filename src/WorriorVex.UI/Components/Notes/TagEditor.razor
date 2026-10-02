@@ -1,0 +1,136 @@
+@using WorriorVex.Application.Tags
+@using WorriorVex.Domain
+@inject ITagService Tags
+@inject ILogger<TagEditor> Logger
+
+<div class="wn-tags" aria-label="Tags">
+    @foreach (var tag in _tags)
+    {
+        <span class="wn-tag" @key="tag.Id">
+            <span>@tag.Name</span>
+            <button type="button" class="wn-tag-remove" aria-label="Remove tag @tag.Name" title="Remove tag" @onclick="() => RemoveAsync(tag)">×</button>
+        </span>
+    }
+    <input class="wn-tag-input" type="text" list="wn-tag-suggestions" placeholder="@(_tags.Count == 0 ? "Add tag…" : "+")" aria-label="Add a tag"
+           maxlength="@Tag.MaxNameLength" autocomplete="off" spellcheck="false" value="@_entry"
+           @oninput="e => _entry = e.Value?.ToString() ?? string.Empty" @onkeydown="OnKeyDown" @onblur="AddEntryAsync" />
+    <datalist id="wn-tag-suggestions">
+        @foreach (var name in _suggestions)
+        {
+            <option value="@name"></option>
+        }
+    </datalist>
+    @if (_error is not null)
+    {
+        <span class="wn-tag-error" role="alert">@_error</span>
+    }
+</div>
+
+@code {
+    private List<TagSummary> _tags = [];
+    private List<string> _suggestions = [];
+    private Guid _loadedFor;
+    private string _entry = string.Empty;
+    private string? _error;
+
+    [Parameter, EditorRequired] public Guid NoteId { get; set; }
+
+    /// <summary>A tag was added or removed, so lists of tags elsewhere may have changed.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (NoteId != _loadedFor)
+        {
+            _loadedFor = NoteId;
+            _entry = string.Empty;
+            _error = null;
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _tags = [.. await Tags.GetForNoteAsync(NoteId)];
+            _suggestions = [.. (await Tags.ListAsync()).Select(t => t.Name)];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Tags could not be loaded");
+            _error = "Tags could not be loaded.";
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Enter" or "," or "Tab" when !args.IsComposing && _entry.Trim().Length > 0:
+                await AddEntryAsync();
+                break;
+            case "Backspace" when _entry.Length == 0 && _tags.Count > 0:
+                await RemoveAsync(_tags[^1]);
+                break;
+            case "Escape":
+                _entry = string.Empty;
+                _error = null;
+                break;
+        }
+    }
+
+    private async Task AddEntryAsync()
+    {
+        var name = _entry.Trim().TrimEnd(',');
+        if (name.Length == 0)
+        {
+            _entry = string.Empty;
+            return;
+        }
+
+        try
+        {
+            var added = await Tags.AddToNoteAsync(NoteId, name);
+            _entry = string.Empty;
+            _error = null;
+            if (_tags.All(t => t.Id != added.Id))
+            {
+                _tags.Add(added);
+                _tags = [.. _tags.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)];
+            }
+
+            if (!_suggestions.Contains(added.Name))
+            {
+                _suggestions.Add(added.Name);
+            }
+
+            await OnChanged.InvokeAsync();
+        }
+        catch (DomainException ex)
+        {
+            _error = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "A tag could not be added");
+            _error = "The tag could not be added.";
+        }
+    }
+
+    private async Task RemoveAsync(TagSummary tag)
+    {
+        try
+        {
+            await Tags.RemoveFromNoteAsync(NoteId, tag.Id);
+            _tags.RemoveAll(t => t.Id == tag.Id);
+            _error = null;
+            await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "A tag could not be removed");
+            _error = "The tag could not be removed.";
+        }
+    }
+}

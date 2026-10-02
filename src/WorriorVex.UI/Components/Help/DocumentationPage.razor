@@ -141,11 +141,35 @@
                 </ul>
                 <p>
                     <strong>All Notes</strong> shows every note from every notebook in one list, with the notebook's name under each title.
+                    The Inbox is always there and cannot be renamed or deleted.
                 </p>
+                <h3>Moving things</h3>
                 <p>
-                    The Inbox is always there and cannot be renamed or deleted. Moving a note from one place
-                    to another by hand is coming in a later version.
+                    Drag a note from the list, or a folder from the tree, and drop it on a notebook or folder.
+                    Or right-click it and choose <strong>Move…</strong> to pick the destination from a list.
+                    A folder takes everything inside it along.
                 </p>
+                <h3>Right-click menus</h3>
+                <p>
+                    Right-click a notebook, folder, tag or note for what you can do with it: new note or folder,
+                    rename, move, duplicate, favourite, pin, delete. <strong>Duplicate</strong> makes a copy beside
+                    the original, with its tags and its own copies of its pictures.
+                </p>
+                <h3>Favourites and pins</h3>
+                <p>
+                    <strong>Favorite</strong> (★ above the note) makes a note easy to reach from the
+                    <strong>Favorites</strong> list, wherever it is filed. <strong>Pin</strong> keeps a note at the
+                    top of the list it lives in. They are separate: a note can be either, both or neither.
+                </p>
+                <h3>Tags</h3>
+                <p>
+                    Type a tag in the row under the title and press <kbd>Enter</kbd>; existing tags are suggested.
+                    A tag is one word: no spaces or commas. Tags appear in the navigation with the number of notes
+                    carrying them; select one to see those notes, right-click it to rename or delete it. Deleting a
+                    tag never deletes a note. Search for <code>tag:name</code> to combine a tag with other words.
+                </p>
+                <h3>Recent</h3>
+                <p><strong>Recent</strong> lists the notes you opened most recently. Opening a note does not count as changing it.</p>
                 break;
 
             case "trash":
@@ -181,7 +205,9 @@
                         <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> in the search box</td><td>Move through the results and open one</td></tr>
                         <tr><td><kbd>Esc</kbd> in the search box</td><td>Leave the search</td></tr>
                         <tr><td><kbd>Enter</kbd> in the title</td><td>Move to the text</td></tr>
-                        <tr><td><kbd>Esc</kbd></td><td>Close a dialog</td></tr>
+                        <tr><td><kbd>Esc</kbd></td><td>Close a dialog or menu</td></tr>
+                        <tr><td><kbd>Enter</kbd> in the tag row</td><td>Add the tag</td></tr>
+                        <tr><td><kbd>Backspace</kbd> in the empty tag row</td><td>Remove the last tag</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Bold / italic / underline</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td><td>Strikethrough</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>E</kbd></td><td>Inline code</td></tr>
@@ -236,7 +262,6 @@
                 <h2>What is coming</h2>
                 <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
                 <ul>
-                    <li>Tags, favourites, pinned notes, recent notes, moving notes between folders</li>
                     <li>Links between notes, with backlinks</li>
                     <li>Attaching files</li>
                     <li>Importing notebooks from KeepNote</li>

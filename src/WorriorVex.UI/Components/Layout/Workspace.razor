@@ -8,7 +8,9 @@
         <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
     </header>
 
-    <NavPane Notebooks="_notebooks" Folders="_folders" Selection="_selection" OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" />
+    <NavPane Notebooks="_notebooks" Folders="_folders" Tags="_tags" Selection="_selection" Dragging="_dragging is not null"
+             OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu"
+             OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 
     @if (IsHelpPage)
     {
@@ -25,8 +27,10 @@
     }
     else
     {
-        <NoteList Heading="@Heading" Notes="_notes" SelectedId="_current?.Id" NotebookNames="@(_selection is NavSelection.AllNotes ? NotebookNames : null)"
-                  FirstEver="@(_selection is NavSelection.AllNotes)" ShowActions="CanHoldFolders" OnSelect="OpenAsync" OnCreate="NewNoteAsync">
+        <NoteList Heading="@Heading" Notes="_notes" SelectedId="_current?.Id" NotebookNames="@(ShowsManyPlaces ? NotebookNames : null)"
+                  FirstEver="@(_selection is NavSelection.AllNotes)" EmptyMessage="@EmptyMessage" ShowOpened="@(_selection is NavSelection.Recent)"
+                  ShowActions="CanHoldFolders" OnSelect="OpenAsync" OnCreate="NewNoteAsync" OnContextMenu="ShowNoteMenu"
+                  OnDragStart="id => _dragging = (id, false)" OnDragEnd="() => _dragging = null">
             @if (CanHoldFolders)
             {
                 <button type="button" class="wn-button wn-button-small" @onclick="PromptNewFolder">New folder</button>
@@ -91,7 +95,8 @@
         }
         else
         {
-            <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" OnDelete="DeleteCurrentNoteAsync" OnProblem="@(message => _error = message)" />
+            <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" OnDelete="DeleteCurrentNoteAsync" OnProblem="@(message => _error = message)"
+                        OnToggleFavorite="ToggleFavoriteAsync" OnTogglePinned="TogglePinnedAsync" OnTagsChanged="LoadTagsAsync" />
         }
     </main>
 
@@ -103,6 +108,17 @@
     {
         <PromptDialog @key="_prompt" Title="@_prompt.Title" Label="@_prompt.Label" InitialValue="@_prompt.InitialValue" ConfirmText="@_prompt.ConfirmText"
                       MaxLength="_prompt.MaxLength" Error="@_dialogError" OnConfirm="ConfirmPromptAsync" OnCancel="CloseDialogs" />
+    }
+
+    @if (_move is not null)
+    {
+        <MoveDialog @key="_move" Title="@($"Move \"{_move.Name}\"")" Notebooks="_notebooks" Folders="_folders" Excluded="_move.Excluded"
+                    Error="@_dialogError" OnConfirm="ConfirmMoveAsync" OnCancel="CloseDialogs" />
+    }
+
+    @if (_menu is not null)
+    {
+        <ContextMenu Items="_menu.Items" X="_menu.X" Y="_menu.Y" Label="@_menu.Label" OnClose="() => _menu = null" />
     }
 
     @if (_confirm is not null)

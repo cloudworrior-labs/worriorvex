@@ -195,5 +195,22 @@ public class NoteAutosaverTests
 
         public Task<IReadOnlyList<NoteSummary>> ListAllAsync(CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
+
+        public Task<IReadOnlyList<NoteSummary>> ListFavoritesAsync(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<IReadOnlyList<NoteSummary>> ListRecentAsync(int limit = 50, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<IReadOnlyList<NoteSummary>> ListByTagAsync(Guid tagId, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task RecordOpenedAsync(Guid id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task SetFavoriteAsync(Guid id, bool isFavorite, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task SetPinnedAsync(Guid id, bool isPinned, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<NoteDetail> DuplicateAsync(Guid id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }

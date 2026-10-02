@@ -9,7 +9,8 @@ public sealed record NoteSummary(
     DateTimeOffset UpdatedAt,
     Guid? ParentId = null,
     bool IsFavorite = false,
-    bool IsPinned = false);
+    bool IsPinned = false,
+    DateTimeOffset? LastOpenedAt = null);
 
 /// <summary>A note with its body, as opened in the editor.</summary>
 public sealed record NoteDetail(
@@ -20,9 +21,11 @@ public sealed record NoteDetail(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     Guid? ParentId = null,
-    DateTimeOffset? DeletedAt = null)
+    DateTimeOffset? DeletedAt = null,
+    bool IsFavorite = false,
+    bool IsPinned = false)
 {
-    public NoteSummary ToSummary() => new(Id, NotebookId, Title, CreatedAt, UpdatedAt, ParentId);
+    public NoteSummary ToSummary() => new(Id, NotebookId, Title, CreatedAt, UpdatedAt, ParentId, IsFavorite, IsPinned);
 }
 
 public sealed record NotebookSummary(Guid Id, string Name, bool IsInbox);

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using WorriorVex.Application.Storage;
+using WorriorVex.Domain;
 
 namespace WorriorVex.Infrastructure.Attachments;
 
@@ -23,6 +24,25 @@ public sealed class AttachmentFileStore(IApplicationDataPathProvider paths, ILog
         }
 
         return path;
+    }
+
+    /// <summary>
+    /// Copies a stored file for another note, under a new generated name. Returns the new attachment
+    /// row to add, or <c>null</c> when the original file is missing (the copy then simply has no file).
+    /// </summary>
+    public Attachment? Copy(Attachment original, Guid noteId, DateTimeOffset now)
+    {
+        var source = GetPath(original.StoredFileName);
+        if (!File.Exists(source))
+        {
+            logger.LogWarning("Attachment file {StoredFileName} is missing and was not copied", original.StoredFileName);
+            return null;
+        }
+
+        var copy = Attachment.Create(Guid.NewGuid(), noteId, original.OriginalFileName, original.ContentType, original.Size, original.Hash, now);
+        EnsureDirectory();
+        File.Copy(source, GetPath(copy.StoredFileName), overwrite: false);
+        return copy;
     }
 
     /// <summary>

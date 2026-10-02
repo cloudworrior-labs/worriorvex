@@ -1,17 +1,28 @@
+@using WorriorVex.Application.Tags
+
 <nav class="wn-nav" aria-label="Navigation">
     <ul class="wn-nav-list">
         @if (Inbox is not null)
         {
+            var inbox = new NavSelection.Notebook(Inbox.Id);
             <li>
-                <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Notebook(Inbox.Id))"
-                        aria-current="@Current(new NavSelection.Notebook(Inbox.Id))"
-                        @onclick="() => OnSelect.InvokeAsync(new NavSelection.Notebook(Inbox.Id))">Inbox</button>
+                <button type="button" class="wn-navitem @SelectedClass(inbox) @DropClass(Inbox.Id)" aria-current="@Current(inbox)"
+                        @onclick="() => OnSelect.InvokeAsync(inbox)"
+                        @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((inbox, e))"
+                        @ondragenter="() => _dropTarget = Inbox.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(inbox)">Inbox</button>
             </li>
         }
         <li>
-            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.AllNotes())"
-                    aria-current="@Current(new NavSelection.AllNotes())"
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.AllNotes())" aria-current="@Current(new NavSelection.AllNotes())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.AllNotes())">All Notes</button>
+        </li>
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Favorites())" aria-current="@Current(new NavSelection.Favorites())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Favorites())">Favorites</button>
+        </li>
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Recent())" aria-current="@Current(new NavSelection.Recent())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Recent())">Recent</button>
         </li>
     </ul>
 
@@ -44,14 +55,38 @@
                         {
                             <span class="wn-twisty" aria-hidden="true"></span>
                         }
-                        <button type="button" class="wn-navitem @SelectedClass(selection)" aria-current="@Current(selection)"
-                                @onclick="() => OnSelect.InvokeAsync(selection)">@notebook.Name</button>
+                        <button type="button" class="wn-navitem @SelectedClass(selection) @DropClass(notebook.Id)" aria-current="@Current(selection)"
+                                @onclick="() => OnSelect.InvokeAsync(selection)"
+                                @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
+                                @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>
                     </div>
                     @if (hasFolders && expanded)
                     {
-                        <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Collapsed="_collapsed"
-                                    Selection="Selection" OnSelect="OnSelect" OnToggle="Toggle" Level="1" />
+                        <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Collapsed="_collapsed" DropTarget="_dropTarget"
+                                    Selection="Selection" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
+                                    OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" Level="1" />
                     }
+                </li>
+            }
+        </ul>
+    }
+
+    @if (Tags.Count > 0)
+    {
+        <div class="wn-nav-section">
+            <h2 id="wn-tags-heading">Tags</h2>
+        </div>
+        <ul class="wn-nav-list" aria-labelledby="wn-tags-heading">
+            @foreach (var tag in Tags)
+            {
+                var selection = new NavSelection.Tag(tag.Id);
+                <li @key="tag.Id">
+                    <button type="button" class="wn-navitem wn-navitem-tag @SelectedClass(selection)" aria-current="@Current(selection)"
+                            @onclick="() => OnSelect.InvokeAsync(selection)"
+                            @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))">
+                        <span class="wn-navitem-label">@tag.Name</span>
+                        <span class="wn-navitem-count">@tag.NoteCount</span>
+                    </button>
                 </li>
             }
         </ul>
@@ -59,18 +94,15 @@
 
     <ul class="wn-nav-list wn-nav-bottom">
         <li>
-            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Trash())"
-                    aria-current="@Current(new NavSelection.Trash())"
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Trash())" aria-current="@Current(new NavSelection.Trash())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.Trash())">Trash</button>
         </li>
         <li>
-            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Documentation())"
-                    aria-current="@Current(new NavSelection.Documentation())"
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Documentation())" aria-current="@Current(new NavSelection.Documentation())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.Documentation())">Documentation</button>
         </li>
         <li>
-            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.About())"
-                    aria-current="@Current(new NavSelection.About())"
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.About())" aria-current="@Current(new NavSelection.About())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.About())">About</button>
         </li>
     </ul>
@@ -79,12 +111,26 @@
 @code {
     private readonly HashSet<Guid> _collapsed = [];
     private ILookup<(Guid NotebookId, Guid? ParentId), FolderSummary> _children = Array.Empty<FolderSummary>().ToLookup(f => (f.NotebookId, f.ParentId));
+    private Guid? _dropTarget;
 
     [Parameter, EditorRequired] public IReadOnlyList<NotebookSummary> Notebooks { get; set; } = [];
     [Parameter, EditorRequired] public IReadOnlyList<FolderSummary> Folders { get; set; } = [];
+    [Parameter] public IReadOnlyList<TagSummary> Tags { get; set; } = [];
     [Parameter, EditorRequired] public NavSelection Selection { get; set; } = new NavSelection.AllNotes();
+
+    /// <summary>Something is being dragged; notebooks and folders light up as it passes over them.</summary>
+    [Parameter] public bool Dragging { get; set; }
+
     [Parameter] public EventCallback<NavSelection> OnSelect { get; set; }
     [Parameter] public EventCallback OnNewNotebook { get; set; }
+    [Parameter] public EventCallback<(NavSelection Target, MouseEventArgs Mouse)> OnContextMenu { get; set; }
+
+    /// <summary>A folder in the tree started being dragged.</summary>
+    [Parameter] public EventCallback<Guid> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+
+    /// <summary>Something was dropped on a notebook or folder.</summary>
+    [Parameter] public EventCallback<NavSelection> OnDrop { get; set; }
 
     private NotebookSummary? Inbox => Notebooks.FirstOrDefault(n => n.IsInbox);
     private List<NotebookSummary> UserNotebooks => [.. Notebooks.Where(n => !n.IsInbox)];
@@ -92,6 +138,10 @@
     protected override void OnParametersSet()
     {
         _children = Folders.ToLookup(f => (f.NotebookId, f.ParentId));
+        if (!Dragging)
+        {
+            _dropTarget = null;
+        }
     }
 
     private void Toggle(Guid id)
@@ -102,6 +152,13 @@
         }
     }
 
+    private async Task DropAsync(NavSelection target)
+    {
+        _dropTarget = null;
+        await OnDrop.InvokeAsync(target);
+    }
+
     private string? SelectedClass(NavSelection selection) => selection == Selection ? "is-selected" : null;
     private string? Current(NavSelection selection) => selection == Selection ? "true" : null;
+    private string? DropClass(Guid id) => Dragging && _dropTarget == id ? "is-droptarget" : null;
 }

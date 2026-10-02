@@ -40,7 +40,7 @@ delete → restore.
 | About and Documentation pages, icon, installers for Windows, macOS, Linux | done |
 | Links, images (file, paste, drop), tables, HTML sanitiser, content security policy (Phase 6) | done |
 | Full-text search on SQLite FTS5 with a search box, highlighting and filters (Phase 7) | done |
-| Screens for tags, favourites, pins, recent, move, context menus | Phase 8 |
+| Tags, favourites, pins, Recent, move dialog, duplicate, context menus, drag and drop (Phase 8) | done |
 | Screens for links and backlinks | Phase 9 |
 | Screens for attachments | Phase 10 |
 | KeepNote import | Phase 11 |

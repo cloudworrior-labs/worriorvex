@@ -24,6 +24,28 @@ public interface INoteService
     /// <summary>Every note that is not in the trash, most recently updated first.</summary>
     Task<IReadOnlyList<NoteSummary>> ListAllAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Notes marked as favourites, most recently updated first.</summary>
+    Task<IReadOnlyList<NoteSummary>> ListFavoritesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Notes in the order they were last opened, newest first.</summary>
+    Task<IReadOnlyList<NoteSummary>> ListRecentAsync(int limit = 50, CancellationToken cancellationToken = default);
+
+    /// <summary>Notes carrying a tag, most recently updated first.</summary>
+    Task<IReadOnlyList<NoteSummary>> ListByTagAsync(Guid tagId, CancellationToken cancellationToken = default);
+
+    /// <summary>Remembers that the note was opened now. Does not count as a change to the note.</summary>
+    Task RecordOpenedAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task SetFavoriteAsync(Guid id, bool isFavorite, CancellationToken cancellationToken = default);
+
+    Task SetPinnedAsync(Guid id, bool isPinned, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Makes a copy of a note beside the original, with its tags and its own copies of the images,
+    /// titled "Copy of …".
+    /// </summary>
+    Task<NoteDetail> DuplicateAsync(Guid id, CancellationToken cancellationToken = default);
+
     /// <summary>Saves a note's title and body. <see cref="NoteDetail.UpdatedAt"/> only moves when something changed.</summary>
     Task<NoteDetail> UpdateAsync(Guid id, string? title, string? content, CancellationToken cancellationToken = default);
 }
