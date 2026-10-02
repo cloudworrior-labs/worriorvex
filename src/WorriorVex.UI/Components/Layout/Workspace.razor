@@ -105,7 +105,7 @@
         {
             <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" OnDelete="DeleteCurrentNoteAsync" OnProblem="@(message => _error = message)"
                         OnToggleFavorite="ToggleFavoriteAsync" OnTogglePinned="TogglePinnedAsync" OnTagsChanged="OnTagsChangedAsync"
-                        OnOpenNote="OpenLinkedNoteAsync" ConnectionsVersion="_connectionsVersion" />
+                        OnOpenNote="OpenLinkedNoteAsync" ConnectionsVersion="_connectionsVersion" OnRestored="OnRestoredAsync" />
         }
     </main>
 

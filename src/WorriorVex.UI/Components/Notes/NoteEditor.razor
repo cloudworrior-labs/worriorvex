@@ -57,6 +57,7 @@
             <button type="button" class="wn-tool" title="Link to another note" @onmousedown:preventDefault @onclick="() => _notePicker = true">Note link</button>
             <button type="button" class="wn-tool" title="Insert image from a file" @onmousedown:preventDefault @onclick="PickImageAsync">Image</button>
             <button type="button" class="wn-tool" title="Attach a file to this note" @onmousedown:preventDefault @onclick="AttachFileAsync">Attach</button>
+            <button type="button" class="wn-tool" title="Earlier versions of this note" @onmousedown:preventDefault @onclick="OpenHistoryAsync">History</button>
             <button type="button" class="wn-tool" title="Insert table" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">Table</button>
         </div>
         @if (_active.Contains("table"))
@@ -76,6 +77,11 @@
     <AttachmentsPanel NoteId="Note.Id" Content="@_content" Version="_attachmentsVersion" OnProblem="OnProblem" />
     <NoteConnections NoteId="Note.Id" Version="ConnectionsVersion" OnOpen="OnOpenNote" />
 </section>
+
+@if (_history)
+{
+    <HistoryDialog NoteId="Note.Id" OnRestored="RestoredAsync" OnCancel="() => _history = false" />
+}
 
 @if (_notePicker)
 {
@@ -110,6 +116,7 @@
     private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
 
     private int _attachmentsVersion;
+    private bool _history;
     private bool _notePicker;
     private bool _linkPrompt;
     private string _linkAddress = string.Empty;
@@ -136,6 +143,9 @@
     /// <summary>Something the user tried did not work; the text says what and why.</summary>
     [Parameter] public EventCallback<string> OnProblem { get; set; }
 
+    /// <summary>An earlier version was restored; the note now has this title and text.</summary>
+    [Parameter] public EventCallback<NoteDetail> OnRestored { get; set; }
+
     /// <summary>A link to another note was followed; the owner opens that note.</summary>
     [Parameter] public EventCallback<Guid> OnOpenNote { get; set; }
 
@@ -153,6 +163,16 @@
 
     /// <summary>Puts the cursor in the title of the next note that is loaded.</summary>
     public void FocusTitleOnNextLoad() => _focusTitle = true;
+
+    /// <summary>Shows a note's current title and text, for example after an earlier version was restored.</summary>
+    public async Task ReloadAsync(NoteDetail note)
+    {
+        _loadedNoteId = note.Id;
+        _title = note.Title == Domain.Node.DefaultNoteName ? string.Empty : note.Title;
+        _content = note.Content;
+        await EditorAsync("setContent", _content);
+        StateHasChanged();
+    }
 
     /// <summary>Sends any keystrokes the editor is still holding back to <see cref="OnEdited"/>.</summary>
     public async Task FlushAsync()
@@ -369,6 +389,20 @@
 
         // Reached from a JavaScript call as well as from a click; only the click re-renders by itself.
         StateHasChanged();
+    }
+
+    private async Task OpenHistoryAsync()
+    {
+        // Whatever is typed is saved first, so the version kept before restoring is the real current text.
+        await FlushAsync();
+        _history = true;
+    }
+
+    private async Task RestoredAsync(NoteDetail restored)
+    {
+        _history = false;
+        await ReloadAsync(restored);
+        await OnRestored.InvokeAsync(restored);
     }
 
     private async Task PromptLinkAsync()

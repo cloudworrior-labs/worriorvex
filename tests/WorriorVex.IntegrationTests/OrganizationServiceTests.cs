@@ -132,6 +132,25 @@ public class OrganizationServiceTests
     }
 
     [Fact]
+    public async Task A_revision_from_before_the_sanitiser_comes_back_clean()
+    {
+        using var data = new TempDataDirectory();
+        await using var app = await TestApp.StartAsync(data.Path);
+        var note = await app.Notes.CreateAsync(title: "Old note", content: "<p>current</p>");
+        var revisionId = Guid.NewGuid();
+        await using (var context = await app.Get<IDbContextFactory<WorriorVexDbContext>>().CreateDbContextAsync())
+        {
+            await context.Database.ExecuteSqlAsync(
+                $"INSERT INTO NoteRevisions (Id, NoteId, Title, Content, CreatedAt, ChangeReason) VALUES ({revisionId}, {note.Id}, 'Old note', '<p onclick=\"x()\">then</p><script>bad()</script>', '2026-01-01T00:00:00.0000000Z', 'legacy')");
+        }
+
+        var restored = await app.Revisions.RestoreAsync(revisionId);
+
+        Assert.Equal("<p>then</p>", restored.Content);
+        Assert.Equal("<p>then</p>", (await app.Notes.GetAsync(note.Id))!.Content);
+    }
+
+    [Fact]
     public async Task An_attachment_is_stored_under_a_generated_name_and_reads_back_byte_for_byte()
     {
         using var data = new TempDataDirectory();

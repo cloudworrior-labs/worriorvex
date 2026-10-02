@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WorriorVex.Application.Common;
+using WorriorVex.Application.Content;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
 using WorriorVex.Domain;
@@ -12,6 +13,7 @@ namespace WorriorVex.Infrastructure.Revisions;
 
 public sealed class RevisionService(
     IDbContextFactory<WorriorVexDbContext> contextFactory,
+    INoteHtmlSanitizer sanitizer,
     TimeProvider timeProvider) : IRevisionService
 {
     public async Task<IReadOnlyList<RevisionSummary>> ListAsync(Guid noteId, CancellationToken cancellationToken = default)
@@ -48,7 +50,8 @@ public sealed class RevisionService(
         var currentTitle = node.Name;
         var currentContent = node.Note!.Content;
         var now = timeProvider.GetUtcNow();
-        node.Edit(revision.Title, revision.Content, now);
+        // Revisions from before the sanitiser existed may hold anything; what comes back is clean.
+        node.Edit(revision.Title, sanitizer.Sanitize(revision.Content), now);
 
         if (node.Name != currentTitle || node.Note.Content != currentContent)
         {

@@ -1,0 +1,144 @@
+@using WorriorVex.Application.Content
+@using WorriorVex.Application.Revisions
+@inject IRevisionService Revisions
+@inject INoteHtmlSanitizer Sanitizer
+@inject ILogger<HistoryDialog> Logger
+
+<div class="wn-overlay" @onkeydown="OnKeyDown">
+    <div class="wn-dialog wn-dialog-history" role="dialog" aria-modal="true" aria-labelledby="wn-history-title">
+        <h2 id="wn-history-title">Earlier versions</h2>
+        @if (_loading)
+        {
+            <p class="wn-dialog-hint">Loading…</p>
+        }
+        else if (_revisions.Count == 0)
+        {
+            <p class="wn-dialog-hint">
+                No earlier versions yet. While you edit, WorriorVex keeps the version from before a change
+                about every @((int)RevisionPolicy.SnapshotInterval.TotalMinutes) minutes, and always before restoring one.
+            </p>
+        }
+        else
+        {
+            <div class="wn-history">
+                <ul class="wn-history-list" role="listbox" aria-label="Versions">
+                    @foreach (var revision in _revisions)
+                    {
+                        var selected = revision.Id == _selected?.Id;
+                        <li role="option" aria-selected="@(selected ? "true" : "false")">
+                            <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" @onclick="() => ShowAsync(revision)">
+                                <span class="wn-noteitem-title">@revision.CreatedAt.ToLocalTime().ToString("f")</span>
+                                <span class="wn-noteitem-meta">@revision.ChangeReason · @revision.Title</span>
+                            </button>
+                        </li>
+                    }
+                </ul>
+                <div class="wn-history-preview">
+                    @if (_selected is null)
+                    {
+                        <p class="wn-dialog-hint">Select a version to see it.</p>
+                    }
+                    else
+                    {
+                        <h3>@_selected.Title</h3>
+                        @* Stored content is sanitised, and it passes the sanitiser again here before it is shown. *@
+                        <div class="wn-prose wn-prose-preview">@((MarkupString)_preview)</div>
+                    }
+                </div>
+            </div>
+        }
+        @if (_error is not null)
+        {
+            <p class="wn-dialog-error" role="alert">@_error</p>
+        }
+        <div class="wn-dialog-actions">
+            <button type="button" class="wn-button" @onclick="OnCancel">Close</button>
+            <button type="button" class="wn-button wn-button-primary" disabled="@(_selected is null || _busy)" @onclick="() => _confirming = true">Restore this version</button>
+        </div>
+    </div>
+</div>
+
+@if (_confirming && _selected is { } chosen)
+{
+    <ConfirmDialog Title="Restore this version?" Message="@($"The note becomes what it was on {chosen.CreatedAt.ToLocalTime():f}. What it says now is kept as a version too, so nothing is lost.")"
+                   ConfirmText="Restore" OnConfirm="RestoreAsync" OnCancel="() => _confirming = false" />
+}
+
+@code {
+    private List<RevisionSummary> _revisions = [];
+    private RevisionDetail? _selected;
+    private string _preview = string.Empty;
+    private bool _loading = true;
+    private bool _busy;
+    private bool _confirming;
+    private string? _error;
+
+    [Parameter, EditorRequired] public Guid NoteId { get; set; }
+
+    /// <summary>A version was restored; the owner shows the note as it is now.</summary>
+    [Parameter] public EventCallback<NoteDetail> OnRestored { get; set; }
+
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _revisions = [.. await Revisions.ListAsync(NoteId)];
+            if (_revisions.Count > 0)
+            {
+                await ShowAsync(_revisions[0]);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Revisions could not be listed");
+            _error = "The earlier versions could not be loaded.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ShowAsync(RevisionSummary revision)
+    {
+        try
+        {
+            _selected = await Revisions.GetAsync(revision.Id);
+            _preview = Sanitizer.Sanitize(_selected?.Content);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "A revision could not be loaded");
+            _error = "That version could not be loaded.";
+        }
+    }
+
+    private async Task RestoreAsync()
+    {
+        _confirming = false;
+        if (_selected is not { } chosen)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var restored = await Revisions.RestoreAsync(chosen.Id);
+            await OnRestored.InvokeAsync(restored);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Restoring a revision failed");
+            _error = "The version could not be restored. The note is unchanged.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private Task OnKeyDown(KeyboardEventArgs args) => args.Key == "Escape" && !_confirming ? OnCancel.InvokeAsync() : Task.CompletedTask;
+}

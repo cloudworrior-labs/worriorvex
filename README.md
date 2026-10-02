@@ -55,15 +55,13 @@ The installers are not code-signed yet, so the operating system asks for confirm
 - Import a KeepNote notebook (format 5 and 6): folders, pages, files, pictures, links and trash, with a report
 - Autosave with a visible save state; a failed save keeps your edits and offers Retry
 - Trash for notes, folders and whole notebooks: restore, delete permanently, empty
-- Earlier versions of a note are kept automatically while you edit
+- Earlier versions of a note are kept automatically while you edit; History shows and restores them
 - Built-in Documentation and About pages
 - SQLite database created and upgraded by migrations; per-OS data folder; log file
 
-Built and tested underneath, without a screen yet: browsing and restoring earlier versions.
-
 ## Roadmap
 
-Revision history → backup and export → Android and iOS.
+Backup and export → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
 [development plan](WorriorVex-Development-Plan.md).
 

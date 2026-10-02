@@ -370,6 +370,17 @@ public partial class Workspace
         await OpenAsync(id);
     }
 
+    /// <summary>An earlier version of the open note was restored; show it and keep the list in step.</summary>
+    private async Task OnRestoredAsync(NoteDetail restored)
+    {
+        await Autosaver.FlushAsync();
+        _current = restored;
+        ReplaceSummary(restored.ToSummary());
+        SortNotes();
+        _connectionsVersion++;
+        _notice = $"\"{restored.Title}\" was restored to an earlier version. The version it replaced is kept in its history.";
+    }
+
     private async Task OnTagsChangedAsync()
     {
         _connectionsVersion++;
