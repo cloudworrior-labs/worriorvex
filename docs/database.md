@@ -1,7 +1,7 @@
 # Database
 
-SQLite, one file (`worriornotes.db`) in the data folder, accessed through EF Core. The schema is defined
-by migrations in `src/WorriorNotes.Infrastructure/Persistence/Migrations` and applied at startup.
+SQLite, one file (`worriorvex.db`) in the data folder, accessed through EF Core. The schema is defined
+by migrations in `src/WorriorVex.Infrastructure/Persistence/Migrations` and applied at startup.
 
 ## Current schema
 
@@ -50,7 +50,7 @@ are loaded only when a note is opened.
 
 ```bash
 dotnet tool restore
-dotnet ef migrations add <Name> --project src/WorriorNotes.Infrastructure --output-dir Persistence/Migrations
+dotnet ef migrations add <Name> --project src/WorriorVex.Infrastructure --output-dir Persistence/Migrations
 ```
 
 Commit the generated files. Never edit a migration that has shipped in a release.

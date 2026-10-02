@@ -7,7 +7,7 @@ real notebook before the importer is written.
 
 ## Licence
 
-KeepNote is licensed under the GPL version 2 (`LICENSE`, `COPYING`). WorriorNotes uses the archive only as a
+KeepNote is licensed under the GPL version 2 (`LICENSE`, `COPYING`). WorriorVex uses the archive only as a
 description of the on-disk format. No KeepNote code is copied or translated into this repository, and the
 archive itself is not redistributed here (it is git-ignored).
 
@@ -64,7 +64,7 @@ property-list dictionary (`keepnote/plist.py`: `dict`, `key`, `string`, `integer
 
 Default attributes (`g_default_attr_defs`):
 
-| Attribute | Type | Meaning | WorriorNotes |
+| Attribute | Type | Meaning | WorriorVex |
 | --- | --- | --- | --- |
 | `nodeid` | string | UUID of the node | kept as the source id in the import report; used to resolve links |
 | `content_type` | string | what the node is, see below | decides folder / note / attachment |
@@ -90,7 +90,7 @@ report as unsupported rather than dropped silently.
 | `application/x-notebook-trash` | the trash folder (title "Trash") | its children become trashed nodes |
 | any other MIME type | an attached file: the file named by `payload_filename` lies in the node directory (`attach_file`, `set_payload`) | attachment |
 
-A page can have children, so in KeepNote a note can also act as a folder. The WorriorNotes tree allows a
+A page can have children, so in KeepNote a note can also act as a folder. The WorriorVex tree allows a
 note node to have children for the same reason.
 
 ## Note body: `page.html`
@@ -131,7 +131,7 @@ live in the user's home directory, outside the notebook, and are not imported.
 
 The trash is a normal child node of the root with `content_type` `application/x-notebook-trash`, stored in
 `__TRASH__`. Deleting a node moves its directory there; deleting it again removes it for good. Imported
-nodes found there are created with `DeletedAt` set, so they appear in the WorriorNotes trash and can be
+nodes found there are created with `DeletedAt` set, so they appear in the WorriorVex trash and can be
 restored.
 
 ## Older format versions

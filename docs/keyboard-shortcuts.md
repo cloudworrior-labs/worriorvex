@@ -1,7 +1,7 @@
 # Keyboard shortcuts
 
 `Ctrl` on Windows and Linux, `⌘` on macOS. Application shortcuts are registered in one place:
-`src/WorriorNotes.UI/wwwroot/js/shortcuts.js`.
+`src/WorriorVex.UI/wwwroot/js/shortcuts.js`.
 
 ## Application
 

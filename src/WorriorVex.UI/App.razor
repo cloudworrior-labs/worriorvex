@@ -1,0 +1,17 @@
+@inject StartupStatus Startup
+
+@if (Startup.Error is { } error)
+{
+    <main class="wn-fatal" role="alert">
+        <h1>WorriorVex could not start</h1>
+        <p>@error</p>
+        @if (Startup.DataDirectory is { } directory)
+        {
+            <p>Your data folder has not been changed: <code>@directory</code></p>
+        }
+    </main>
+}
+else
+{
+    <Workspace />
+}

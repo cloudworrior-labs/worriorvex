@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/WorriorNotes.UI/editor
+        working-directory: src/WorriorVex.UI/editor
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

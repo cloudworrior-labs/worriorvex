@@ -1,6 +1,6 @@
 # Third-party notices
 
-WorriorNotes includes or depends on the following open-source software.
+WorriorVex includes or depends on the following open-source software.
 
 | Component | Licence | Use |
 | --- | --- | --- |

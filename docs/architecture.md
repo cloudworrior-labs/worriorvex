@@ -1,29 +1,29 @@
 # Architecture
 
-WorriorNotes is a desktop application first. There is no server: the UI, the application logic and the
+WorriorVex is a desktop application first. There is no server: the UI, the application logic and the
 database all run in one local process.
 
 ```text
- WorriorNotes.Desktop        Photino window + composition root (one file)
+ WorriorVex.Desktop        Photino window + composition root (one file)
         │
- WorriorNotes.UI             Razor components, CSS design tokens, editor bundle (shared with mobile later)
+ WorriorVex.UI             Razor components, CSS design tokens, editor bundle (shared with mobile later)
         │
- WorriorNotes.Application    service interfaces, DTOs, NoteAutosaver
+ WorriorVex.Application    service interfaces, DTOs, NoteAutosaver
         │
- WorriorNotes.Domain         Notebook, Node, Note and their rules; no dependencies
+ WorriorVex.Domain         Notebook, Node, Note and their rules; no dependencies
         ▲
- WorriorNotes.Infrastructure EF Core + SQLite, migrations, data paths, file logger; implements Application
+ WorriorVex.Infrastructure EF Core + SQLite, migrations, data paths, file logger; implements Application
 ```
 
 | Project | Responsibility | May reference |
 | --- | --- | --- |
-| `WorriorNotes.Domain` | Entities and invariants (names, soft delete, "UpdatedAt moves only on real change") | nothing |
-| `WorriorNotes.Application` | What the app can do: `INoteService`, `INotebookService`, DTOs, autosave logic, `IApplicationDataPathProvider` | Domain |
-| `WorriorNotes.Infrastructure` | How it is stored: `WorriorNotesDbContext`, migrations, service implementations, paths, logging | Application, Domain |
-| `WorriorNotes.UI` | Components and assets; talks only to Application interfaces | Application |
-| `WorriorNotes.Desktop` | Creates the window, registers services, runs migrations at startup, flushes edits on close | UI, Infrastructure |
+| `WorriorVex.Domain` | Entities and invariants (names, soft delete, "UpdatedAt moves only on real change") | nothing |
+| `WorriorVex.Application` | What the app can do: `INoteService`, `INotebookService`, DTOs, autosave logic, `IApplicationDataPathProvider` | Domain |
+| `WorriorVex.Infrastructure` | How it is stored: `WorriorVexDbContext`, migrations, service implementations, paths, logging | Application, Domain |
+| `WorriorVex.UI` | Components and assets; talks only to Application interfaces | Application |
+| `WorriorVex.Desktop` | Creates the window, registers services, runs migrations at startup, flushes edits on close | UI, Infrastructure |
 
-`WorriorNotes.Web` and `WorriorNotes.Mobile` from the plan do not exist yet; they are added when needed,
+`WorriorVex.Web` and `WorriorVex.Mobile` from the plan do not exist yet; they are added when needed,
 not before. Host choice and editor choice are explained in [`decisions/`](decisions/).
 
 ## Rules
@@ -50,11 +50,11 @@ safe. Closing the window flushes pending edits first. `Ctrl/Cmd+S` forces a save
 
 | OS | Default folder |
 | --- | --- |
-| Windows | `%LOCALAPPDATA%\WorriorNotes` |
-| macOS | `~/Library/Application Support/WorriorNotes` |
-| Linux | `$XDG_DATA_HOME/WorriorNotes` or `~/.local/share/WorriorNotes` |
+| Windows | `%LOCALAPPDATA%\WorriorVex` |
+| macOS | `~/Library/Application Support/WorriorVex` |
+| Linux | `$XDG_DATA_HOME/WorriorVex` or `~/.local/share/WorriorVex` |
 
-Set `WORRIORNOTES_DATA_DIR` to use another folder. Contents: `worriornotes.db`, `attachments/`,
+Set `WORRIORVEX_DATA_DIR` to use another folder. Contents: `worriorvex.db`, `attachments/`,
 `backups/`, `exports/`, `logs/`.
 
 ## Logging
@@ -66,8 +66,8 @@ unexpected errors are logged. Note titles and contents are never logged.
 
 | Project | Covers |
 | --- | --- |
-| `WorriorNotes.Domain.Tests` | entity rules |
-| `WorriorNotes.Application.Tests` | autosave timing, failure and retry, with a fake clock |
-| `WorriorNotes.IntegrationTests` | real SQLite files: migrations, note lifecycle, survival across a restart |
+| `WorriorVex.Domain.Tests` | entity rules |
+| `WorriorVex.Application.Tests` | autosave timing, failure and retry, with a fake clock |
+| `WorriorVex.IntegrationTests` | real SQLite files: migrations, note lifecycle, survival across a restart |
 
 UI tests are not automated yet; the critical flows in the plan (section 40) are run by hand for now.

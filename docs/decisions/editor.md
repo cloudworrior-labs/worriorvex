@@ -14,9 +14,9 @@ It is bundled with esbuild into one local ES module; nothing is loaded from the 
 - Schema-based: content is parsed into a typed document. Markup the schema does not know (scripts,
   event handlers, unknown elements and attributes) cannot enter the document, which is a strong first
   layer for handling untrusted HTML.
-- Headless: no imposed toolbar or theme, so the UI follows the WorriorNotes design system and stays
+- Headless: no imposed toolbar or theme, so the UI follows the WorriorVex design system and stays
   accessible on our terms.
-- Permissive licences throughout (MIT), compatible with any licence chosen for WorriorNotes.
+- Permissive licences throughout (MIT), compatible with any licence chosen for WorriorVex.
 
 Alternatives considered: Quill 2 (BSD-3, simpler but weaker tables and task lists), CKEditor 5 (GPL or
 commercial), TinyMCE (GPL or commercial since v7), Lexical (MIT, younger extension ecosystem). Only the

@@ -5,11 +5,11 @@ manual run (see [Validation](#validation)).
 
 ## Decision
 
-- **UI:** Razor components in a shared class library, `WorriorNotes.UI`.
+- **UI:** Razor components in a shared class library, `WorriorVex.UI`.
 - **Desktop host (Windows, macOS, Linux):** [Photino.Blazor](https://github.com/tryphotino/photino.Blazor)
   (Apache-2.0), a native window around the operating system's web view, with the components running
   in-process in .NET. No web server, no ports, no browser.
-- **Mobile host (later):** .NET MAUI Blazor Hybrid, reusing `WorriorNotes.UI` and the core unchanged.
+- **Mobile host (later):** .NET MAUI Blazor Hybrid, reusing `WorriorVex.UI` and the core unchanged.
 - **Core:** `Domain`, `Application`, `Infrastructure` are plain .NET libraries with no UI or host dependency.
 
 ## Why

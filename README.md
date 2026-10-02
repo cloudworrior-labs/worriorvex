@@ -1,13 +1,13 @@
-# WorriorNotes
+# WorriorVex
 
-[![CI](https://github.com/cloudworrior-labs/worriornotes/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudworrior-labs/worriornotes/actions/workflows/ci.yml)
+[![CI](https://github.com/cloudworrior-labs/worriorvex/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudworrior-labs/worriorvex/actions/workflows/ci.yml)
 
 **Your personal knowledge workspace.** A local-first note-taking app for Windows, macOS and Linux, built
 as a modern replacement for [KeepNote](http://keepnote.org).
 
 > Capture quickly. Organize naturally. Find everything. Own your data.
 
-WorriorNotes works with the internet, servers and the cloud switched off. There is no account, no
+WorriorVex works with the internet, servers and the cloud switched off. There is no account, no
 telemetry and no AI dependency. Your notes live in a SQLite file on your own disk.
 
 > **Status: early development.** The foundation works (see below); it is not yet ready for daily use.
@@ -26,7 +26,7 @@ telemetry and no AI dependency. Your notes live in a SQLite file on your own dis
 Notebooks, folders and trash → images and tables → full-text search → tags, favourites, pins → links and
 backlinks → attachments → KeepNote import → revisions → backup and export → installers → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
-[development plan](WorriorNotes-Development-Plan.md).
+[development plan](WorriorVex-Development-Plan.md).
 
 ## Requirements
 
@@ -42,13 +42,13 @@ Details: [`docs/product.md`](docs/product.md) and the full
 dotnet restore
 dotnet build
 dotnet test
-dotnet run --project src/WorriorNotes.Desktop
+dotnet run --project src/WorriorVex.Desktop
 ```
 
 To try it without touching your real notes, point it at a scratch folder:
 
 ```bash
-WORRIORNOTES_DATA_DIR=/tmp/worriornotes-dev dotnet run --project src/WorriorNotes.Desktop
+WORRIORVEX_DATA_DIR=/tmp/worriorvex-dev dotnet run --project src/WorriorVex.Desktop
 ```
 
 ## Architecture
@@ -68,8 +68,8 @@ See [`docs/architecture.md`](docs/architecture.md) and the decision records for 
 
 SQLite through EF Core, schema managed by migrations: [`docs/database.md`](docs/database.md).
 
-Default data folder: `%LOCALAPPDATA%\WorriorNotes` (Windows), `~/Library/Application Support/WorriorNotes`
-(macOS), `~/.local/share/WorriorNotes` (Linux).
+Default data folder: `%LOCALAPPDATA%\WorriorVex` (Windows), `~/Library/Application Support/WorriorVex`
+(macOS), `~/.local/share/WorriorVex` (Linux).
 
 ## Testing
 
@@ -80,7 +80,7 @@ against real SQLite files, including a restart. CI builds and tests on Windows, 
 
 Not implemented yet. The KeepNote notebook format has been analysed in
 [`docs/keepnote-analysis.md`](docs/keepnote-analysis.md); the importer, backup and the open export formats
-(HTML, Markdown, JSON, `.worriornotes` package) are on the roadmap.
+(HTML, Markdown, JSON, `.worriorvex` package) are on the roadmap.
 
 ## Keyboard shortcuts
 
@@ -98,4 +98,4 @@ and add tests for behaviour you change.
 ## Licence
 
 [MIT](LICENSE). Third-party components: [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
-KeepNote is a separate GPL project by Matt Rasmussen; WorriorNotes contains none of its code.
+KeepNote is a separate GPL project by Matt Rasmussen; WorriorVex contains none of its code.

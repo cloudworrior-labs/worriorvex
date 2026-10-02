@@ -1,11 +1,11 @@
 # Product
 
-**WorriorNotes — your personal knowledge workspace.** A local-first notebook and knowledge base for
+**WorriorVex — your personal knowledge workspace.** A local-first notebook and knowledge base for
 Windows, macOS and Linux, built as a modern replacement for KeepNote.
 
 > Capture quickly. Organize naturally. Find everything. Own your data.
 
-The full requirements are in [`WorriorNotes-Development-Plan.md`](../WorriorNotes-Development-Plan.md).
+The full requirements are in [`WorriorVex-Development-Plan.md`](../WorriorVex-Development-Plan.md).
 This page is the short version and records what exists today.
 
 ## Promises

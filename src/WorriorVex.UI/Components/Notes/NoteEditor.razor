@@ -1,0 +1,178 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<section class="wn-editor" aria-label="Editor">
+    <input @ref="_titleInput"
+           class="wn-title"
+           type="text"
+           value="@_title"
+           maxlength="500"
+           placeholder="Untitled"
+           aria-label="Note title"
+           spellcheck="true"
+           @oninput="OnTitleInput"
+           @onkeydown="OnTitleKeyDown" />
+
+    @* Pressing a mouse button on the toolbar must not take focus (and the selection) away from the text. *@
+    <div class="wn-toolbar" role="toolbar" aria-label="Formatting">
+        @foreach (var group in ToolbarGroups)
+        {
+            <div class="wn-toolbar-group">
+                @foreach (var item in group)
+                {
+                    var active = _active.Contains(item.Command);
+                    <button type="button"
+                            class="wn-tool @(active ? "is-active" : null)"
+                            title="@item.Label"
+                            aria-label="@item.Label"
+                            aria-pressed="@(active ? "true" : "false")"
+                            @onmousedown:preventDefault
+                            @onclick="() => RunAsync(item.Command)">@item.Text</button>
+                }
+            </div>
+        }
+        <span class="wn-toolbar-spacer"></span>
+        <button type="button" class="wn-tool" title="Move this note to the trash" @onclick="OnDelete">Delete</button>
+    </div>
+
+    <div class="wn-editor-surface" @ref="_surface"></div>
+</section>
+
+@code {
+    private static readonly ToolbarItem[][] ToolbarGroups =
+    [
+        [new("bold", "B", "Bold"), new("italic", "I", "Italic"), new("underline", "U", "Underline"), new("strike", "S", "Strikethrough"), new("code", "<>", "Inline code")],
+        [new("heading1", "H1", "Heading 1"), new("heading2", "H2", "Heading 2"), new("heading3", "H3", "Heading 3")],
+        [new("bulletList", "• List", "Bulleted list"), new("orderedList", "1. List", "Numbered list"), new("taskList", "☑ List", "Checklist")],
+        [new("blockquote", "“ ”", "Block quote"), new("codeBlock", "{ }", "Code block"), new("horizontalRule", "—", "Horizontal rule")],
+    ];
+
+    private ElementReference _surface;
+    private ElementReference _titleInput;
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _editor;
+    private DotNetObjectReference<NoteEditor>? _self;
+    private HashSet<string> _active = [];
+    private Guid? _loadedNoteId;
+    private string _title = string.Empty;
+    private string _content = string.Empty;
+    private bool _contentNeedsPush;
+    private bool _focusTitle;
+
+    /// <summary>The note being edited. Changing its <see cref="NoteDetail.Id"/> loads the new note into the editor.</summary>
+    [Parameter, EditorRequired] public NoteDetail Note { get; set; } = default!;
+
+    /// <summary>Raised with the latest title and body whenever the user changes either.</summary>
+    [Parameter] public EventCallback<NoteEdit> OnEdited { get; set; }
+
+    /// <summary>The user asked to move this note to the trash.</summary>
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    /// <summary>Puts the cursor in the title of the next note that is loaded.</summary>
+    public void FocusTitleOnNextLoad() => _focusTitle = true;
+
+    /// <summary>Sends any keystrokes the editor is still holding back to <see cref="OnEdited"/>.</summary>
+    public async Task FlushAsync()
+    {
+        if (_editor is not null)
+        {
+            await _editor.InvokeVoidAsync("flush");
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Note.Id == _loadedNoteId)
+        {
+            return;
+        }
+
+        _loadedNoteId = Note.Id;
+        _title = Note.Title == Domain.Node.DefaultNoteName ? string.Empty : Note.Title;
+        _content = Note.Content;
+        _contentNeedsPush = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _self = DotNetObjectReference.Create(this);
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/WorriorVex.UI/editor/editor.bundle.js");
+            _editor = await _module.InvokeAsync<IJSObjectReference>("create", _surface, _self, _content);
+            _contentNeedsPush = false;
+        }
+        else if (_contentNeedsPush && _editor is not null)
+        {
+            _contentNeedsPush = false;
+            await _editor.InvokeVoidAsync("setContent", _content);
+        }
+
+        if (_focusTitle && _editor is not null)
+        {
+            _focusTitle = false;
+            await _titleInput.FocusAsync();
+        }
+    }
+
+    [JSInvokable]
+    public Task OnEditorChanged(string html)
+    {
+        _content = html;
+        return OnEdited.InvokeAsync(new NoteEdit(Note.Id, _title, _content));
+    }
+
+    [JSInvokable]
+    public void OnEditorSelectionChanged(string[] active)
+    {
+        _active = [.. active];
+        StateHasChanged();
+    }
+
+    private Task OnTitleInput(ChangeEventArgs args)
+    {
+        _title = args.Value?.ToString() ?? string.Empty;
+        return OnEdited.InvokeAsync(new NoteEdit(Note.Id, _title, _content));
+    }
+
+    /// <summary>Enter in the title continues in the body, as it would on paper.</summary>
+    private async Task OnTitleKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && !args.IsComposing && _editor is not null)
+        {
+            await _editor.InvokeVoidAsync("focus");
+        }
+    }
+
+        private async Task RunAsync(string command)
+    {
+        if (_editor is not null)
+        {
+            await _editor.InvokeVoidAsync("run", command);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_editor is not null)
+            {
+                await _editor.InvokeVoidAsync("destroy");
+                await _editor.DisposeAsync();
+            }
+
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+
+        _self?.Dispose();
+    }
+
+    private sealed record ToolbarItem(string Command, string Text, string Label);
+}

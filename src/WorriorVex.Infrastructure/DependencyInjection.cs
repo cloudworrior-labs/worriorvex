@@ -1,0 +1,53 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using WorriorVex.Application.Attachments;
+using WorriorVex.Application.Links;
+using WorriorVex.Application.Notes;
+using WorriorVex.Application.Revisions;
+using WorriorVex.Application.Search;
+using WorriorVex.Application.Storage;
+using WorriorVex.Application.Tags;
+using WorriorVex.Application.Trash;
+using WorriorVex.Application.Tree;
+using WorriorVex.Infrastructure.Attachments;
+using WorriorVex.Infrastructure.Links;
+using WorriorVex.Infrastructure.Notes;
+using WorriorVex.Infrastructure.Revisions;
+using WorriorVex.Infrastructure.Search;
+using WorriorVex.Infrastructure.Tags;
+using WorriorVex.Infrastructure.Trash;
+using WorriorVex.Infrastructure.Tree;
+using WorriorVex.Infrastructure.Persistence;
+using WorriorVex.Infrastructure.Storage;
+
+namespace WorriorVex.Infrastructure;
+
+public static class DependencyInjection
+{
+    /// <summary>Registers local storage and the application services. No network, no server.</summary>
+    public static IServiceCollection AddWorriorVexInfrastructure(this IServiceCollection services, string? dataDirectory = null)
+    {
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IApplicationDataPathProvider>(_ => new ApplicationDataPathProvider(dataDirectory));
+
+        services.AddDbContextFactory<WorriorVexDbContext>((provider, options) =>
+        {
+            var paths = provider.GetRequiredService<IApplicationDataPathProvider>();
+            options.UseSqlite($"Data Source={paths.DatabasePath}");
+        });
+
+        services.AddSingleton<DatabaseInitializer>();
+        services.AddSingleton<INotebookService, NotebookService>();
+        services.AddSingleton<INoteService, NoteService>();
+        services.AddSingleton<ITreeService, TreeService>();
+        services.AddSingleton<AttachmentFileStore>();
+        services.AddSingleton<ITrashService, TrashService>();
+        services.AddSingleton<ITagService, TagService>();
+        services.AddSingleton<INoteLinkService, NoteLinkService>();
+        services.AddSingleton<IRevisionService, RevisionService>();
+        services.AddSingleton<IAttachmentService, AttachmentService>();
+        services.AddSingleton<INoteSearchService, NoteSearchService>();
+        return services;
+    }
+}

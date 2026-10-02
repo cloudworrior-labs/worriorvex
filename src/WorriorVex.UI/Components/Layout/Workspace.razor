@@ -1,0 +1,91 @@
+@implements IAsyncDisposable
+
+<div class="wn-app">
+    <header class="wn-topbar">
+        <span class="wn-brand">WorriorVex</span>
+        <span class="wn-topbar-spacer"></span>
+        <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
+    </header>
+
+    <NavPane Notebooks="_notebooks" Folders="_folders" Selection="_selection" OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" />
+
+    @if (_selection is NavSelection.Trash)
+    {
+        <TrashList Items="_trash" SelectedId="_trashItem?.Id" OnSelect="item => _trashItem = item" OnEmpty="ConfirmEmptyTrash" />
+    }
+    else
+    {
+        <NoteList Heading="@Heading" Notes="_notes" SelectedId="_current?.Id" NotebookNames="@(_selection is NavSelection.AllNotes ? NotebookNames : null)"
+                  FirstEver="@(_selection is NavSelection.AllNotes)" ShowActions="CanHoldFolders" OnSelect="OpenAsync" OnCreate="NewNoteAsync">
+            @if (CanHoldFolders)
+            {
+                <button type="button" class="wn-button wn-button-small" @onclick="PromptNewFolder">New folder</button>
+            }
+            @if (CanChangeContainer)
+            {
+                <button type="button" class="wn-button wn-button-small" @onclick="PromptRename">Rename</button>
+                <button type="button" class="wn-button wn-button-small" @onclick="ConfirmDeleteContainer">Delete</button>
+            }
+        </NoteList>
+    }
+
+    <main class="wn-main">
+        @if (_error is not null)
+        {
+            <div class="wn-banner" role="alert">
+                <span>@_error</span>
+                <button type="button" class="wn-button" @onclick="() => _error = null">Dismiss</button>
+            </div>
+        }
+        else if (_notice is not null)
+        {
+            <div class="wn-banner wn-banner-info" role="status">
+                <span>@_notice</span>
+                <button type="button" class="wn-button" @onclick="() => _notice = null">Dismiss</button>
+            </div>
+        }
+
+        @if (_loading)
+        {
+            <div class="wn-empty"><p>Loading…</p></div>
+        }
+        else if (_selection is NavSelection.Trash)
+        {
+            @if (_trashItem is null)
+            {
+                <div class="wn-empty"><p>@(_trash.Count == 0 ? "Deleted notes, folders and notebooks wait here until you restore or remove them." : "Select an item to restore it or delete it permanently.")</p></div>
+            }
+            else
+            {
+                <TrashDetail Item="_trashItem" OnRestore="RestoreAsync" OnDelete="ConfirmDeletePermanently" />
+            }
+        }
+        else if (_current is null)
+        {
+            <div class="wn-empty">
+                <p>No note selected.</p>
+                <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync">New note</button>
+            </div>
+        }
+        else
+        {
+            <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" OnDelete="DeleteCurrentNoteAsync" />
+        }
+    </main>
+
+    <footer class="wn-statusbar">
+        <SaveStatus State="Autosaver.State" OnRetry="SaveNowAsync" />
+    </footer>
+
+    @if (_prompt is not null)
+    {
+        <PromptDialog @key="_prompt" Title="@_prompt.Title" Label="@_prompt.Label" InitialValue="@_prompt.InitialValue" ConfirmText="@_prompt.ConfirmText"
+                      MaxLength="_prompt.MaxLength" Error="@_dialogError" OnConfirm="ConfirmPromptAsync" OnCancel="CloseDialogs" />
+    }
+
+    @if (_confirm is not null)
+    {
+        <ConfirmDialog @key="_confirm" Title="@_confirm.Title" Message="@_confirm.Message" ConfirmText="@_confirm.ConfirmText" Danger="_confirm.Danger"
+                       OnConfirm="ConfirmActionAsync" OnCancel="CloseDialogs" />
+    }
+</div>
