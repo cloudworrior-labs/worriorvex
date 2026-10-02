@@ -93,7 +93,10 @@ public partial class Workspace
         _ => null,
     };
 
-    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About;
+    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About or NavSelection.Data;
+
+    /// <summary>Nothing has been written yet: the Inbox is the only notebook and it is empty.</summary>
+    private bool _firstRun;
 
     /// <summary>Folders can be created in a user's notebook or in a folder, not in the Inbox or a combined list.</summary>
     private bool CanHoldFolders => _selection switch
@@ -116,6 +119,7 @@ public partial class Workspace
             await LoadStructureAsync();
             _selection = Inbox is { } inbox ? new NavSelection.Notebook(inbox.Id) : new NavSelection.AllNotes();
             await LoadListAsync(openFirst: true);
+            _firstRun = _notebooks.Count == 1 && _notes.Count == 0 && (await Trash.ListAsync()).Count == 0;
         }
         catch (Exception ex)
         {
@@ -199,7 +203,7 @@ public partial class Workspace
                 _notes = [];
                 _current = null;
                 return;
-            case NavSelection.Documentation or NavSelection.About or NavSelection.Search:
+            case NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Search:
                 _notes = [];
                 _current = null;
                 return;
@@ -265,7 +269,7 @@ public partial class Workspace
                 case NavSelection.Notebook notebook:
                     note = await Notes.CreateAsync(notebook.NotebookId);
                     break;
-                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Search:
+                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Search:
                     // Nothing is created in the trash or on a help page: a new note goes to the Inbox, and so does the view.
                     note = await Notes.CreateAsync();
                     EndSearch();
@@ -296,6 +300,7 @@ public partial class Workspace
             _notes.Insert(0, note.ToSummary());
             _current = note;
             _focusNewNote = true;
+            _firstRun = false;
             _notice = null;
             await RecordOpenedAsync(note.Id);
         });
@@ -847,9 +852,24 @@ public partial class Workspace
         async name =>
         {
             var notebook = await Notebooks.CreateAsync(name);
+            _firstRun = false;
             await LoadStructureAsync();
             await GoToAsync(new NavSelection.Notebook(notebook.Id));
         }));
+
+    /// <summary>A KeepNote notebook was imported (or an import stopped half-way): show what is there now.</summary>
+    private async Task AfterImportAsync(Guid notebookId)
+    {
+        _firstRun = false;
+        await RunAsync("The imported notebook could not be shown.", async () =>
+        {
+            await LoadStructureAsync();
+            if (notebookId != Guid.Empty && _notebooks.Any(n => n.Id == notebookId))
+            {
+                _notice = $"\"{_notebooks.First(n => n.Id == notebookId).Name}\" was imported.";
+            }
+        });
+    }
 
     private void PromptNewFolder()
     {

@@ -157,6 +157,15 @@ re-implementing four legacy readers that cannot be tested without old data.
 5. Count everything first (notes, folders, attachments, images, unsupported attributes), show the
    summary, and import only after confirmation.
 
+## Importer (implemented 3 October 2026)
+
+`KeepNoteReader` reads the tree (versions 5 and 6), `KeepNotePageConverter` turns `page.html` into
+paragraphs and the tags WorriorVex keeps (unknown wrappers are unwrapped so no words are lost; the
+sanitiser then strips styles), and `KeepNoteImporter` writes a new notebook in two passes: first the
+tree, notes, attachments and pictures, then links (`nbk://` → `note:`) and the search index. The source
+folder is only read. Tests use a synthetic notebook (`tests/…/KeepNoteImportTests.cs`), since the archive
+has no sample; the open questions below still need a real notebook.
+
 ## Open questions
 
 To be answered with a real notebook before Phase 11:

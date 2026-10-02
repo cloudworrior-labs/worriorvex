@@ -249,6 +249,29 @@
                 </table>
                 break;
 
+            case "import":
+                <h2>Importing from KeepNote</h2>
+                <p>
+                    Choose <strong>Import &amp; backup</strong> in the navigation, then <strong>Choose a KeepNote notebook
+                    folder…</strong> and pick the notebook's own folder: the one that contains <code>notebook.nbk</code>.
+                    WorriorVex first reads the notebook and shows what it found: pages, folders, files, pictures, links and
+                    the KeepNote trash. Nothing is changed until you choose <strong>Import</strong>.
+                </p>
+                <ul>
+                    <li>The notebook becomes a new WorriorVex notebook with the same name. Folders stay folders; pages become notes.</li>
+                    <li>A page that has pages inside it becomes a folder of the same name, with the page's own text as the first note in that folder.</li>
+                    <li>Files attached to a page become attachments of the note; pictures in the page are placed in the note's text.</li>
+                    <li>Links between pages become links between notes. Links to pages that no longer exist keep their words only.</li>
+                    <li>What was in KeepNote's Trash goes into the WorriorVex Trash.</li>
+                    <li>Created and modified times are kept. KeepNote settings such as icons and colours have no place here and are listed as ignored.</li>
+                </ul>
+                <p>
+                    The KeepNote folder is only read; it is never changed, so you can keep using KeepNote or import again.
+                    Notebooks in KeepNote format version 5 or 6 (KeepNote 0.7) are supported; for an older notebook, open it
+                    once in KeepNote, which upgrades it, and import again. The report at the end says exactly what happened.
+                </p>
+                break;
+
             case "data":
                 <h2>Your data</h2>
                 <p>Your notes are yours. They are kept in one folder on this computer:</p>
@@ -286,7 +309,6 @@
                 <h2>What is coming</h2>
                 <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
                 <ul>
-                    <li>Importing notebooks from KeepNote</li>
                     <li>Browsing and restoring earlier versions of a note</li>
                     <li>Backup, and export to HTML, Markdown and JSON</li>
                     <li>Android and iOS</li>
@@ -310,6 +332,7 @@
         ("organising", "Notebooks and folders"),
         ("trash", "The Trash"),
         ("shortcuts", "Keyboard shortcuts"),
+        ("import", "Importing from KeepNote"),
         ("data", "Your data"),
         ("coming", "What is coming"),
     ];

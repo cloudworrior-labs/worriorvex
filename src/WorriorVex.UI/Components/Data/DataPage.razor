@@ -1,0 +1,9 @@
+<div class="wn-page wn-data">
+    <h1>Your data</h1>
+    <p>Import notes from elsewhere, keep copies of everything, and take your notes with you in open formats.</p>
+    <ImportSection OnImported="OnImported" />
+</div>
+
+@code {
+    [Parameter] public EventCallback<Guid> OnImported { get; set; }
+}

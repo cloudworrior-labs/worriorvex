@@ -1,0 +1,193 @@
+@using WorriorVex.Application.Import
+@using WorriorVex.Application.Platform
+@inject IKeepNoteImporter Importer
+@inject IPlatformShell Shell
+@inject ILogger<ImportSection> Logger
+
+<section class="wn-data-section" aria-labelledby="wn-import-heading">
+    <h2 id="wn-import-heading">Import from KeepNote</h2>
+    <p>
+        Brings a KeepNote notebook in as a new WorriorVex notebook: folders, pages, attached files, pictures,
+        links between pages and the KeepNote trash. The KeepNote folder is only read, never changed.
+        Choose the notebook's own folder, the one that holds <code>notebook.nbk</code>.
+    </p>
+
+    @if (_report is { } report)
+    {
+        <div class="wn-report" role="status">
+            <h3>Import complete</h3>
+            <ul class="wn-report-counts">
+                <li><strong>@report.Notes</strong> notes</li>
+                <li><strong>@report.Folders</strong> folders</li>
+                <li><strong>@report.Attachments</strong> attached files</li>
+                <li><strong>@report.Images</strong> pictures</li>
+                <li><strong>@report.Links</strong> links between notes</li>
+                <li><strong>@report.ItemsInTrash</strong> items in the trash</li>
+            </ul>
+            @if (report.UnresolvedLinks > 0)
+            {
+                <p>@report.UnresolvedLinks link(s) pointed at pages that do not exist in the notebook; their words were kept, the links dropped.</p>
+            }
+            @if (report.IgnoredAttributes.Count > 0)
+            {
+                <p>Ignored KeepNote settings that have no place here: @string.Join(", ", report.IgnoredAttributes.Select(p => $"{p.Key} ({p.Value})")).</p>
+            }
+            @if (report.Problems.Count > 0)
+            {
+                <details>
+                    <summary>@report.Problems.Count problem(s) during the import</summary>
+                    <ul>
+                        @foreach (var problem in report.Problems)
+                        {
+                            <li>@problem</li>
+                        }
+                    </ul>
+                </details>
+            }
+            else
+            {
+                <p><strong>No notes were lost.</strong></p>
+            }
+            <p>Took @report.Duration.TotalSeconds.ToString("0.0") s. The notebook "@report.NotebookName" is now in the navigation.</p>
+            <button type="button" class="wn-button" @onclick="Reset">Import another notebook</button>
+        </div>
+    }
+    else if (_scan is { } scan)
+    {
+        <div class="wn-report">
+            <h3>Ready to import "@scan.NotebookName"</h3>
+            <p class="wn-data-path"><code>@scan.Path</code> · KeepNote format version @scan.FormatVersion</p>
+            <ul class="wn-report-counts">
+                <li><strong>@scan.Pages</strong> pages</li>
+                <li><strong>@scan.Folders</strong> folders</li>
+                <li><strong>@scan.Attachments</strong> attached files</li>
+                <li><strong>@scan.Images</strong> pictures</li>
+                <li><strong>@scan.Links</strong> links</li>
+                <li><strong>@scan.ItemsInTrash</strong> items in the trash</li>
+            </ul>
+            @if (scan.PagesWithChildren > 0)
+            {
+                <p>@scan.PagesWithChildren page(s) have pages inside them. Each becomes a folder of the same name, with the page's own text as the first note in it.</p>
+            }
+            @if (scan.UnsupportedAttributes.Count > 0)
+            {
+                <p>KeepNote settings that have no place in WorriorVex and will be ignored: @string.Join(", ", scan.UnsupportedAttributes.Select(p => $"{p.Key} ({p.Value})")).</p>
+            }
+            @if (scan.Problems.Count > 0)
+            {
+                <details open>
+                    <summary>@scan.Problems.Count thing(s) to know before importing</summary>
+                    <ul>
+                        @foreach (var problem in scan.Problems)
+                        {
+                            <li>@problem</li>
+                        }
+                    </ul>
+                </details>
+            }
+            @if (_busy)
+            {
+                <p class="wn-progress" role="status" aria-live="polite">@(_progress ?? "Importing…")</p>
+            }
+            else
+            {
+                <div class="wn-dialog-actions wn-data-actions">
+                    <button type="button" class="wn-button" @onclick="Reset">Cancel</button>
+                    <button type="button" class="wn-button wn-button-primary" @onclick="ImportAsync">Import</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="ChooseAsync">@(_busy ? "Reading…" : "Choose a KeepNote notebook folder…")</button>
+    }
+
+    @if (_error is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_error</p>
+    }
+</section>
+
+@code {
+    private KeepNoteScan? _scan;
+    private KeepNoteImportReport? _report;
+    private string? _progress;
+    private string? _error;
+    private bool _busy;
+
+    /// <summary>A notebook was imported; the owner refreshes the navigation and shows it.</summary>
+    [Parameter] public EventCallback<Guid> OnImported { get; set; }
+
+    private async Task ChooseAsync()
+    {
+        var path = await Shell.PickFolderAsync("Choose the KeepNote notebook folder");
+        if (path is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            _scan = await Importer.ScanAsync(path);
+        }
+        catch (KeepNoteImportException ex)
+        {
+            _error = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Scanning a KeepNote notebook failed");
+            _error = "The folder could not be read. Details are in the log file.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ImportAsync()
+    {
+        if (_scan is not { } scan)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        var progress = new Progress<string>(line =>
+        {
+            _progress = line;
+            InvokeAsync(StateHasChanged);
+        });
+        try
+        {
+            _report = await Importer.ImportAsync(scan.Path, progress);
+            await OnImported.InvokeAsync(_report.NotebookId);
+        }
+        catch (KeepNoteImportException ex)
+        {
+            _error = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "KeepNote import failed");
+            _error = "The import stopped with an error. What was imported so far is in a new notebook; you can delete it and try again. Details are in the log file.";
+            await OnImported.InvokeAsync(Guid.Empty);
+        }
+        finally
+        {
+            _busy = false;
+            _progress = null;
+        }
+    }
+
+    private void Reset()
+    {
+        _scan = null;
+        _report = null;
+        _error = null;
+    }
+}

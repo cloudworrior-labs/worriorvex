@@ -67,6 +67,10 @@
         {
             <DocumentationPage />
         }
+        else if (_selection is NavSelection.Data)
+        {
+            <DataPage OnImported="AfterImportAsync" />
+        }
         else if (_selection is NavSelection.About)
         {
             <AboutPage />
@@ -85,6 +89,10 @@
         else if (_current is null && _selection is NavSelection.Search)
         {
             <div class="wn-empty"><p>@(_searchResults.Count == 0 ? "Search looks through the titles, text and tags of all your notes." : "Select a note to open it, or press Enter for the first one.")</p></div>
+        }
+        else if (_current is null && _firstRun)
+        {
+            <WelcomePanel OnCreateNotebook="PromptNewNotebook" OnNewNote="NewNoteAsync" OnImport="() => SelectAsync(new NavSelection.Data())" />
         }
         else if (_current is null)
         {

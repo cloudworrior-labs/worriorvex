@@ -52,17 +52,18 @@ The installers are not code-signed yet, so the operating system asks for confirm
 - Tags, favourites, pinned notes, a Recent list; move by drag-and-drop or dialog; duplicate; right-click menus
 - Links between notes, with backlinks and related notes shown under each note
 - Attach any file to a note; open it, save a copy, rename or remove it
+- Import a KeepNote notebook (format 5 and 6): folders, pages, files, pictures, links and trash, with a report
 - Autosave with a visible save state; a failed save keeps your edits and offers Retry
 - Trash for notes, folders and whole notebooks: restore, delete permanently, empty
 - Earlier versions of a note are kept automatically while you edit
 - Built-in Documentation and About pages
 - SQLite database created and upgraded by migrations; per-OS data folder; log file
 
-Built and tested underneath, without a screen yet: restoring earlier versions.
+Built and tested underneath, without a screen yet: browsing and restoring earlier versions.
 
 ## Roadmap
 
-KeepNote import → revision history → backup and export → Android and iOS.
+Revision history → backup and export → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
 [development plan](WorriorVex-Development-Plan.md).
 
@@ -116,9 +117,11 @@ against real SQLite files, including a restart. CI builds and tests on Windows, 
 
 ## KeepNote import, backup, export
 
-Not implemented yet. The KeepNote notebook format has been analysed in
-[`docs/keepnote-analysis.md`](docs/keepnote-analysis.md); the importer, backup and the open export formats
-(HTML, Markdown, JSON, `.worriorvex` package) are on the roadmap.
+**Import:** Import & backup → Choose a KeepNote notebook folder. The folder is scanned first and a summary
+shown; the import itself runs only after confirmation and ends with a report. The source is never changed.
+Format analysis and importer rules: [`docs/keepnote-analysis.md`](docs/keepnote-analysis.md).
+
+Backup and the open export formats (HTML, Markdown, JSON, `.worriorvex` package) are next on the roadmap.
 
 ## Keyboard shortcuts
 

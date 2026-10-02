@@ -24,6 +24,9 @@ public abstract record NavSelection
     /// <summary>The list shows what the search box found; nothing in the navigation is selected.</summary>
     public sealed record Search : NavSelection;
 
+    /// <summary>Import, backup and export.</summary>
+    public sealed record Data : NavSelection;
+
     public sealed record Documentation : NavSelection;
 
     public sealed record About : NavSelection;

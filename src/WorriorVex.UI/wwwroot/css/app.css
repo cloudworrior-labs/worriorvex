@@ -633,3 +633,21 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-attachment-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
 .wn-attachment-meta { color: var(--wn-text-muted); }
 .wn-attachment-actions { display: flex; gap: var(--wn-space-1); margin-left: auto; }
+
+/* Data page: import, backup, export */
+.wn-data-section { margin-top: var(--wn-space-5); padding-top: var(--wn-space-4); border-top: var(--wn-border-width) solid var(--wn-border); }
+.wn-data-section:first-of-type { border-top: 0; padding-top: 0; }
+.wn-report { margin-top: var(--wn-space-3); padding: var(--wn-space-4); border: var(--wn-border-width) solid var(--wn-border); border-radius: var(--wn-radius); background: var(--wn-bg-pane); }
+.wn-report h3 { margin: 0 0 var(--wn-space-2); font-size: 1rem; }
+.wn-report-counts { display: flex; flex-wrap: wrap; gap: var(--wn-space-2) var(--wn-space-4); list-style: none; margin: 0 0 var(--wn-space-3); padding: 0; }
+.wn-report details { margin: var(--wn-space-2) 0; }
+.wn-report summary { cursor: pointer; }
+.wn-data-path { color: var(--wn-text-muted); overflow-wrap: anywhere; }
+.wn-data-actions { justify-content: flex-start; }
+.wn-progress { color: var(--wn-text-muted); }
+
+/* Welcome */
+.wn-welcome h1 { margin: var(--wn-space-3) 0 0; font-size: 1.5rem; color: var(--wn-text); }
+.wn-welcome p { max-width: 420px; }
+.wn-welcome-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--wn-space-2); margin-top: var(--wn-space-3); }
+.wn-welcome img { border-radius: 16px; }

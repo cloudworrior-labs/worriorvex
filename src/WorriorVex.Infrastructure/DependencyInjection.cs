@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WorriorVex.Application.Attachments;
 using WorriorVex.Application.Content;
+using WorriorVex.Application.Import;
 using WorriorVex.Application.Links;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
@@ -13,6 +14,7 @@ using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
 using WorriorVex.Infrastructure.Attachments;
 using WorriorVex.Infrastructure.Content;
+using WorriorVex.Infrastructure.Import;
 using WorriorVex.Infrastructure.Links;
 using WorriorVex.Infrastructure.Notes;
 using WorriorVex.Infrastructure.Revisions;
@@ -51,6 +53,7 @@ public static class DependencyInjection
         services.AddSingleton<IRevisionService, RevisionService>();
         services.AddSingleton<IAttachmentService, AttachmentService>();
         services.AddSingleton<INoteSearchService, NoteSearchService>();
+        services.AddSingleton<IKeepNoteImporter, KeepNoteImporter>();
         return services;
     }
 }

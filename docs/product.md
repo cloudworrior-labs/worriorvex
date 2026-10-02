@@ -43,7 +43,7 @@ delete → restore.
 | Tags, favourites, pins, Recent, move dialog, duplicate, context menus, drag and drop (Phase 8) | done |
 | Links between notes with a note picker, backlinks and related notes under each note (Phase 9) | done |
 | Attachments: attach any file, drop files, open, save a copy, rename, remove, clean up unused pictures (Phase 10) | done |
-| KeepNote import | Phase 11 |
+| KeepNote import with scan, confirmation and report; first-run welcome (Phase 11) | done |
 | Revision history screen | Phase 12 |
 | Backup and export | Phase 13 |
 | Mobile | Phase 14 |
