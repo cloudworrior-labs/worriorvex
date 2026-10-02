@@ -17,6 +17,12 @@ public interface IAttachmentService
     /// <summary>Opens the stored file for reading. The caller disposes the stream.</summary>
     Task<Stream> OpenReadAsync(Guid attachmentId, CancellationToken cancellationToken = default);
 
+    /// <summary>Where the stored file lies on disk, for handing it to another program. The file is read-only data of the app; it must not be changed in place.</summary>
+    Task<string> GetFilePathAsync(Guid attachmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>Writes a copy of the stored file to a path the user chose.</summary>
+    Task SaveCopyAsync(Guid attachmentId, string destinationPath, CancellationToken cancellationToken = default);
+
     Task<AttachmentInfo> RenameAsync(Guid attachmentId, string fileName, CancellationToken cancellationToken = default);
 
     /// <summary>Removes the attachment and its file.</summary>

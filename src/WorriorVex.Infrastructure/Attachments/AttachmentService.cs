@@ -81,6 +81,28 @@ public sealed class AttachmentService(
         return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, useAsync: true);
     }
 
+    public async Task<string> GetFilePathAsync(Guid attachmentId, CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var attachment = await context.Attachments.AsNoTracking().FirstOrDefaultAsync(a => a.Id == attachmentId, cancellationToken)
+            ?? throw new EntityNotFoundException("Attachment", attachmentId);
+        var path = files.GetPath(attachment.StoredFileName);
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException($"The file for attachment \"{attachment.OriginalFileName}\" is missing from the attachments folder.", path);
+        }
+
+        return path;
+    }
+
+    public async Task SaveCopyAsync(Guid attachmentId, string destinationPath, CancellationToken cancellationToken = default)
+    {
+        var source = await GetFilePathAsync(attachmentId, cancellationToken);
+        await using var from = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, useAsync: true);
+        await using var to = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
+        await from.CopyToAsync(to, cancellationToken);
+    }
+
     public async Task<AttachmentInfo> RenameAsync(Guid attachmentId, string fileName, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);

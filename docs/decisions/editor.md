@@ -63,8 +63,8 @@ window through `AttachmentImageFileProvider`, on the app's own origin; no web se
 Images are added from a native file dialog, by pasting, or by dropping a file on the note.
 Accepted types: PNG, JPEG, GIF, WebP (SVG is refused because it can carry script).
 
-Known gap: removing an image from a note leaves its file in the attachments folder until the note is
-deleted permanently. The attachments screen (Phase 10) will show and clean these up.
+Removing an image from the text leaves its file attached; the attachments panel marks it "not in the
+text" and offers to remove such leftovers.
 
 ## Current state
 

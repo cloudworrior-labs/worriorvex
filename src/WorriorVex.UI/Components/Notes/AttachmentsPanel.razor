@@ -1,0 +1,228 @@
+@using WorriorVex.Application.Attachments
+@using WorriorVex.Application.Common
+@using WorriorVex.Application.Content
+@using WorriorVex.Application.Platform
+@using WorriorVex.Domain
+@inject IAttachmentService Attachments
+@inject IPlatformShell Shell
+@inject ILogger<AttachmentsPanel> Logger
+
+@if (_items.Count > 0)
+{
+    <section class="wn-attachments" aria-label="Attachments">
+        <h3>Attachments <span class="wn-count">@_items.Count</span>
+            @if (_unusedImages > 0)
+            {
+                <button type="button" class="wn-button wn-button-small" title="Remove pictures that no longer appear in the text" @onclick="ConfirmRemoveUnused">Remove @_unusedImages unused picture(s)</button>
+            }
+        </h3>
+        <ul>
+            @foreach (var item in _items)
+            {
+                var inText = IsInText(item);
+                <li @key="item.Id" class="wn-attachment">
+                    <span class="wn-attachment-name" title="@item.FileName">@item.FileName</span>
+                    <span class="wn-attachment-meta">@FormatSize(item.Size)@(IsImage(item) ? inText ? " · in the text" : " · not in the text" : "")</span>
+                    <span class="wn-attachment-actions">
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => OpenAsync(item)">Open</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => SaveCopyAsync(item)">Save as…</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => _renaming = item">Rename…</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => _removing = item">Remove…</button>
+                    </span>
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+@if (_renaming is { } renaming)
+{
+    <PromptDialog @key="renaming.Id" Title="Rename attachment" Label="File name" InitialValue="@renaming.FileName" ConfirmText="Rename"
+                  MaxLength="Attachment.MaxFileNameLength" Error="@_dialogError" OnConfirm="RenameAsync" OnCancel="CloseDialogs" />
+}
+
+@if (_removing is { } removing)
+{
+    <ConfirmDialog @key="removing.Id" Title="@($"Remove \"{removing.FileName}\"?")"
+                   Message="@(IsImage(removing) && IsInText(removing) ? "The picture is still in the text; it would show as missing. The file is removed for good." : "The file is removed for good. The note itself stays.")"
+                   ConfirmText="Remove" Danger="true" OnConfirm="RemoveAsync" OnCancel="CloseDialogs" />
+}
+
+@if (_removingUnused)
+{
+    <ConfirmDialog Title="Remove unused pictures?" Message="@($"{_unusedImages} picture(s) attached to this note no longer appear in its text. Their files are removed for good.")"
+                   ConfirmText="Remove" Danger="true" OnConfirm="RemoveUnusedAsync" OnCancel="CloseDialogs" />
+}
+
+@code {
+    private List<AttachmentInfo> _items = [];
+    private Guid _loadedFor;
+    private int _loadedVersion = -1;
+    private int _unusedImages;
+    private AttachmentInfo? _renaming;
+    private AttachmentInfo? _removing;
+    private bool _removingUnused;
+    private string? _dialogError;
+
+    [Parameter, EditorRequired] public Guid NoteId { get; set; }
+
+    /// <summary>The note's current text, to tell which pictures are still in it.</summary>
+    [Parameter] public string Content { get; set; } = string.Empty;
+
+    /// <summary>Raise when attachments were added elsewhere (an image pasted or inserted), so the list is read again.</summary>
+    [Parameter] public int Version { get; set; }
+
+    [Parameter] public EventCallback<string> OnProblem { get; set; }
+
+    /// <summary>The attachments changed; counts shown elsewhere may need a refresh.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (NoteId != _loadedFor || Version != _loadedVersion)
+        {
+            _loadedFor = NoteId;
+            _loadedVersion = Version;
+            CloseDialogs();
+            await LoadAsync();
+        }
+
+        _unusedImages = _items.Count(i => IsImage(i) && !IsInText(i));
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _items = [.. await Attachments.ListAsync(NoteId)];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Attachments could not be listed");
+            await OnProblem.InvokeAsync("The attachments could not be listed.");
+        }
+    }
+
+    private static bool IsImage(AttachmentInfo item) => NoteContentRules.IsAttachmentImageSource(NoteContentRules.AttachmentSource(item.StoredFileName));
+
+    private bool IsInText(AttachmentInfo item) => Content.Contains(NoteContentRules.AttachmentSource(item.StoredFileName), StringComparison.Ordinal);
+
+    private static string FormatSize(long bytes)
+    {
+        // Written as if/else: the Razor parser mistakes a relational pattern for a markup tag.
+        if (bytes >= 1024 * 1024)
+        {
+            return $"{bytes / (1024.0 * 1024.0):0.#} MB";
+        }
+
+        return bytes >= 1024 ? $"{bytes / 1024.0:0.#} KB" : $"{bytes} B";
+    }
+
+    private async Task OpenAsync(AttachmentInfo item)
+    {
+        try
+        {
+            Shell.OpenFile(await Attachments.GetFilePathAsync(item.Id));
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or EntityNotFoundException)
+        {
+            await OnProblem.InvokeAsync($"The file for \"{item.FileName}\" is missing.");
+        }
+    }
+
+    private async Task SaveCopyAsync(AttachmentInfo item)
+    {
+        var destination = await Shell.PickSaveLocationAsync("Save a copy", item.FileName);
+        if (destination is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await Attachments.SaveCopyAsync(item.Id, destination);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or FileNotFoundException or EntityNotFoundException)
+        {
+            Logger.LogError(ex, "Saving a copy of an attachment failed");
+            await OnProblem.InvokeAsync($"\"{item.FileName}\" could not be saved there.");
+        }
+    }
+
+    private async Task RenameAsync(string name)
+    {
+        if (_renaming is not { } item)
+        {
+            return;
+        }
+
+        try
+        {
+            var renamed = await Attachments.RenameAsync(item.Id, name);
+            _items[_items.FindIndex(i => i.Id == item.Id)] = renamed;
+            CloseDialogs();
+            await OnChanged.InvokeAsync();
+        }
+        catch (DomainException ex)
+        {
+            _dialogError = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Renaming an attachment failed");
+            _dialogError = "The attachment could not be renamed.";
+        }
+    }
+
+    private async Task RemoveAsync()
+    {
+        if (_removing is not { } item)
+        {
+            return;
+        }
+
+        CloseDialogs();
+        try
+        {
+            await Attachments.DeleteAsync(item.Id);
+            _items.RemoveAll(i => i.Id == item.Id);
+            await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Removing an attachment failed");
+            await OnProblem.InvokeAsync($"\"{item.FileName}\" could not be removed.");
+        }
+    }
+
+    private void ConfirmRemoveUnused() => _removingUnused = true;
+
+    private async Task RemoveUnusedAsync()
+    {
+        CloseDialogs();
+        var unused = _items.Where(i => IsImage(i) && !IsInText(i)).ToList();
+        foreach (var item in unused)
+        {
+            try
+            {
+                await Attachments.DeleteAsync(item.Id);
+                _items.RemoveAll(i => i.Id == item.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Removing an unused picture failed");
+                await OnProblem.InvokeAsync($"\"{item.FileName}\" could not be removed.");
+            }
+        }
+
+        await OnChanged.InvokeAsync();
+    }
+
+    private void CloseDialogs()
+    {
+        _renaming = null;
+        _removing = null;
+        _removingUnused = false;
+        _dialogError = null;
+    }
+}

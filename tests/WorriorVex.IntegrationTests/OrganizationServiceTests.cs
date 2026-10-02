@@ -154,6 +154,13 @@ public class OrganizationServiceTests
             Assert.Equal(bytes, copy.ToArray());
         }
 
+        var path = await app.Attachments.GetFilePathAsync(added.Id);
+        Assert.Equal(stored, path);
+        var copyTarget = Path.Combine(data.Path, "exported-copy.txt");
+        await app.Attachments.SaveCopyAsync(added.Id, copyTarget);
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(copyTarget));
+        File.Delete(copyTarget);
+
         Assert.Equal("renamed.txt", (await app.Attachments.RenameAsync(added.Id, "renamed.txt")).FileName);
         Assert.Equal("renamed.txt", Assert.Single(await app.Attachments.ListAsync(note.Id)).FileName);
 
@@ -161,6 +168,7 @@ public class OrganizationServiceTests
         Assert.Empty(await app.Attachments.ListAsync(note.Id));
         Assert.Empty(Directory.GetFiles(directory));
         await Assert.ThrowsAsync<EntityNotFoundException>(() => app.Attachments.OpenReadAsync(added.Id));
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => app.Attachments.GetFilePathAsync(added.Id));
     }
 
     [Fact]

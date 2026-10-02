@@ -99,13 +99,20 @@ export function create(element, dotNetRef, html) {
         return true;
       },
       handleDrop: (view, event, slice, moved) => {
-        const files = moved ? [] : imageFiles(event.dataTransfer);
-        if (files.length === 0) {
+        const all = moved ? [] : Array.from(event.dataTransfer?.files || []);
+        if (all.length === 0) {
           return false;
         }
         event.preventDefault();
         const position = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
-        files.forEach((file) => addImage(file, position));
+        all.forEach((file) => {
+          if (IMAGE_TYPES.includes(file.type)) {
+            addImage(file, position);
+          } else {
+            // Any other file becomes an attachment of the note.
+            dotNetRef.invokeMethodAsync('OnFileDrop', DotNet.createJSStreamReference(file), file.name || 'file', file.type || '');
+          }
+        });
         return true;
       },
       handleClick: (view, position, event) => {

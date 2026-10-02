@@ -82,6 +82,18 @@
                     words and loses its pictures. This is deliberate, so that opening a note never contacts
                     another computer.
                 </p>
+                <h3>Attached files</h3>
+                <p>
+                    <strong>Attach</strong> adds any file to the note, as does dropping a file that is not a picture onto
+                    the text. Attachments are listed under the note with <strong>Open</strong> (in the program your
+                    system uses for that kind of file), <strong>Save as…</strong> (a copy wherever you choose),
+                    <strong>Rename…</strong> and <strong>Remove…</strong>. The file is copied into WorriorVex's data
+                    folder when attached; the original is never touched.
+                </p>
+                <p>
+                    Pictures you placed in the text are attachments too. One that no longer appears in the text is
+                    marked "not in the text", and a button offers to remove all such leftovers at once.
+                </p>
                 <h3>Tables</h3>
                 <p>
                     <strong>Table</strong> inserts a table of three columns with a header row. While the cursor
@@ -248,7 +260,7 @@
                     <thead><tr><th scope="col">In that folder</th><th scope="col">What it is</th></tr></thead>
                     <tbody>
                         <tr><td><code>worriorvex.db</code></td><td>All notes, notebooks and folders, in a SQLite database</td></tr>
-                        <tr><td><code>attachments</code></td><td>The pictures in your notes</td></tr>
+                        <tr><td><code>attachments</code></td><td>The pictures in your notes and the files attached to them</td></tr>
                         <tr><td><code>logs</code></td><td>A daily log, useful when reporting a problem. It never contains what you wrote</td></tr>
                     </tbody>
                 </table>
@@ -274,7 +286,6 @@
                 <h2>What is coming</h2>
                 <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
                 <ul>
-                    <li>Attaching files</li>
                     <li>Importing notebooks from KeepNote</li>
                     <li>Browsing and restoring earlier versions of a note</li>
                     <li>Backup, and export to HTML, Markdown and JSON</li>

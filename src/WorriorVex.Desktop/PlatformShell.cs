@@ -27,6 +27,54 @@ internal sealed class PlatformShell(ILogger<PlatformShell> logger) : IPlatformSh
         }
     }
 
+    public void OpenFile(string path)
+    {
+        if (File.Exists(path))
+        {
+            Start(path);
+        }
+    }
+
+    public async Task<string?> PickFolderAsync(string title)
+    {
+        if (Window is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var chosen = await Window.ShowOpenFolderAsync(title, null, false);
+            var path = chosen?.FirstOrDefault(p => !string.IsNullOrEmpty(p));
+            return path is not null && Directory.Exists(path) ? path : null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "The folder dialog could not be shown");
+            return null;
+        }
+    }
+
+    public async Task<string?> PickSaveLocationAsync(string title, string suggestedFileName)
+    {
+        if (Window is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var start = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), suggestedFileName);
+            var chosen = await Window.ShowSaveFileAsync(title, start, null);
+            return string.IsNullOrWhiteSpace(chosen) ? null : chosen;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "The save dialog could not be shown");
+            return null;
+        }
+    }
+
     /// <summary>The application window; set once it exists. File dialogs belong to it.</summary>
     public PhotinoWindow? Window { get; set; }
 
@@ -39,12 +87,16 @@ internal sealed class PlatformShell(ILogger<PlatformShell> logger) : IPlatformSh
 
         try
         {
-            var filters = new[] { (kind, extensions.Select(e => "*" + e).ToArray()) };
+            var filters = extensions.Count == 0 ? null : new[] { (kind, extensions.Select(e => "*" + e).ToArray()) };
             var chosen = await Window.ShowOpenFileAsync(title, null, false, filters);
             var path = chosen?.FirstOrDefault(p => !string.IsNullOrEmpty(p));
+            if (path is null || !File.Exists(path))
+            {
+                return null;
+            }
 
             // The dialog's filter is a convenience; what was actually chosen is checked here.
-            return path is not null && extensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase) ? path : null;
+            return extensions.Count == 0 || extensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase) ? path : null;
         }
         catch (Exception ex)
         {

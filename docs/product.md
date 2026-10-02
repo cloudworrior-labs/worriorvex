@@ -42,7 +42,7 @@ delete → restore.
 | Full-text search on SQLite FTS5 with a search box, highlighting and filters (Phase 7) | done |
 | Tags, favourites, pins, Recent, move dialog, duplicate, context menus, drag and drop (Phase 8) | done |
 | Links between notes with a note picker, backlinks and related notes under each note (Phase 9) | done |
-| Screens for attachments | Phase 10 |
+| Attachments: attach any file, drop files, open, save a copy, rename, remove, clean up unused pictures (Phase 10) | done |
 | KeepNote import | Phase 11 |
 | Revision history screen | Phase 12 |
 | Backup and export | Phase 13 |

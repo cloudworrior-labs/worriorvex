@@ -13,6 +13,18 @@ public interface IPlatformShell
     /// Lets the user choose one file with the system's file dialog.
     /// Returns its path, or <c>null</c> when the dialog was cancelled.
     /// </summary>
-    /// <param name="extensions">Extensions to offer, with their dot, such as ".png".</param>
+    /// <param name="extensions">Extensions to offer, with their dot, such as ".png"; empty for any file.</param>
     Task<string?> PickFileAsync(string title, string kind, IReadOnlyCollection<string> extensions);
+
+    /// <summary>Lets the user choose a folder. Returns its path, or <c>null</c> when cancelled.</summary>
+    Task<string?> PickFolderAsync(string title);
+
+    /// <summary>
+    /// Lets the user choose where to save a file, starting from a suggested name.
+    /// Returns the chosen path, or <c>null</c> when cancelled.
+    /// </summary>
+    Task<string?> PickSaveLocationAsync(string title, string suggestedFileName);
+
+    /// <summary>Opens a file with the program the operating system uses for it.</summary>
+    void OpenFile(string path);
 }

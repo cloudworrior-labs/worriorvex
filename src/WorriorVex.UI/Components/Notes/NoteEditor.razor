@@ -56,6 +56,7 @@
             }
             <button type="button" class="wn-tool" title="Link to another note" @onmousedown:preventDefault @onclick="() => _notePicker = true">Note link</button>
             <button type="button" class="wn-tool" title="Insert image from a file" @onmousedown:preventDefault @onclick="PickImageAsync">Image</button>
+            <button type="button" class="wn-tool" title="Attach a file to this note" @onmousedown:preventDefault @onclick="AttachFileAsync">Attach</button>
             <button type="button" class="wn-tool" title="Insert table" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">Table</button>
         </div>
         @if (_active.Contains("table"))
@@ -72,6 +73,7 @@
 
     <div class="wn-editor-surface" @ref="_surface">
     </div>
+    <AttachmentsPanel NoteId="Note.Id" Content="@_content" Version="_attachmentsVersion" OnProblem="OnProblem" />
     <NoteConnections NoteId="Note.Id" Version="ConnectionsVersion" OnOpen="OnOpenNote" />
 </section>
 
@@ -107,6 +109,7 @@
 
     private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
 
+    private int _attachmentsVersion;
     private bool _notePicker;
     private bool _linkPrompt;
     private string _linkAddress = string.Empty;
@@ -301,6 +304,8 @@
         try
         {
             var attachment = await Attachments.AddAsync(Note.Id, fileName, contentType, content);
+            _attachmentsVersion++;
+            StateHasChanged();
             return NoteContentRules.AttachmentSource(attachment.StoredFileName);
         }
         catch (DomainException ex)
@@ -308,6 +313,62 @@
             await OnProblem.InvokeAsync(ex.Message);
             return null;
         }
+    }
+
+    /// <summary>Called by the editor for a file that is not an image, dropped on the note: it is attached, not placed in the text.</summary>
+    [JSInvokable]
+    public async Task OnFileDrop(IJSStreamReference file, string name, string contentType)
+    {
+        try
+        {
+            await using var content = await file.OpenReadStreamAsync(Attachment.MaxSizeBytes);
+            await AttachAsync(name, contentType, content);
+        }
+        catch (Exception ex) when (ex is not DomainException)
+        {
+            Logger.LogError(ex, "A dropped file could not be read");
+            await OnProblem.InvokeAsync("The file could not be attached.");
+        }
+        finally
+        {
+            await file.DisposeAsync();
+        }
+    }
+
+    private async Task AttachFileAsync()
+    {
+        var path = await Shell.PickFileAsync("Attach a file", "All files", []);
+        if (path is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var content = File.OpenRead(path);
+            await AttachAsync(Path.GetFileName(path), NoteContentRules.ImageContentType(path), content);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logger.LogError(ex, "The chosen file could not be read");
+            await OnProblem.InvokeAsync("That file could not be read.");
+        }
+    }
+
+    private async Task AttachAsync(string name, string? contentType, Stream content)
+    {
+        try
+        {
+            await Attachments.AddAsync(Note.Id, name, contentType, content);
+            _attachmentsVersion++;
+        }
+        catch (DomainException ex)
+        {
+            await OnProblem.InvokeAsync(ex.Message);
+        }
+
+        // Reached from a JavaScript call as well as from a click; only the click re-renders by itself.
+        StateHasChanged();
     }
 
     private async Task PromptLinkAsync()
