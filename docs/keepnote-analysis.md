@@ -90,8 +90,9 @@ report as unsupported rather than dropped silently.
 | `application/x-notebook-trash` | the trash folder (title "Trash") | its children become trashed nodes |
 | any other MIME type | an attached file: the file named by `payload_filename` lies in the node directory (`attach_file`, `set_payload`) | attachment |
 
-A page can have children, so in KeepNote a note can also act as a folder. The WorriorVex tree allows a
-note node to have children for the same reason.
+A page can have children, so in KeepNote a note can also act as a folder. In WorriorVex only folders
+contain things. A page with children is therefore imported as a folder of the same name, with the page's
+own text as the first note inside it; the import summary counts how often this happened.
 
 ## Note body: `page.html`
 

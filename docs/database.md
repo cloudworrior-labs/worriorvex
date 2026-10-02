@@ -35,6 +35,19 @@ by migrations in `src/WorriorVex.Infrastructure/Persistence/Migrations` and appl
 | `Content` | the document |
 | `ContentFormat` | 0 = HTML, 1 = Markdown (reserved) |
 
+`Nodes` also carries `IsFavorite` and `IsPinned`, and `Notebooks` a `DeletedAt` for the trash.
+Deleting a parent row removes its children: folders cascade to what they hold, notes to the rows below.
+
+**Tags** (`Id`, `Name`, `NormalizedName` unique, `CreatedAt`) and **NoteTags** (`NoteId`, `TagId`; composite key).
+
+**Attachments** — `Id`, `NoteId`, `OriginalFileName` (for display), `StoredFileName` (generated, unique;
+the file in `attachments/`), `ContentType`, `Size`, `Hash` (SHA-256), `CreatedAt`.
+
+**NoteLinks** — `Id`, `SourceNoteId`, `TargetNoteId`, `CreatedAt`; one row per pair, indexed both ways so
+backlinks are a lookup.
+
+**NoteRevisions** — `Id`, `NoteId`, `Title`, `Content`, `CreatedAt`, `ChangeReason`; never updated.
+
 A note is a `Node` plus a `Note` row with the same id. Lists and the tree read only `Nodes`, so bodies
 are loaded only when a note is opened.
 
@@ -45,6 +58,8 @@ are loaded only when a note is opened.
 - Timestamps are stored as fixed-width ISO 8601 UTC text (`2026-10-01T23:35:17.1466900Z`). SQLite has no
   date type; this form sorts correctly as text and is readable in exports.
 - Deleting is soft (`DeletedAt`). Rows are removed only by "delete permanently" and "empty trash".
+- A node is outside the trash exactly when its `DeletedAt` is null. Deleting a folder or notebook stamps
+  everything inside with the same time; that shared time is how they are restored together.
 
 ## Changing the schema
 
@@ -57,5 +72,4 @@ Commit the generated files. Never edit a migration that has shipped in a release
 
 ## Planned tables
 
-`Tags`, `NoteTags`, `Attachments`, `NoteLinks`, `NoteRevisions`, a recent-access table, and an FTS5
-virtual table for search, as described in the development plan (sections 9–16).
+A recent-access table and an FTS5 virtual table for search (development plan, sections 16 and 26).

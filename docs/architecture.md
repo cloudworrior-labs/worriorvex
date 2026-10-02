@@ -26,6 +26,23 @@ database all run in one local process.
 `WorriorVex.Web` and `WorriorVex.Mobile` from the plan do not exist yet; they are added when needed,
 not before. Host choice and editor choice are explained in [`decisions/`](decisions/).
 
+## Application services
+
+| Service | Does |
+| --- | --- |
+| `INoteService` | create, open, list and save notes; keeps an earlier version when due |
+| `INotebookService` | Inbox, create, rename and reorder notebooks |
+| `ITreeService` | folders; move folders and notes, within and between notebooks |
+| `ITrashService` | move to trash, list, restore, delete permanently, empty; removes attachment files |
+| `ITagService` | tags on notes, rename, delete, counts |
+| `INoteLinkService` | links and backlinks |
+| `IRevisionService` | list, view and restore earlier versions |
+| `IAttachmentService` | store, open, rename and delete attached files under generated names |
+| `INoteSearchService` | substring search (to be replaced by FTS5) |
+| `IPlatformShell` | open a web page or folder outside the app; implemented by the host |
+
+Only folders contain other nodes. The services enforce it; the database does not.
+
 ## Rules
 
 - The UI contains no persistence code and no business rules; it calls Application services.

@@ -34,16 +34,19 @@ delete → restore.
 | --- | --- |
 | Desktop shell, SQLite with migrations, per-OS data folder, log file | done |
 | Inbox, create / edit / list notes, rich text basics, autosave with retry | done |
-| Notebooks, folders, tree, move, trash UI | next (Phases 3–5) |
+| Domain and persistence for tags, attachments, links, revisions, trash (Phase 3) | done |
+| Application services for all of the above, plus tree, move and basic search (Phase 4) | done, tested |
+| Notebooks, nested folders, All Notes, delete and restore, trash screen (Phase 5) | done |
+| About and Documentation pages, icon, installers for Windows, macOS, Linux | done |
 | Images, tables, sanitiser | Phase 6 |
-| Full-text search (FTS5) | Phase 7 |
-| Tags, favourites, pins, recent | Phase 8 |
-| Links and backlinks | Phase 9 |
-| Attachments | Phase 10 |
+| Full-text search (FTS5) and search screen | Phase 7 |
+| Screens for tags, favourites, pins, recent, move, context menus | Phase 8 |
+| Screens for links and backlinks | Phase 9 |
+| Screens for attachments | Phase 10 |
 | KeepNote import | Phase 11 |
-| Revisions | Phase 12 |
+| Revision history screen | Phase 12 |
 | Backup and export | Phase 13 |
-| Installers, mobile | Phases 14–15 |
+| Mobile | Phase 14 |
 
 ## Out of scope for the MVP
 

@@ -62,5 +62,7 @@ Proof of concept required by the plan: launch, initialise SQLite, create, save, 
 | Windows | CI | **not yet done** |
 | Linux | CI | **not yet done** |
 
-The plan's gate ("do not proceed until the foundation is validated on all three") stays open until the two
-manual runs are recorded here.
+The plan's gate ("do not proceed until the foundation is validated on all three") is still formally open.
+On 2 October 2026 the product owner chose to continue with Phases 3–5 and to publish installers before the
+two manual runs. They remain to be done and recorded here; the first run of the Windows installer and the
+Linux package is that test.

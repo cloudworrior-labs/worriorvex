@@ -10,6 +10,8 @@
 | `Ctrl/⌘ + N` | New note (in the Inbox) |
 | `Ctrl/⌘ + S` | Save now |
 | `Enter` in the title | Move to the note body |
+| `Esc` | Close a dialog |
+| `Enter` in a dialog | Confirm the name |
 
 ## Editor
 

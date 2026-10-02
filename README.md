@@ -1,5 +1,7 @@
 # WorriorVex
 
+<img src="assets/icon/worriorvex-256.png" alt="WorriorVex icon" width="96" align="right" />
+
 [![CI](https://github.com/cloudworrior-labs/worriorvex/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudworrior-labs/worriorvex/actions/workflows/ci.yml)
 
 **Your personal knowledge workspace.** A local-first note-taking app for Windows, macOS and Linux, built
@@ -10,21 +12,52 @@ as a modern replacement for [KeepNote](http://keepnote.org).
 WorriorVex works with the internet, servers and the cloud switched off. There is no account, no
 telemetry and no AI dependency. Your notes live in a SQLite file on your own disk.
 
-> **Status: early development.** The foundation works (see below); it is not yet ready for daily use.
+> **Status: early development.** Usable for writing and organising notes; search, tags, attachments and
+> import do not have screens yet. Keep a backup of anything important.
+
+## Install
+
+Download the latest version from the [Releases page](https://github.com/cloudworrior-labs/worriorvex/releases/latest).
+
+| System | File | Notes |
+| --- | --- | --- |
+| Windows 10/11, 64-bit | `WorriorVex-Setup-<version>-x64.exe` | Installs for your user; no administrator rights needed |
+| macOS, Apple silicon | `WorriorVex-<version>-macos-arm64.dmg` | Drag to Applications |
+| macOS, Intel | `WorriorVex-<version>-macos-x64.dmg` | Drag to Applications |
+| Debian / Ubuntu | `worriorvex_<version>_amd64.deb` | `sudo apt install ./worriorvex_<version>_amd64.deb` |
+| Other Linux | `WorriorVex-<version>-linux-x64.tar.gz` | Unpack and run `./WorriorVex`; needs WebKitGTK 4.1 |
+
+With Homebrew on macOS:
+
+```bash
+brew tap cloudworrior-labs/worriorvex https://github.com/cloudworrior-labs/worriorvex
+brew install --cask worriorvex
+```
+
+The installers are not code-signed yet, so the operating system asks for confirmation the first time:
+
+- **Windows:** SmartScreen shows "Windows protected your PC". Choose **More info**, then **Run anyway**.
+- **macOS:** right-click the app and choose **Open**, or run
+  `xattr -dr com.apple.quarantine /Applications/WorriorVex.app`.
 
 ## What works today
 
 - Desktop app with a three-pane workspace, light and dark theme following the system
-- Notes in an Inbox: create, edit, list
+- Inbox for quick capture, notebooks, nested folders, an All Notes list
 - Rich text: headings, bold, italic, underline, strikethrough, lists, checklists, quotes, code, rules
 - Autosave with a visible save state; a failed save keeps your edits and offers Retry
-- SQLite database created and upgraded by migrations; notes survive a restart
-- Per-OS data folder, log file
+- Trash for notes, folders and whole notebooks: restore, delete permanently, empty
+- Earlier versions of a note are kept automatically while you edit
+- Built-in Documentation and About pages
+- SQLite database created and upgraded by migrations; per-OS data folder; log file
+
+Built and tested underneath, without a screen yet: tags, links and backlinks, attachments, restoring
+earlier versions, moving notes and folders, basic search.
 
 ## Roadmap
 
-Notebooks, folders and trash → images and tables → full-text search → tags, favourites, pins → links and
-backlinks → attachments → KeepNote import → revisions → backup and export → installers → Android and iOS.
+Images and tables → full-text search → tags, favourites, pins, move → links and backlinks → attachments →
+KeepNote import → revision history → backup and export → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
 [development plan](WorriorVex-Development-Plan.md).
 
@@ -88,7 +121,8 @@ Not implemented yet. The KeepNote notebook format has been analysed in
 
 ## Release process
 
-No releases yet. Installers and packaging are planned for the release-preparation phase.
+Pushing a version tag (`v0.2.0`) builds the Windows installer, the macOS disk images and the Linux
+packages and publishes them as a GitHub release: [`docs/release.md`](docs/release.md).
 
 ## Contributing
 
@@ -97,5 +131,5 @@ and add tests for behaviour you change.
 
 ## Licence
 
-[MIT](LICENSE). Third-party components: [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+[MIT](LICENSE), © 2026 Musa Consulting. More at [www.cloudworrior.com](https://www.cloudworrior.com). Third-party components: [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 KeepNote is a separate GPL project by Matt Rasmussen; WorriorVex contains none of its code.

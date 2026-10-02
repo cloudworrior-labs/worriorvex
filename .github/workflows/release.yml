@@ -1,0 +1,137 @@
+name: Release
+
+# Pushing a tag such as v0.1.0 builds the installers and publishes them as a GitHub release.
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: write
+
+env:
+  PUBLISH_ARGS: -c Release --self-contained true -p:DebugType=none -p:DebugSymbols=false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test --configuration Release
+
+  windows:
+    name: Windows installer
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Version from tag
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Publish
+        shell: bash
+        run: dotnet publish src/WorriorVex.Desktop $PUBLISH_ARGS -r win-x64 -p:Version=$VERSION -o publish
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          & $iscc "/DAppVersion=$env:VERSION" "/DSourceDir=$PWD\publish" "/DOutputDir=$PWD\dist" installer\windows\worriorvex.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Compress-Archive -Path publish\* -DestinationPath "dist\WorriorVex-$env:VERSION-windows-x64-portable.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+          if-no-files-found: error
+
+  macos:
+    name: macOS disk images
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Build disk images
+        run: |
+          for arch in arm64 x64; do
+            dotnet publish src/WorriorVex.Desktop $PUBLISH_ARGS -r osx-$arch -p:Version=$VERSION -o publish-$arch
+            installer/macos/build-dmg.sh publish-$arch "$VERSION" $arch dist
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*
+          if-no-files-found: error
+
+  linux:
+    name: Linux packages
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Publish
+        run: dotnet publish src/WorriorVex.Desktop $PUBLISH_ARGS -r linux-x64 -p:Version=$VERSION -o publish
+      - name: Libraries the native window needs
+        run: ldd publish/Photino.Native.so | grep -E "webkit|notify|gtk|not found" || true
+      - name: Build packages
+        run: installer/linux/build-deb.sh publish "$VERSION" dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: [windows, macos, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Checksums and release notes
+        run: |
+          (cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          sed "s/{{VERSION}}/$VERSION/g" installer/release-notes.md > notes.md
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "WorriorVex $VERSION" --notes-file notes.md
+      - name: Update the Homebrew cask
+        run: |
+          arm=$(sha256sum "dist/WorriorVex-$VERSION-macos-arm64.dmg" | cut -d' ' -f1)
+          intel=$(sha256sum "dist/WorriorVex-$VERSION-macos-x64.dmg" | cut -d' ' -f1)
+          sed -e "s/{{VERSION}}/$VERSION/" -e "s/{{SHA_ARM}}/$arm/" -e "s/{{SHA_INTEL}}/$intel/" installer/macos/worriorvex.rb.template > Casks/worriorvex.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/worriorvex.rb
+          git diff --cached --quiet || (git commit -m "Update Homebrew cask to $VERSION" && git push origin main)
