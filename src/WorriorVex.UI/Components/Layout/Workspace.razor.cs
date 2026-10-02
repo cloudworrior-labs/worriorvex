@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using WorriorVex.Application.Notes;
+using WorriorVex.Application.Search;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
 using WorriorVex.Domain;
 using WorriorVex.UI.Components.Navigation;
 using WorriorVex.UI.Components.Notes;
+using WorriorVex.UI.Components.Search;
 
 namespace WorriorVex.UI.Components.Layout;
 
@@ -27,6 +29,14 @@ public partial class Workspace
     private TrashItem? _trashItem;
     private NoteEditor? _editor;
 
+    private SearchBox? _searchBox;
+    private List<NoteSearchResult> _searchResults = [];
+    private string _searchText = string.Empty;
+    private NavSelection? _beforeSearch;
+    private int _searchMark = -1;
+    private int _searchRun;
+    private bool _searching;
+
     private PromptRequest? _prompt;
     private ConfirmRequest? _confirm;
     private string? _dialogError;
@@ -43,6 +53,7 @@ public partial class Workspace
     [Inject] private INotebookService Notebooks { get; set; } = default!;
     [Inject] private ITreeService Tree { get; set; } = default!;
     [Inject] private ITrashService Trash { get; set; } = default!;
+    [Inject] private INoteSearchService Search { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private ILogger<Workspace> Logger { get; set; } = default!;
@@ -122,6 +133,13 @@ public partial class Workspace
         return action switch
         {
             "newNote" => InvokeAsync(NewNoteAsync),
+            "search" => InvokeAsync(async () =>
+            {
+                if (_searchBox is not null)
+                {
+                    await _searchBox.FocusAsync();
+                }
+            }),
             "save" => InvokeAsync(SaveNowAsync),
             _ => Task.CompletedTask,
         };
@@ -145,7 +163,7 @@ public partial class Workspace
                 _notes = [];
                 _current = null;
                 return;
-            case NavSelection.Documentation or NavSelection.About:
+            case NavSelection.Documentation or NavSelection.About or NavSelection.Search:
                 _notes = [];
                 _current = null;
                 return;
@@ -177,6 +195,7 @@ public partial class Workspace
 
         await RunAsync("That could not be opened.", async () =>
         {
+            EndSearch();
             _selection = selection;
             _notice = null;
             await LoadListAsync(openFirst: true);
@@ -201,9 +220,10 @@ public partial class Workspace
                 case NavSelection.Notebook notebook:
                     note = await Notes.CreateAsync(notebook.NotebookId);
                     break;
-                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About:
+                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Search:
                     // Nothing is created in the trash or on a help page: a new note goes to the Inbox, and so does the view.
                     note = await Notes.CreateAsync();
+                    EndSearch();
                     _selection = new NavSelection.Notebook(note.NotebookId);
                     await LoadListAsync(openFirst: false);
                     break;
@@ -251,6 +271,7 @@ public partial class Workspace
         await RunAsync("The note could not be moved to the trash.", async () =>
         {
             await Trash.MoveToTrashAsync(note.Id);
+            _searchResults.RemoveAll(r => r.NoteId == note.Id);
             var index = _notes.FindIndex(n => n.Id == note.Id);
             _notes.RemoveAll(n => n.Id == note.Id);
             var next = _notes.Count == 0 ? null : _notes[Math.Clamp(index, 0, _notes.Count - 1)];
@@ -286,6 +307,114 @@ public partial class Workspace
 
         _error = "This note could not be saved, so it stays open. Retry the save before doing anything else.";
         return false;
+    }
+
+    // ---- Search --------------------------------------------------------------------------------
+
+    /// <summary>Runs when the text in the search box has settled. The list pane becomes the list of results.</summary>
+    private async Task SearchAsync(string text)
+    {
+        if (_selection is not NavSelection.Search)
+        {
+            if (string.IsNullOrWhiteSpace(text) || !await SaveBeforeLeavingAsync())
+            {
+                return;
+            }
+
+            _beforeSearch = _selection;
+            _selection = new NavSelection.Search();
+            _notes = [];
+            _current = null;
+            _trashItem = null;
+            _notice = null;
+        }
+
+        if (text == _searchText && _searchResults.Count > 0)
+        {
+            // Enter re-sends the text that was already searched for: keep the results and the mark on them.
+            return;
+        }
+
+        _searchText = text;
+        _searchMark = -1;
+        var run = ++_searchRun;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            _searchResults = [];
+            _searching = false;
+            return;
+        }
+
+        _searching = true;
+        try
+        {
+            var results = await Search.SearchAsync(text);
+            if (run == _searchRun)
+            {
+                _searchResults = [.. results];
+                _error = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Search failed");
+            if (run == _searchRun)
+            {
+                _searchResults = [];
+                _error = "The search could not be run. Your notes are not affected.";
+            }
+        }
+        finally
+        {
+            if (run == _searchRun)
+            {
+                _searching = false;
+            }
+        }
+    }
+
+    private void MoveSearchMark(int step)
+    {
+        if (_selection is NavSelection.Search && _searchResults.Count > 0)
+        {
+            _searchMark = Math.Clamp(_searchMark + step, 0, _searchResults.Count - 1);
+        }
+    }
+
+    private async Task OpenMarkedResultAsync()
+    {
+        if (_selection is NavSelection.Search && _searchResults.Count > 0)
+        {
+            await OpenAsync(_searchResults[Math.Max(_searchMark, 0)].NoteId);
+        }
+    }
+
+    /// <summary>Escape in the search box: back to where the user was before searching.</summary>
+    private async Task CloseSearchAsync()
+    {
+        if (_selection is not NavSelection.Search)
+        {
+            _searchText = string.Empty;
+            return;
+        }
+
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        var back = _beforeSearch ?? (Inbox is { } inbox ? new NavSelection.Notebook(inbox.Id) : new NavSelection.AllNotes());
+        await RunAsync("That could not be opened.", () => GoToAsync(back));
+    }
+
+    private void EndSearch()
+    {
+        _searchRun++;
+        _searchText = string.Empty;
+        _searchResults = [];
+        _searchMark = -1;
+        _searching = false;
+        _beforeSearch = null;
     }
 
     // ---- Notebooks and folders -----------------------------------------------------------------
@@ -388,6 +517,7 @@ public partial class Workspace
 
     private async Task GoToAsync(NavSelection selection)
     {
+        EndSearch();
         _selection = selection;
         _notice = null;
         await LoadListAsync(openFirst: true);

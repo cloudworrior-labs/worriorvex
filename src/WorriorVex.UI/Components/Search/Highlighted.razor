@@ -1,0 +1,17 @@
+@using WorriorVex.Application.Search
+@* Text with the searched words marked. The pieces are plain text, so nothing in a note can act as markup here. *@
+@foreach (var segment in Segments)
+{
+    if (segment.IsMatch)
+    {
+        <mark>@segment.Text</mark>
+    }
+    else
+    {
+        @segment.Text
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TextSegment> Segments { get; set; } = [];
+}

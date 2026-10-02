@@ -48,6 +48,7 @@ The installers are not code-signed yet, so the operating system asks for confirm
 - Rich text: headings, bold, italic, underline, strikethrough, lists, checklists, quotes, code, rules
 - Links, tables, and images added from a file, by pasting or by dropping
 - Everything stored is sanitised; the app window can load nothing from the network
+- Full-text search as you type, with highlighted matches, phrases and `tag:` / `in:` filters
 - Autosave with a visible save state; a failed save keeps your edits and offers Retry
 - Trash for notes, folders and whole notebooks: restore, delete permanently, empty
 - Earlier versions of a note are kept automatically while you edit
@@ -55,11 +56,11 @@ The installers are not code-signed yet, so the operating system asks for confirm
 - SQLite database created and upgraded by migrations; per-OS data folder; log file
 
 Built and tested underneath, without a screen yet: tags, links and backlinks, attachments, restoring
-earlier versions, moving notes and folders, basic search.
+earlier versions, moving notes and folders.
 
 ## Roadmap
 
-Full-text search → tags, favourites, pins, move → links and backlinks → attachments →
+Tags, favourites, pins, move → links and backlinks → attachments →
 KeepNote import → revision history → backup and export → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
 [development plan](WorriorVex-Development-Plan.md).

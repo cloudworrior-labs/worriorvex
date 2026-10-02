@@ -39,7 +39,7 @@ delete → restore.
 | Notebooks, nested folders, All Notes, delete and restore, trash screen (Phase 5) | done |
 | About and Documentation pages, icon, installers for Windows, macOS, Linux | done |
 | Links, images (file, paste, drop), tables, HTML sanitiser, content security policy (Phase 6) | done |
-| Full-text search (FTS5) and search screen | Phase 7 |
+| Full-text search on SQLite FTS5 with a search box, highlighting and filters (Phase 7) | done |
 | Screens for tags, favourites, pins, recent, move, context menus | Phase 8 |
 | Screens for links and backlinks | Phase 9 |
 | Screens for attachments | Phase 10 |

@@ -1,0 +1,80 @@
+@implements IDisposable
+
+<div class="wn-search" role="search">
+    <input @ref="_input" @key="_generation" type="search" class="wn-search-input" value="@Text" placeholder="Search notes…   @Modifier+K"
+           aria-label="Search notes" autocomplete="off" spellcheck="false"
+           @oninput="OnInput" @onkeydown="OnKeyDown" />
+</div>
+
+@code {
+    private static readonly TimeSpan Pause = TimeSpan.FromMilliseconds(250);
+    private ElementReference _input;
+    private CancellationTokenSource? _pending;
+    private string _typed = string.Empty;
+    private int _generation;
+
+    /// <summary>The text the box shows. The owner clears it to end a search.</summary>
+    [Parameter] public string Text { get; set; } = string.Empty;
+
+    /// <summary>Raised a short pause after the user stops typing, with what is in the box.</summary>
+    [Parameter] public EventCallback<string> OnChanged { get; set; }
+
+    /// <summary>Arrow down (+1) or up (-1) was pressed, to move through the results.</summary>
+    [Parameter] public EventCallback<int> OnMove { get; set; }
+
+    /// <summary>Enter was pressed: open the result that is marked.</summary>
+    [Parameter] public EventCallback OnOpen { get; set; }
+
+    /// <summary>Escape was pressed: leave the search.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+
+    public ValueTask FocusAsync() => _input.FocusAsync();
+
+    private async Task OnInput(ChangeEventArgs args)
+    {
+        _typed = args.Value?.ToString() ?? string.Empty;
+        _pending?.Cancel();
+        var pending = _pending = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(Pause, pending.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        await OnChanged.InvokeAsync(_typed);
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                await OnMove.InvokeAsync(1);
+                break;
+            case "ArrowUp":
+                await OnMove.InvokeAsync(-1);
+                break;
+            case "Enter" when !args.IsComposing:
+                // Do not wait for the pause: search for what is typed, then open the first result.
+                _pending?.Cancel();
+                await OnChanged.InvokeAsync(_typed);
+                await OnOpen.InvokeAsync();
+                break;
+            case "Escape":
+                _pending?.Cancel();
+                _typed = string.Empty;
+
+                // A fresh input: text typed but not yet searched for would otherwise stay in the box.
+                _generation++;
+                await OnClose.InvokeAsync();
+                break;
+        }
+    }
+
+    public void Dispose() => _pending?.Cancel();
+}

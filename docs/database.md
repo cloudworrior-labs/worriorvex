@@ -70,6 +70,12 @@ dotnet ef migrations add <Name> --project src/WorriorVex.Infrastructure --output
 
 Commit the generated files. Never edit a migration that has shipped in a release.
 
+**NoteSearch** — an FTS5 virtual table (`NoteId` unindexed, `Title`, `Body`, `Tags`; tokenizer
+`unicode61 remove_diacritics 2`). `Body` is the note's HTML without markup. It is derived data, written in
+the same transaction as the note and completed at startup when any note is missing from it, so a database
+from before search existed is indexed on first start. It is created by a migration with raw SQL and is
+not part of the EF Core model.
+
 ## Planned tables
 
-A recent-access table and an FTS5 virtual table for search (development plan, sections 16 and 26).
+A recent-access table (development plan, section 26).

@@ -106,6 +106,27 @@
                 </p>
                 break;
 
+            case "searching":
+                <h2>Searching</h2>
+                <p>
+                    The search box at the top looks through the titles, text and tags of all your notes.
+                    Press <kbd>@Modifier</kbd> + <kbd>K</kbd> to jump to it and start typing; results appear as
+                    you type, best matches first, with the matching words marked. A match in the title counts
+                    more than one in the text.
+                </p>
+                <ul>
+                    <li>Every word you type must occur. A word also matches longer words that start with it: <code>archi</code> finds <em>architecture</em>.</li>
+                    <li>Accents and case do not matter: <code>resume</code> finds <em>Résumé</em>.</li>
+                    <li>Put an exact phrase in quotes: <code>"quarterly plan"</code>.</li>
+                    <li><code>tag:project</code> finds notes carrying that tag.</li>
+                    <li><code>in:Projects</code> limits the results to a notebook or folder of that name; use quotes for names with spaces.</li>
+                </ul>
+                <p>
+                    Use the arrow keys to move through the results and <kbd>Enter</kbd> to open one, or click it.
+                    <kbd>Esc</kbd> leaves the search and takes you back to where you were. Notes in the Trash are not searched.
+                </p>
+                break;
+
             case "organising":
                 <h2>Notebooks and folders</h2>
                 <p>
@@ -156,6 +177,9 @@
                     <tbody>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Start a new note</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Save now</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Search</td></tr>
+                        <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> in the search box</td><td>Move through the results and open one</td></tr>
+                        <tr><td><kbd>Esc</kbd> in the search box</td><td>Leave the search</td></tr>
                         <tr><td><kbd>Enter</kbd> in the title</td><td>Move to the text</td></tr>
                         <tr><td><kbd>Esc</kbd></td><td>Close a dialog</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Bold / italic / underline</td></tr>
@@ -212,7 +236,6 @@
                 <h2>What is coming</h2>
                 <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
                 <ul>
-                    <li>Search across everything you have written</li>
                     <li>Tags, favourites, pinned notes, recent notes, moving notes between folders</li>
                     <li>Links between notes, with backlinks</li>
                     <li>Attaching files</li>
@@ -236,6 +259,7 @@
     [
         ("start", "Getting started"),
         ("writing", "Writing notes"),
+        ("searching", "Searching"),
         ("organising", "Notebooks and folders"),
         ("trash", "The Trash"),
         ("shortcuts", "Keyboard shortcuts"),

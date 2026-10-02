@@ -38,7 +38,7 @@ not before. Host choice and editor choice are explained in [`decisions/`](decisi
 | `INoteLinkService` | links and backlinks |
 | `IRevisionService` | list, view and restore earlier versions |
 | `IAttachmentService` | store, open, rename and delete attached files under generated names |
-| `INoteSearchService` | substring search (to be replaced by FTS5) |
+| `INoteSearchService` | full-text search over the FTS5 index: ranking, highlighting, `tag:` / `in:` / `is:` filters |
 | `INoteHtmlSanitizer` | reduces HTML to what a note may contain; applied to everything stored |
 | `IPlatformShell` | open a web page or folder outside the app, show a file dialog; implemented by the host |
 

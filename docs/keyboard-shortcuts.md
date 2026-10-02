@@ -9,6 +9,9 @@
 | --- | --- |
 | `Ctrl/⌘ + N` | New note (in the Inbox) |
 | `Ctrl/⌘ + S` | Save now |
+| `Ctrl/⌘ + K` | Search |
+| `↑` `↓` `Enter` in the search box | Move through the results, open one |
+| `Esc` in the search box | Leave the search |
 | `Enter` in the title | Move to the note body |
 | `Esc` | Close a dialog |
 | `Enter` in a dialog | Confirm the name |
@@ -35,4 +38,4 @@ the start of a line also starts the matching block.
 
 ## Planned
 
-Search (`Ctrl/⌘ + K`), focus editor, toggle sidebar, tree navigation, command palette.
+Focus editor, toggle sidebar, tree navigation, command palette.

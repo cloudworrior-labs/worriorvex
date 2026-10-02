@@ -32,4 +32,5 @@ export function register(dotNetRef) {
 const SHORTCUTS = {
   n: 'newNote',
   s: 'save',
+  k: 'search',
 };

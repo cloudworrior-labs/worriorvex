@@ -1,0 +1,67 @@
+@using WorriorVex.Application.Search
+
+<section class="wn-notelist" aria-label="Search results">
+    <header class="wn-pane-header">
+        <h2>Search</h2>
+        <span class="wn-count" aria-live="polite">@(Searching ? "…" : Results.Count.ToString())</span>
+    </header>
+    @if (string.IsNullOrWhiteSpace(Query))
+    {
+        <div class="wn-empty wn-search-help">
+            <p>Type what you are looking for.</p>
+            <dl>
+                <dt><code>budget plan</code></dt><dd>notes with both words</dd>
+                <dt><code>"q3 plan"</code></dt><dd>the exact phrase</dd>
+                <dt><code>tag:project</code></dt><dd>notes with that tag</dd>
+                <dt><code>in:Projects</code></dt><dd>in that notebook or folder</dd>
+            </dl>
+        </div>
+    }
+    else if (Results.Count == 0 && !Searching)
+    {
+        <div class="wn-empty">
+            <p>No notes found.</p>
+            <p>Try a different search.</p>
+        </div>
+    }
+    else
+    {
+        <ul class="wn-notelist-items" aria-label="Notes found">
+            @for (var i = 0; i < Results.Count; i++)
+            {
+                var result = Results[i];
+                var selected = result.NoteId == SelectedId;
+                var marked = i == MarkedIndex;
+                <li @key="result.NoteId">
+                    <button type="button" class="wn-noteitem @(selected ? "is-selected" : null) @(marked ? "is-marked" : null)"
+                            aria-current="@(selected ? "true" : null)" @onclick="() => OnSelect.InvokeAsync(result.NoteId)">
+                        <span class="wn-noteitem-title"><Highlighted Segments="result.TitleSegments" /></span>
+                        <span class="wn-noteitem-meta">@result.Location · @FormatUpdated(result.UpdatedAt)</span>
+                        @if (result.Snippet.Count > 0)
+                        {
+                            <span class="wn-noteitem-snippet"><Highlighted Segments="result.Snippet" /></span>
+                        }
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Query { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IReadOnlyList<NoteSearchResult> Results { get; set; } = [];
+    [Parameter] public bool Searching { get; set; }
+    [Parameter] public Guid? SelectedId { get; set; }
+
+    /// <summary>The result the arrow keys are on; Enter opens it.</summary>
+    [Parameter] public int MarkedIndex { get; set; } = -1;
+
+    [Parameter] public EventCallback<Guid> OnSelect { get; set; }
+
+    private static string FormatUpdated(DateTimeOffset updatedAt)
+    {
+        var local = updatedAt.ToLocalTime();
+        return local.Date == DateTimeOffset.Now.Date ? $"updated {local:t}" : $"updated {local:d}";
+    }
+}

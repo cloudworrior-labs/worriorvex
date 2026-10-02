@@ -14,6 +14,9 @@ public abstract record NavSelection
 
     public sealed record Trash : NavSelection;
 
+    /// <summary>The list shows what the search box found; nothing in the navigation is selected.</summary>
+    public sealed record Search : NavSelection;
+
     public sealed record Documentation : NavSelection;
 
     public sealed record About : NavSelection;

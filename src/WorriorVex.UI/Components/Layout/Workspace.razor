@@ -4,7 +4,7 @@
     <header class="wn-topbar">
         <img class="wn-brand-mark" src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="20" height="20" />
         <span class="wn-brand">WorriorVex</span>
-        <span class="wn-topbar-spacer"></span>
+        <SearchBox @ref="_searchBox" Text="@_searchText" OnChanged="SearchAsync" OnMove="MoveSearchMark" OnOpen="OpenMarkedResultAsync" OnClose="CloseSearchAsync" />
         <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
     </header>
 
@@ -13,6 +13,11 @@
     @if (IsHelpPage)
     {
         @* Help pages use the width of the list and editor panes together. *@
+    }
+    else if (_selection is NavSelection.Search)
+    {
+        <SearchResults Query="@_searchText" Results="_searchResults" Searching="_searching" SelectedId="_current?.Id"
+                       MarkedIndex="_searchMark" OnSelect="OpenAsync" />
     }
     else if (_selection is NavSelection.Trash)
     {
@@ -72,6 +77,10 @@
             {
                 <TrashDetail Item="_trashItem" OnRestore="RestoreAsync" OnDelete="ConfirmDeletePermanently" />
             }
+        }
+        else if (_current is null && _selection is NavSelection.Search)
+        {
+            <div class="wn-empty"><p>@(_searchResults.Count == 0 ? "Search looks through the titles, text and tags of all your notes." : "Select a note to open it, or press Enter for the first one.")</p></div>
         }
         else if (_current is null)
         {
