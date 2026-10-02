@@ -18,6 +18,8 @@
   --wn-border-width: 1px;
   --wn-transition: 120ms ease-out;
   --wn-z-banner: 10;
+  --wn-z-dialog: 100;
+  --wn-shadow-dialog: 0 12px 40px rgb(0 0 0 / 0.3);
 
   --wn-bg: #ffffff;
   --wn-bg-pane: #f6f7f8;
@@ -306,4 +308,123 @@ button, input { font: inherit; color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+}
+
+/* Navigation tree */
+.wn-nav { display: flex; flex-direction: column; gap: var(--wn-space-2); }
+.wn-nav-list { list-style: none; margin: 0; padding: 0; }
+.wn-nav .wn-nav-bottom { margin-top: auto; padding-top: var(--wn-space-2); border-top: var(--wn-border-width) solid var(--wn-border); }
+.wn-nav-hint { margin: 0; padding: 0 var(--wn-space-2); color: var(--wn-text-muted); font-size: 0.86rem; }
+
+.wn-nav-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--wn-space-2) var(--wn-space-2) 0;
+}
+
+.wn-nav-section h2 {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wn-text-muted);
+}
+
+.wn-navrow { display: flex; align-items: center; }
+.wn-navrow .wn-navitem { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wn-tree .wn-navrow { padding-left: calc(var(--wn-level, 1) * var(--wn-space-3)); }
+
+.wn-twisty {
+  flex: none;
+  width: 18px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--wn-radius);
+  background: transparent;
+  color: var(--wn-text-muted);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+button.wn-twisty { cursor: pointer; }
+button.wn-twisty:hover { background: var(--wn-bg-hover); color: var(--wn-text); }
+
+.wn-iconbutton {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--wn-radius);
+  background: transparent;
+  color: var(--wn-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.wn-iconbutton:hover { background: var(--wn-bg-hover); color: var(--wn-text); }
+
+/* List pane actions */
+.wn-pane-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wn-space-1);
+  padding: var(--wn-space-2) var(--wn-space-3);
+  border-bottom: var(--wn-border-width) solid var(--wn-border);
+}
+
+.wn-button-small { padding: 1px var(--wn-space-2); font-size: 0.86rem; }
+.wn-button:disabled { opacity: 0.55; cursor: default; }
+.wn-button-danger { background: var(--wn-danger); border-color: var(--wn-danger); color: var(--wn-bg); font-weight: 600; }
+.wn-button-danger:hover { background: var(--wn-danger); filter: brightness(1.08); }
+
+.wn-banner-info { background: var(--wn-bg-bar); color: var(--wn-text); }
+.wn-toolbar-spacer { flex: 1; }
+
+/* Trash */
+.wn-trash-detail { padding: var(--wn-space-5); max-width: 640px; }
+.wn-trash-detail h1 { margin: 0 0 var(--wn-space-4); font-size: 1.6rem; overflow-wrap: anywhere; }
+.wn-trash-kind { margin: 0 0 var(--wn-space-1); color: var(--wn-text-muted); font-size: 0.86rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.wn-trash-detail dl { display: grid; grid-template-columns: auto 1fr; gap: var(--wn-space-1) var(--wn-space-4); margin: 0 0 var(--wn-space-4); }
+.wn-trash-detail dt { color: var(--wn-text-muted); }
+.wn-trash-detail dd { margin: 0; }
+.wn-trash-actions { display: flex; gap: var(--wn-space-2); margin-top: var(--wn-space-5); }
+
+/* Dialogs */
+.wn-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--wn-z-dialog);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 18vh;
+  background: rgb(0 0 0 / 0.45);
+}
+
+.wn-dialog {
+  width: min(440px, calc(100vw - 2 * var(--wn-space-5)));
+  padding: var(--wn-space-5);
+  background: var(--wn-bg);
+  border: var(--wn-border-width) solid var(--wn-border);
+  border-radius: calc(var(--wn-radius) * 2);
+  box-shadow: var(--wn-shadow-dialog);
+}
+
+.wn-dialog h2 { margin: 0 0 var(--wn-space-3); font-size: 1.1rem; overflow-wrap: anywhere; }
+.wn-dialog p { margin: 0 0 var(--wn-space-3); }
+.wn-dialog label { display: block; margin-bottom: var(--wn-space-1); color: var(--wn-text-muted); }
+.wn-dialog-error { color: var(--wn-danger); }
+.wn-dialog-actions { display: flex; justify-content: flex-end; gap: var(--wn-space-2); margin-top: var(--wn-space-4); }
+
+.wn-input {
+  width: 100%;
+  padding: var(--wn-space-1) var(--wn-space-2);
+  margin-bottom: var(--wn-space-3);
+  border: var(--wn-border-width) solid var(--wn-border);
+  border-radius: var(--wn-radius);
+  background: var(--wn-bg);
 }

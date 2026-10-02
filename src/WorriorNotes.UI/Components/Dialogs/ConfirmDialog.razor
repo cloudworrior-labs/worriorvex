@@ -1,0 +1,48 @@
+<div class="wn-overlay" @onkeydown="OnKeyDown">
+    <div class="wn-dialog" role="alertdialog" aria-modal="true" aria-labelledby="wn-confirm-title" aria-describedby="wn-confirm-message">
+        <h2 id="wn-confirm-title">@Title</h2>
+        <p id="wn-confirm-message">@Message</p>
+        <div class="wn-dialog-actions">
+            <button type="button" class="wn-button" @ref="_cancel" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="wn-button @(Danger ? "wn-button-danger" : "wn-button-primary")" disabled="@_busy" @onclick="ConfirmAsync">@ConfirmText</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ElementReference _cancel;
+    private bool _busy;
+
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Message { get; set; } = string.Empty;
+    [Parameter] public string ConfirmText { get; set; } = "OK";
+
+    /// <summary>The action cannot be undone; the safe choice gets the focus and the button is marked.</summary>
+    [Parameter] public bool Danger { get; set; }
+
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _cancel.FocusAsync();
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        _busy = true;
+        try
+        {
+            await OnConfirm.InvokeAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private Task OnKeyDown(KeyboardEventArgs args) => args.Key == "Escape" ? OnCancel.InvokeAsync() : Task.CompletedTask;
+}

@@ -1,0 +1,27 @@
+<section class="wn-trash-detail" aria-label="Deleted item">
+    <p class="wn-trash-kind">@TrashList.KindLabel(Item.Kind) in the trash</p>
+    <h1>@Item.Name</h1>
+    <dl>
+        <dt>Deleted</dt>
+        <dd>@Item.DeletedAt.ToLocalTime().ToString("f")</dd>
+        @if (Item.OriginalLocation.Length > 0)
+        {
+            <dt>Was in</dt>
+            <dd>@Item.OriginalLocation</dd>
+        }
+    </dl>
+    @if (Item.Kind != TrashItemKind.Note)
+    {
+        <p>Everything that was inside it when it was deleted comes back with it.</p>
+    }
+    <div class="wn-trash-actions">
+        <button type="button" class="wn-button wn-button-primary" @onclick="() => OnRestore.InvokeAsync(Item)">Restore</button>
+        <button type="button" class="wn-button wn-button-danger" @onclick="() => OnDelete.InvokeAsync(Item)">Delete permanently…</button>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public TrashItem Item { get; set; } = default!;
+    [Parameter] public EventCallback<TrashItem> OnRestore { get; set; }
+    [Parameter] public EventCallback<TrashItem> OnDelete { get; set; }
+}

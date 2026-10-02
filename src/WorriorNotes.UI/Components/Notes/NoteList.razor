@@ -3,23 +3,34 @@
         <h2>@Heading</h2>
         <span class="wn-count">@Notes.Count</span>
     </header>
+    @if (ShowActions && ChildContent is not null)
+    {
+        <div class="wn-pane-actions">@ChildContent</div>
+    }
     @if (Notes.Count == 0)
     {
         <div class="wn-empty">
             <p>Nothing here yet.</p>
-            <button type="button" class="wn-button wn-button-primary" @onclick="OnCreate">Create your first note</button>
+            <button type="button" class="wn-button wn-button-primary" @onclick="OnCreate">@(FirstEver ? "Create your first note" : "New note")</button>
         </div>
     }
     else
     {
-        <ul class="wn-notelist-items" role="listbox" aria-label="@Heading">
+        <ul class="wn-notelist-items" aria-label="@Heading">
             @foreach (var note in Notes)
             {
                 var selected = note.Id == SelectedId;
-                <li @key="note.Id" role="option" aria-selected="@(selected ? "true" : "false")">
-                    <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" @onclick="() => OnSelect.InvokeAsync(note.Id)">
+                <li @key="note.Id">
+                    <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
+                            @onclick="() => OnSelect.InvokeAsync(note.Id)">
                         <span class="wn-noteitem-title">@note.Title</span>
-                        <span class="wn-noteitem-meta">@FormatUpdated(note.UpdatedAt)</span>
+                        <span class="wn-noteitem-meta">
+                            @if (NotebookNames is not null && NotebookNames.TryGetValue(note.NotebookId, out var notebook))
+                            {
+                                <text>@notebook · </text>
+                            }
+                            @FormatUpdated(note.UpdatedAt)
+                        </span>
                     </button>
                 </li>
             }
@@ -31,8 +42,18 @@
     [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
     [Parameter, EditorRequired] public IReadOnlyList<NoteSummary> Notes { get; set; } = [];
     [Parameter] public Guid? SelectedId { get; set; }
+
+    /// <summary>When given, each note also says which notebook it is in (for lists that span notebooks).</summary>
+    [Parameter] public IReadOnlyDictionary<Guid, string>? NotebookNames { get; set; }
+
+    [Parameter] public bool FirstEver { get; set; }
     [Parameter] public EventCallback<Guid> OnSelect { get; set; }
     [Parameter] public EventCallback OnCreate { get; set; }
+
+    [Parameter] public bool ShowActions { get; set; }
+
+    /// <summary>Actions for the container the list shows, placed under the heading.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private static string FormatUpdated(DateTimeOffset updatedAt)
     {

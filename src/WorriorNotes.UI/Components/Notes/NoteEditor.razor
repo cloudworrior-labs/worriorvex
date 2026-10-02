@@ -31,6 +31,8 @@
                 }
             </div>
         }
+        <span class="wn-toolbar-spacer"></span>
+        <button type="button" class="wn-tool" title="Move this note to the trash" @onclick="OnDelete">Delete</button>
     </div>
 
     <div class="wn-editor-surface" @ref="_surface"></div>
@@ -62,6 +64,9 @@
 
     /// <summary>Raised with the latest title and body whenever the user changes either.</summary>
     [Parameter] public EventCallback<NoteEdit> OnEdited { get; set; }
+
+    /// <summary>The user asked to move this note to the trash.</summary>
+    [Parameter] public EventCallback OnDelete { get; set; }
 
     /// <summary>Puts the cursor in the title of the next note that is loaded.</summary>
     public void FocusTitleOnNextLoad() => _focusTitle = true;

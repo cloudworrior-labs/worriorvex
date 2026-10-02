@@ -1,0 +1,43 @@
+<section class="wn-notelist" aria-label="Trash">
+    <header class="wn-pane-header">
+        <h2>Trash</h2>
+        <span class="wn-count">@Items.Count</span>
+    </header>
+    @if (Items.Count == 0)
+    {
+        <div class="wn-empty"><p>The trash is empty.</p></div>
+    }
+    else
+    {
+        <div class="wn-pane-actions">
+            <button type="button" class="wn-button wn-button-small" @onclick="OnEmpty">Empty trash…</button>
+        </div>
+        <ul class="wn-notelist-items" aria-label="Deleted items">
+            @foreach (var item in Items)
+            {
+                var selected = item.Id == SelectedId;
+                <li @key="item.Id">
+                    <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
+                            @onclick="() => OnSelect.InvokeAsync(item)">
+                        <span class="wn-noteitem-title">@item.Name</span>
+                        <span class="wn-noteitem-meta">@KindLabel(item.Kind) · deleted @item.DeletedAt.ToLocalTime().ToString("g")</span>
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TrashItem> Items { get; set; } = [];
+    [Parameter] public Guid? SelectedId { get; set; }
+    [Parameter] public EventCallback<TrashItem> OnSelect { get; set; }
+    [Parameter] public EventCallback OnEmpty { get; set; }
+
+    internal static string KindLabel(TrashItemKind kind) => kind switch
+    {
+        TrashItemKind.Notebook => "Notebook",
+        TrashItemKind.Folder => "Folder",
+        _ => "Note",
+    };
+}
