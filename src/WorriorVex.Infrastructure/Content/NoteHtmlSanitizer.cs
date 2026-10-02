@@ -35,7 +35,7 @@ public sealed partial class NoteHtmlSanitizer : INoteHtmlSanitizer
         {
             AllowedTags = new HashSet<string>(Tags, StringComparer.OrdinalIgnoreCase),
             AllowedAttributes = new HashSet<string>(Attributes, StringComparer.OrdinalIgnoreCase),
-            AllowedSchemes = new HashSet<string>(["http", "https"], StringComparer.OrdinalIgnoreCase),
+            AllowedSchemes = new HashSet<string>(["http", "https", "note"], StringComparer.OrdinalIgnoreCase),
             UriAttributes = new HashSet<string>(["href", "src"], StringComparer.OrdinalIgnoreCase),
             AllowedCssProperties = new HashSet<string>(),
             AllowedAtRules = new HashSet<AngleSharp.Css.Dom.CssRuleType>(),
@@ -71,10 +71,18 @@ public sealed partial class NoteHtmlSanitizer : INoteHtmlSanitizer
                 break;
 
             case "a":
-                if (NoteContentRules.IsWebLink(element.GetAttribute("href")))
+                var href = element.GetAttribute("href");
+                if (NoteContentRules.IsWebLink(href))
                 {
                     element.SetAttribute("target", "_blank");
                     element.SetAttribute("rel", "noopener noreferrer nofollow");
+                }
+                else if (NoteContentRules.NoteLinkTarget(href) is { } target)
+                {
+                    // A link to another note: stored in one canonical form, opened by the app, never by the browser.
+                    element.SetAttribute("href", NoteContentRules.NoteLinkAddress(target));
+                    element.RemoveAttribute("target");
+                    element.RemoveAttribute("rel");
                 }
                 else
                 {

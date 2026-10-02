@@ -54,6 +54,7 @@
             {
                 <button type="button" class="wn-tool" title="Remove link" @onmousedown:preventDefault @onclick="@(() => RunAsync("unlink"))">Unlink</button>
             }
+            <button type="button" class="wn-tool" title="Link to another note" @onmousedown:preventDefault @onclick="() => _notePicker = true">Note link</button>
             <button type="button" class="wn-tool" title="Insert image from a file" @onmousedown:preventDefault @onclick="PickImageAsync">Image</button>
             <button type="button" class="wn-tool" title="Insert table" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">Table</button>
         </div>
@@ -69,8 +70,15 @@
         }
     </div>
 
-    <div class="wn-editor-surface" @ref="_surface"></div>
+    <div class="wn-editor-surface" @ref="_surface">
+    </div>
+    <NoteConnections NoteId="Note.Id" Version="ConnectionsVersion" OnOpen="OnOpenNote" />
 </section>
+
+@if (_notePicker)
+{
+    <NotePickerDialog ExcludeId="Note.Id" OnPick="LinkToNoteAsync" OnCancel="CloseNotePicker" />
+}
 
 @if (_linkPrompt)
 {
@@ -99,6 +107,7 @@
 
     private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
 
+    private bool _notePicker;
     private bool _linkPrompt;
     private string _linkAddress = string.Empty;
     private string? _linkError;
@@ -124,6 +133,12 @@
     /// <summary>Something the user tried did not work; the text says what and why.</summary>
     [Parameter] public EventCallback<string> OnProblem { get; set; }
 
+    /// <summary>A link to another note was followed; the owner opens that note.</summary>
+    [Parameter] public EventCallback<Guid> OnOpenNote { get; set; }
+
+    /// <summary>Changes whenever the note was saved or its tags changed, so the connected notes are re-read.</summary>
+    [Parameter] public int ConnectionsVersion { get; set; }
+
     [Parameter] public EventCallback OnToggleFavorite { get; set; }
     [Parameter] public EventCallback OnTogglePinned { get; set; }
 
@@ -141,7 +156,7 @@
     {
         if (_editor is not null)
         {
-            await _editor.InvokeVoidAsync("flush");
+            await EditorAsync("flush");
         }
     }
 
@@ -163,14 +178,14 @@
         if (firstRender)
         {
             _self = DotNetObjectReference.Create(this);
-            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/WorriorVex.UI/editor/editor.bundle.js");
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", UiAssets.Editor);
             _editor = await _module.InvokeAsync<IJSObjectReference>("create", _surface, _self, _content);
             _contentNeedsPush = false;
         }
         else if (_contentNeedsPush && _editor is not null)
         {
             _contentNeedsPush = false;
-            await _editor.InvokeVoidAsync("setContent", _content);
+            await EditorAsync("setContent", _content);
         }
 
         if (_focusTitle && _editor is not null)
@@ -220,11 +235,33 @@
 
     /// <summary>Called by the editor when a link is clicked with Ctrl or Cmd held.</summary>
     [JSInvokable]
-    public void OnOpenLink(string? address)
+    public async Task OnOpenLink(string? address)
     {
-        if (NoteContentRules.IsWebLink(address))
+        if (NoteContentRules.NoteLinkTarget(address) is { } noteId)
+        {
+            await OnOpenNote.InvokeAsync(noteId);
+        }
+        else if (NoteContentRules.IsWebLink(address))
         {
             Shell.OpenWebPage(new Uri(address!));
+        }
+    }
+
+    private async Task LinkToNoteAsync(NotePickerDialog.Choice choice)
+    {
+        _notePicker = false;
+        if (_editor is not null)
+        {
+            await EditorAsync("setNoteLink", NoteContentRules.NoteLinkAddress(choice.Id), choice.Title);
+        }
+    }
+
+    private async Task CloseNotePicker()
+    {
+        _notePicker = false;
+        if (_editor is not null)
+        {
+            await EditorAsync("focus");
         }
     }
 
@@ -242,7 +279,7 @@
             var source = await AttachImageAsync(Path.GetFileName(path), NoteContentRules.ImageContentType(path), content);
             if (source is not null)
             {
-                await _editor.InvokeVoidAsync("insertImage", source, Path.GetFileNameWithoutExtension(path));
+                await EditorAsync("insertImage", source, Path.GetFileNameWithoutExtension(path));
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -298,7 +335,7 @@
         _linkPrompt = false;
         if (_editor is not null)
         {
-            await _editor.InvokeVoidAsync("setLink", full);
+            await EditorAsync("setLink", full);
         }
     }
 
@@ -307,7 +344,7 @@
         _linkPrompt = false;
         if (_editor is not null)
         {
-            await _editor.InvokeVoidAsync("focus");
+            await EditorAsync("focus");
         }
     }
 
@@ -322,7 +359,7 @@
     {
         if (args.Key == "Enter" && !args.IsComposing && _editor is not null)
         {
-            await _editor.InvokeVoidAsync("focus");
+            await EditorAsync("focus");
         }
     }
 
@@ -330,7 +367,29 @@
     {
         if (_editor is not null)
         {
-            await _editor.InvokeVoidAsync("run", command);
+            await EditorAsync("run", command);
+        }
+    }
+
+    /// <summary>
+    /// Calls a function of the editor module. A failure there must not take the whole page down,
+    /// so it is logged and shown as a message instead.
+    /// </summary>
+    private async Task EditorAsync(string function, params object?[] args)
+    {
+        if (_editor is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _editor.InvokeVoidAsync(function, args);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "The editor function {Function} failed", function);
+            await OnProblem.InvokeAsync("The editor did not respond to that. If it keeps happening, restart WorriorVex.");
         }
     }
 

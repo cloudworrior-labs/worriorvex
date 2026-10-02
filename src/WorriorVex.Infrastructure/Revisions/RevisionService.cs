@@ -4,6 +4,7 @@ using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
 using WorriorVex.Domain;
 using WorriorVex.Infrastructure.Notes;
+using WorriorVex.Infrastructure.Links;
 using WorriorVex.Infrastructure.Persistence;
 using WorriorVex.Infrastructure.Search;
 
@@ -58,6 +59,7 @@ public sealed class RevisionService(
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
         await SearchIndex.IndexNoteAsync(context, node.Id, node.Name, node.Note.Content, cancellationToken);
+        await NoteLinkSync.SyncAsync(context, node.Id, node.Note.Content, now, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return NoteService.ToDetail(node);
     }

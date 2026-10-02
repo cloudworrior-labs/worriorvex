@@ -45,7 +45,8 @@ Deleting a parent row removes its children: folders cascade to what they hold, n
 the file in `attachments/`), `ContentType`, `Size`, `Hash` (SHA-256), `CreatedAt`.
 
 **NoteLinks** — `Id`, `SourceNoteId`, `TargetNoteId`, `CreatedAt`; one row per pair, indexed both ways so
-backlinks are a lookup.
+backlinks are a lookup. Derived from the note's text: a link is written as `<a href="note:<id>">` and the
+rows are brought in line with the text every time the note is saved.
 
 **NoteRevisions** — `Id`, `NoteId`, `Title`, `Content`, `CreatedAt`, `ChangeReason`; never updated.
 

@@ -4,6 +4,7 @@ using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
 using WorriorVex.Domain;
 using WorriorVex.Infrastructure.Attachments;
+using WorriorVex.Infrastructure.Links;
 using WorriorVex.Infrastructure.Persistence;
 using WorriorVex.Infrastructure.Search;
 
@@ -60,6 +61,7 @@ public sealed class NoteService(
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
         await SearchIndex.IndexNoteAsync(context, node.Id, node.Name, node.Note!.Content, cancellationToken);
+        await NoteLinkSync.SyncAsync(context, node.Id, node.Note.Content, node.CreatedAt, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return ToDetail(node);
     }
@@ -189,6 +191,7 @@ public sealed class NoteService(
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
             await SearchIndex.IndexNoteAsync(context, copy.Id, copy.Name, copy.Note.Content, cancellationToken);
+            await NoteLinkSync.SyncAsync(context, copy.Id, copy.Note.Content, now, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
         catch
@@ -232,6 +235,7 @@ public sealed class NoteService(
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
             await SearchIndex.IndexNoteAsync(context, node.Id, node.Name, node.Note.Content, cancellationToken);
+            await NoteLinkSync.SyncAsync(context, node.Id, node.Note.Content, now, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
 

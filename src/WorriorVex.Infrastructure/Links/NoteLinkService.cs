@@ -59,6 +59,25 @@ public sealed class NoteLinkService(
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<LinkedNote>> GetRelatedAsync(Guid noteId, int limit = 8, CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var sharing = context.NoteTags
+            .Where(mine => mine.NoteId == noteId)
+            .Join(context.NoteTags, mine => mine.TagId, theirs => theirs.TagId, (mine, theirs) => theirs.NoteId)
+            .Where(other => other != noteId && !context.NoteLinks.Any(l => l.SourceNoteId == noteId && l.TargetNoteId == other))
+            .GroupBy(other => other)
+            .Select(group => new { NoteId = group.Key, Shared = group.Count() });
+
+        return await sharing
+            .Join(context.Nodes.Where(n => n.DeletedAt == null), s => s.NoteId, n => n.Id, (s, n) => new { s.Shared, Node = n })
+            .OrderByDescending(x => x.Shared)
+            .ThenByDescending(x => x.Node.UpdatedAt)
+            .Take(Math.Clamp(limit, 1, 50))
+            .Select(x => new LinkedNote(x.Node.Id, x.Node.NotebookId, x.Node.Name))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<LinkedNote>> GetBacklinksAsync(Guid noteId, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);

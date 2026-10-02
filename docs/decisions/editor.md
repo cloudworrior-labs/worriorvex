@@ -48,6 +48,13 @@ this library is the established one for .NET.
 The window itself carries a Content-Security-Policy (`default-src 'self'`, no remote sources, no inline
 script), so even content that slipped through could not load or send anything over the network.
 
+## Links between notes
+
+A link to another note is an ordinary anchor with the address `note:<id>` (the note's GUID). The
+sanitiser accepts exactly that form; the editor's link extension allows the scheme; the app, not the
+web view, follows it. `NoteLinks` rows are derived from the text on every save, so backlinks never go
+stale. The link text is fixed when the link is made and does not follow a later rename of the target.
+
 ## Images
 
 Images are attachments: the file is copied into the attachments folder under a generated name and the

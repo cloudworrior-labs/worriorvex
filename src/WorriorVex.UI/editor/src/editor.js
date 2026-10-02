@@ -14,6 +14,8 @@ const CHANGE_DELAY_MS = 250;
 const ATTACHMENT_IMAGE = /^attachments\/[0-9a-f]{32}\.(png|jpg|jpeg|gif|webp)$/;
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 const WEB_LINK = /^https?:\/\//i;
+// A link to another note: "note:" and the note's id. The app opens these itself.
+const NOTE_LINK = /^note:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const NoteImage = Image.extend({
   parseHTML() {
@@ -68,8 +70,9 @@ export function create(element, dotNetRef, html) {
           openOnClick: false,
           autolink: true,
           defaultProtocol: 'https',
-          protocols: ['http', 'https'],
-          isAllowedUri: (url) => WEB_LINK.test(url),
+          protocols: ['http', 'https', 'note'],
+          isAllowedUri: (url) => WEB_LINK.test(url) || NOTE_LINK.test(url),
+          HTMLAttributes: { target: null, rel: null },
         },
       }),
       TaskList,
@@ -164,6 +167,15 @@ export function create(element, dotNetRef, html) {
       } else if (editor.state.selection.empty && !editor.isActive('link')) {
         // Nothing selected: the address itself becomes the linked text.
         chain.insertContent({ type: 'text', text: address, marks: [{ type: 'link', attrs: { href: address } }] }).run();
+      } else {
+        chain.setLink({ href: address }).run();
+      }
+    },
+    /** Links the selection to another note, or inserts the note's title as the link when nothing is selected. */
+    setNoteLink(address, title) {
+      const chain = editor.chain().focus().extendMarkRange('link');
+      if (editor.state.selection.empty && !editor.isActive('link')) {
+        chain.insertContent({ type: 'text', text: title, marks: [{ type: 'link', attrs: { href: address } }] }).run();
       } else {
         chain.setLink({ href: address }).run();
       }

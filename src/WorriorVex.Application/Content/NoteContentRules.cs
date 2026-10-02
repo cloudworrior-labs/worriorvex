@@ -48,10 +48,48 @@ public static partial class NoteContentRules
     public static bool IsAttachmentImageSource(string? source) =>
         source is not null && AttachmentImageSource().IsMatch(source);
 
+    /// <summary>Scheme of a link from one note to another: <c>note:&lt;id&gt;</c>.</summary>
+    public const string NoteLinkScheme = "note:";
+
+    /// <summary>The address a link in a note uses to point at another note.</summary>
+    public static string NoteLinkAddress(Guid noteId) => NoteLinkScheme + noteId.ToString("D");
+
+    /// <summary>The note a <c>note:</c> address points at, or <c>null</c> when the address is not one.</summary>
+    public static Guid? NoteLinkTarget(string? address) =>
+        address is not null
+        && address.StartsWith(NoteLinkScheme, StringComparison.OrdinalIgnoreCase)
+        && Guid.TryParseExact(address[NoteLinkScheme.Length..], "D", out var id)
+        && id != Guid.Empty
+            ? id
+            : null;
+
+    /// <summary>The notes that the links in a piece of note HTML point at.</summary>
+    public static IReadOnlySet<Guid> NoteLinkTargets(string? html)
+    {
+        var targets = new HashSet<Guid>();
+        if (html is null)
+        {
+            return targets;
+        }
+
+        foreach (Match match in NoteLinkInHtml().Matches(html))
+        {
+            if (Guid.TryParseExact(match.Groups[1].Value, "D", out var id) && id != Guid.Empty)
+            {
+                targets.Add(id);
+            }
+        }
+
+        return targets;
+    }
+
     /// <summary>True for an absolute http or https address, the only kind a link in a note may have.</summary>
     public static bool IsWebLink(string? address) =>
         Uri.TryCreate(address, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 
     [GeneratedRegex(@"^attachments/[0-9a-f]{32}\.(png|jpg|jpeg|gif|webp)$")]
     private static partial Regex AttachmentImageSource();
+
+    [GeneratedRegex(@"href=""note:([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})""")]
+    private static partial Regex NoteLinkInHtml();
 }

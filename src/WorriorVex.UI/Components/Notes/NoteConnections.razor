@@ -1,0 +1,84 @@
+@using WorriorVex.Application.Links
+@inject INoteLinkService Links
+@inject ILogger<NoteConnections> Logger
+
+@if (_links.Count + _backlinks.Count + _related.Count > 0)
+{
+    <aside class="wn-connections" aria-label="Connected notes">
+        @if (_links.Count > 0)
+        {
+            <section>
+                <h3>Links to</h3>
+                <ul>
+                    @foreach (var note in _links)
+                    {
+                        <li><button type="button" class="wn-link" @onclick="() => OnOpen.InvokeAsync(note.NoteId)">@note.Title</button></li>
+                    }
+                </ul>
+            </section>
+        }
+        @if (_backlinks.Count > 0)
+        {
+            <section>
+                <h3>Linked from</h3>
+                <ul>
+                    @foreach (var note in _backlinks)
+                    {
+                        <li><button type="button" class="wn-link" @onclick="() => OnOpen.InvokeAsync(note.NoteId)">@note.Title</button></li>
+                    }
+                </ul>
+            </section>
+        }
+        @if (_related.Count > 0)
+        {
+            <section>
+                <h3>Related by tags</h3>
+                <ul>
+                    @foreach (var note in _related)
+                    {
+                        <li><button type="button" class="wn-link" @onclick="() => OnOpen.InvokeAsync(note.NoteId)">@note.Title</button></li>
+                    }
+                </ul>
+            </section>
+        }
+    </aside>
+}
+
+@code {
+    private List<LinkedNote> _links = [];
+    private List<LinkedNote> _backlinks = [];
+    private List<LinkedNote> _related = [];
+    private Guid _loadedFor;
+    private int _loadedVersion = -1;
+
+    [Parameter, EditorRequired] public Guid NoteId { get; set; }
+
+    /// <summary>Raise this number when the note was saved or its tags changed, so the lists are read again.</summary>
+    [Parameter] public int Version { get; set; }
+
+    [Parameter] public EventCallback<Guid> OnOpen { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (NoteId != _loadedFor || Version != _loadedVersion)
+        {
+            _loadedFor = NoteId;
+            _loadedVersion = Version;
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _links = [.. await Links.GetLinksAsync(NoteId)];
+            _backlinks = [.. await Links.GetBacklinksAsync(NoteId)];
+            _related = [.. await Links.GetRelatedAsync(NoteId)];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Connected notes could not be loaded");
+        }
+    }
+}

@@ -41,7 +41,7 @@ delete → restore.
 | Links, images (file, paste, drop), tables, HTML sanitiser, content security policy (Phase 6) | done |
 | Full-text search on SQLite FTS5 with a search box, highlighting and filters (Phase 7) | done |
 | Tags, favourites, pins, Recent, move dialog, duplicate, context menus, drag and drop (Phase 8) | done |
-| Screens for links and backlinks | Phase 9 |
+| Links between notes with a note picker, backlinks and related notes under each note (Phase 9) | done |
 | Screens for attachments | Phase 10 |
 | KeepNote import | Phase 11 |
 | Revision history screen | Phase 12 |

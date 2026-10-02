@@ -30,7 +30,7 @@
 | `Ctrl/⌘ + Alt + C` | Code block |
 | `Tab` / `Shift + Tab` in a list | Indent / outdent |
 | `Tab` / `Shift + Tab` in a table | Next / previous cell |
-| `Ctrl/⌘` + click on a link | Open the link in the browser |
+| `Ctrl/⌘` + click on a link | Open it: a web page in the browser, a note in the app |
 | `Ctrl/⌘ + V` with an image copied | Paste the image into the note |
 | `Ctrl/⌘ + Z`, `Ctrl/⌘ + Shift + Z` | Undo, redo |
 

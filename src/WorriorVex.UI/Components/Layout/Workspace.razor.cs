@@ -31,6 +31,7 @@ public partial class Workspace
     private MenuState? _menu;
     private MoveRequest? _move;
     private (Guid Id, bool IsFolder)? _dragging;
+    private int _connectionsVersion;
     private NavSelection _selection = new NavSelection.AllNotes();
     private NoteDetail? _current;
     private TrashItem? _trashItem;
@@ -132,7 +133,7 @@ public partial class Workspace
         if (firstRender)
         {
             _self = DotNetObjectReference.Create(this);
-            _shortcutsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/WorriorVex.UI/js/shortcuts.js");
+            _shortcutsModule = await JS.InvokeAsync<IJSObjectReference>("import", UiAssets.Shortcuts);
             _shortcuts = await _shortcutsModule.InvokeAsync<IJSObjectReference>("register", _self);
         }
 
@@ -320,6 +321,54 @@ public partial class Workspace
             _current = note;
             await RecordOpenedAsync(note.Id);
         });
+    }
+
+    /// <summary>A link inside a note was followed. The note opens wherever it is filed.</summary>
+    private async Task OpenLinkedNoteAsync(Guid id)
+    {
+        if (id == _current?.Id)
+        {
+            return;
+        }
+
+        var note = await Notes.GetAsync(id);
+        if (note is null)
+        {
+            _error = "The note this link points to no longer exists.";
+            return;
+        }
+
+        if (note.DeletedAt is not null)
+        {
+            _error = $"\"{note.Title}\" is in the trash. Restore it to open it.";
+            return;
+        }
+
+        if (_notes.All(n => n.Id != id) && _selection is not NavSelection.Search)
+        {
+            // Show the note in its own place, so the list beside it makes sense.
+            var place = note.ParentId is { } folder ? new NavSelection.Folder(note.NotebookId, folder) : (NavSelection)new NavSelection.Notebook(note.NotebookId);
+            if (!await SaveBeforeLeavingAsync())
+            {
+                return;
+            }
+
+            await RunAsync("The note could not be opened.", async () =>
+            {
+                EndSearch();
+                _selection = place;
+                _notice = null;
+                await LoadListAsync(openFirst: false);
+            });
+        }
+
+        await OpenAsync(id);
+    }
+
+    private async Task OnTagsChangedAsync()
+    {
+        _connectionsVersion++;
+        await LoadTagsAsync();
     }
 
     /// <summary>Remembers the note for the Recent list. Not worth an error if it fails.</summary>
@@ -1063,15 +1112,18 @@ public partial class Workspace
 
     private void OnNoteSaved(NoteDetail saved) => _ = InvokeAsync(() =>
     {
+        _connectionsVersion++;
         var index = _notes.FindIndex(n => n.Id == saved.Id);
         if (index < 0)
         {
+            StateHasChanged();
             return;
         }
 
         var summary = _notes[index] with { Title = saved.Title, UpdatedAt = saved.UpdatedAt };
         if (_notes[index] == summary)
         {
+            StateHasChanged();
             return;
         }
 

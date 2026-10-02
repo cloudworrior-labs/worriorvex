@@ -1,0 +1,143 @@
+@using WorriorVex.Application.Search
+@implements IDisposable
+@inject INoteService Notes
+@inject INoteSearchService Search
+@inject ILogger<NotePickerDialog> Logger
+
+<div class="wn-overlay" @onkeydown="OnKeyDown">
+    <div class="wn-dialog wn-dialog-picker" role="dialog" aria-modal="true" aria-labelledby="wn-picker-title">
+        <h2 id="wn-picker-title">@Title</h2>
+        <input @ref="_input" type="search" class="wn-input" placeholder="Type to search your notes…" aria-label="Find a note"
+               autocomplete="off" spellcheck="false" @oninput="OnInput" />
+        <ul class="wn-picker-list" role="listbox" aria-label="Notes">
+            @if (_choices.Count == 0)
+            {
+                <li class="wn-picker-empty">@(_query.Length == 0 ? "Recently opened notes appear here." : _busy ? "Searching…" : "No notes found.")</li>
+            }
+            @for (var i = 0; i < _choices.Count; i++)
+            {
+                var choice = _choices[i];
+                var marked = i == _marked;
+                <li role="option" aria-selected="@(marked ? "true" : "false")">
+                    <button type="button" class="wn-noteitem @(marked ? "is-marked" : null)" @onclick="() => ChooseAsync(choice)">
+                        <span class="wn-noteitem-title">@choice.Title</span>
+                        <span class="wn-noteitem-meta">@choice.Location</span>
+                    </button>
+                </li>
+            }
+        </ul>
+        <div class="wn-dialog-actions">
+            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>A note that can be picked.</summary>
+    public sealed record Choice(Guid Id, string Title, string Location);
+
+    private static readonly TimeSpan Pause = TimeSpan.FromMilliseconds(200);
+    private ElementReference _input;
+    private List<Choice> _choices = [];
+    private string _query = string.Empty;
+    private int _marked;
+    private bool _busy;
+    private CancellationTokenSource? _pending;
+
+    [Parameter] public string Title { get; set; } = "Link to a note";
+
+    /// <summary>The note being edited; it is left out, since a note does not link to itself.</summary>
+    [Parameter] public Guid? ExcludeId { get; set; }
+
+    [Parameter] public EventCallback<Choice> OnPick { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _choices = [.. (await Notes.ListRecentAsync(12))
+                .Where(n => n.Id != ExcludeId)
+                .Select(n => new Choice(n.Id, n.Title, string.Empty))];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Recent notes could not be loaded for the picker");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _input.FocusAsync();
+        }
+    }
+
+    private async Task OnInput(ChangeEventArgs args)
+    {
+        _query = args.Value?.ToString()?.Trim() ?? string.Empty;
+        _pending?.Cancel();
+        var pending = _pending = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(Pause, pending.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        await SearchAsync(_query, pending.Token);
+    }
+
+    private async Task SearchAsync(string query, CancellationToken cancellationToken)
+    {
+        _busy = true;
+        try
+        {
+            var found = query.Length == 0
+                ? (await Notes.ListRecentAsync(12, cancellationToken)).Select(n => new Choice(n.Id, n.Title, string.Empty))
+                : (await Search.SearchAsync(query, 20, cancellationToken)).Select(r => new Choice(r.NoteId, r.Title, r.Location));
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _choices = [.. found.Where(c => c.Id != ExcludeId)];
+                _marked = 0;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Searching notes for the picker failed");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "ArrowDown" when _choices.Count > 0:
+                _marked = Math.Min(_marked + 1, _choices.Count - 1);
+                break;
+            case "ArrowUp" when _choices.Count > 0:
+                _marked = Math.Max(_marked - 1, 0);
+                break;
+            case "Enter" when !args.IsComposing && _choices.Count > 0:
+                await ChooseAsync(_choices[Math.Clamp(_marked, 0, _choices.Count - 1)]);
+                break;
+            case "Escape":
+                await OnCancel.InvokeAsync();
+                break;
+        }
+    }
+
+    private Task ChooseAsync(Choice choice) => OnPick.InvokeAsync(choice);
+
+    public void Dispose() => _pending?.Cancel();
+}
