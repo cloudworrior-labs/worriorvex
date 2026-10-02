@@ -40,6 +40,9 @@ not before. Host choice and editor choice are explained in [`decisions/`](decisi
 | `IAttachmentService` | store, open, rename and delete attached files under generated names |
 | `INoteSearchService` | full-text search over the FTS5 index: ranking, highlighting, `tag:` / `in:` / `is:` filters |
 | `INoteHtmlSanitizer` | reduces HTML to what a note may contain; applied to everything stored |
+| `IKeepNoteImporter` | scans and imports a KeepNote notebook folder |
+| `IBackupService` | zip backups with SQLite's backup API, inspection, restore with a safety backup |
+| `IExportService` | HTML, Markdown and JSON exports and the `.worriorvex` package |
 | `IPlatformShell` | open a web page or folder outside the app, show a file dialog; implemented by the host |
 
 Only folders contain other nodes. The services enforce it; the database does not.

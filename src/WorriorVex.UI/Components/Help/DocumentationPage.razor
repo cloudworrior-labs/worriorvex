@@ -286,13 +286,32 @@
                     <tbody>
                         <tr><td><code>worriorvex.db</code></td><td>All notes, notebooks and folders, in a SQLite database</td></tr>
                         <tr><td><code>attachments</code></td><td>The pictures in your notes and the files attached to them</td></tr>
+                        <tr><td><code>backups</code></td><td>Backups you made, and the safety backups taken before each restore</td></tr>
                         <tr><td><code>logs</code></td><td>A daily log, useful when reporting a problem. It never contains what you wrote</td></tr>
                     </tbody>
                 </table>
-                <h3>Making a backup</h3>
+                <h3>Backing up</h3>
                 <p>
-                    Until the built-in backup arrives: close WorriorVex, then copy the whole folder somewhere
-                    safe. To restore, close WorriorVex and put the copy back in the same place.
+                    <strong>Import &amp; backup → Back up now</strong> writes one zip file with your whole database, every
+                    attached file and a description of what is inside, into the <code>backups</code> folder. <strong>Save a
+                    backup to…</strong> puts it where you choose, for example on another disk. Backups are safe to take
+                    while you work.
+                </p>
+                <h3>Restoring</h3>
+                <p>
+                    Choose <strong>Restore…</strong> beside a backup, or <strong>Restore from a file…</strong> for one kept
+                    elsewhere. WorriorVex checks the file first and refuses one that is damaged or from a newer version.
+                    Before anything is replaced, what you have now is written to a new backup, so a restore can always be
+                    undone by restoring that one.
+                </p>
+                <h3>Exporting</h3>
+                <p>
+                    <strong>Export to a folder…</strong> writes every note as a file, in the notebook and folder structure,
+                    as HTML (self-contained pages with pictures embedded), Markdown (with a folder of pictures and files
+                    beside each note) or JSON (text, tags, links, attachments and history; enough to rebuild a note).
+                    Links between notes point at the exported files. <strong>Save package…</strong> writes everything,
+                    including the trash and history, as one <code>.worriorvex</code> file: a zip you can open anywhere.
+                    A single note is exported from its right-click menu.
                 </p>
                 <h3>Privacy</h3>
                 <p>
@@ -309,9 +328,8 @@
 
             default:
                 <h2>What is coming</h2>
-                <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
+                <p>WorriorVex is young. Still planned:</p>
                 <ul>
-                    <li>Backup, and export to HTML, Markdown and JSON</li>
                     <li>Android and iOS</li>
                 </ul>
                 <p>

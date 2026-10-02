@@ -12,8 +12,8 @@ as a modern replacement for [KeepNote](http://keepnote.org).
 WorriorVex works with the internet, servers and the cloud switched off. There is no account, no
 telemetry and no AI dependency. Your notes live in a SQLite file on your own disk.
 
-> **Status: early development.** Usable for writing and organising notes; search, tags, attachments and
-> import do not have screens yet. Keep a backup of anything important.
+> **Status: feature-complete for the desktop MVP, not yet widely tested.** Phases 0–13 of the plan are
+> built. Back up before trusting it with the only copy of anything.
 
 ## Install
 
@@ -53,6 +53,8 @@ The installers are not code-signed yet, so the operating system asks for confirm
 - Links between notes, with backlinks and related notes shown under each note
 - Attach any file to a note; open it, save a copy, rename or remove it
 - Import a KeepNote notebook (format 5 and 6): folders, pages, files, pictures, links and trash, with a report
+- Backup to one zip (consistent even while you work), restore with a safety backup first
+- Export everything or one note as HTML, Markdown or JSON, or the whole workspace as a `.worriorvex` package
 - Autosave with a visible save state; a failed save keeps your edits and offers Retry
 - Trash for notes, folders and whole notebooks: restore, delete permanently, empty
 - Earlier versions of a note are kept automatically while you edit; History shows and restores them
@@ -61,7 +63,7 @@ The installers are not code-signed yet, so the operating system asks for confirm
 
 ## Roadmap
 
-Backup and export → Android and iOS.
+Cross-platform polish and installers signing → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
 [development plan](WorriorVex-Development-Plan.md).
 
@@ -119,7 +121,14 @@ against real SQLite files, including a restart. CI builds and tests on Windows, 
 shown; the import itself runs only after confirmation and ends with a report. The source is never changed.
 Format analysis and importer rules: [`docs/keepnote-analysis.md`](docs/keepnote-analysis.md).
 
-Backup and the open export formats (HTML, Markdown, JSON, `.worriorvex` package) are next on the roadmap.
+**Backup:** Import & backup → Back up now (to the `backups` folder) or Save a backup to…. The database is
+copied with SQLite's backup API, so a backup taken while the app runs is consistent. **Restore** checks the
+file (zip, manifest, database integrity, schema not newer than the app) and writes a safety backup of the
+current data before replacing anything.
+
+**Export:** every note as HTML, Markdown or JSON into a folder, keeping the notebook/folder structure and the
+links between notes, or everything as a `.worriorvex` package (manifest, notebooks, nodes, tags, one JSON per
+note with its links and history, and the attachment files). One note can be exported from its context menu.
 
 ## Keyboard shortcuts
 

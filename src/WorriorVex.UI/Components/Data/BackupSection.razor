@@ -1,0 +1,189 @@
+@using WorriorVex.Application.Backup
+@using WorriorVex.Application.Platform
+@inject IBackupService Backups
+@inject IPlatformShell Shell
+@inject AppInfo Info
+@inject ILogger<BackupSection> Logger
+
+<section class="wn-data-section" aria-labelledby="wn-backup-heading">
+    <h2 id="wn-backup-heading">Backup</h2>
+    <p>
+        A backup is one zip file holding your whole database, every attached file and a description of what is
+        inside. Backups are safe to take while you work. Keep them somewhere other than this computer too.
+    </p>
+    <div class="wn-data-actions wn-dialog-actions">
+        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="() => BackupAsync(null)">Back up now</button>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="BackupToAsync">Save a backup to…</button>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="RestoreFromFileAsync">Restore from a file…</button>
+        <button type="button" class="wn-button" @onclick="() => Shell.OpenFolder(BackupsFolder)">Open backups folder</button>
+    </div>
+    @if (_busy)
+    {
+        <p class="wn-progress" role="status">@_status</p>
+    }
+    else if (_status is not null)
+    {
+        <p role="status">@_status</p>
+    }
+    @if (_error is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_error</p>
+    }
+
+    @if (_backups.Count > 0)
+    {
+        <h3>Backups in the backups folder</h3>
+        <ul class="wn-backups">
+            @foreach (var backup in _backups)
+            {
+                <li class="wn-backup">
+                    <span class="wn-attachment-name">@Path.GetFileName(backup.Path)</span>
+                    <span class="wn-attachment-meta">
+                        @if (backup.Manifest is { } manifest)
+                        {
+                            <text>@manifest.CreatedAt.ToLocalTime().ToString("g") · @manifest.Notes notes · @manifest.Attachments files · @FormatSize(backup.Size)</text>
+                        }
+                        else
+                        {
+                            <text>@string.Join(" ", backup.Problems)</text>
+                        }
+                    </span>
+                    <span class="wn-attachment-actions">
+                        <button type="button" class="wn-button wn-button-small" disabled="@(!backup.CanRestore || _busy)" @onclick="() => _restoring = backup">Restore…</button>
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@if (_restoring is { } restoring)
+{
+    <ConfirmDialog Title="Restore this backup?"
+                   Message="@($"Everything in WorriorVex is replaced by the backup from {restoring.Manifest!.CreatedAt.ToLocalTime():f} ({restoring.Manifest.Notes} notes). What you have now is saved to a new backup first, so you can go back.")"
+                   ConfirmText="Restore" Danger="true" OnConfirm="RestoreAsync" OnCancel="() => _restoring = null" />
+}
+
+@code {
+    private List<BackupInfo> _backups = [];
+    private BackupInfo? _restoring;
+    private string? _status;
+    private string? _error;
+    private bool _busy;
+
+    /// <summary>A backup was restored: all data changed under the app's feet, so everything must be reloaded.</summary>
+    [Parameter] public EventCallback OnRestored { get; set; }
+
+    /// <summary>Called before a restore, to save edits that are still waiting. Returns false to stop.</summary>
+    [Parameter] public Func<Task<bool>>? BeforeRestore { get; set; }
+
+    private string BackupsFolder => Path.Combine(Info.DataDirectory, "backups");
+
+    protected override Task OnInitializedAsync() => RefreshAsync();
+
+    private async Task RefreshAsync()
+    {
+        try
+        {
+            _backups = [.. await Backups.ListAsync()];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Backups could not be listed");
+        }
+    }
+
+    private async Task BackupToAsync()
+    {
+        var path = await Shell.PickSaveLocationAsync("Save a backup", $"worriorvex-backup-{DateTime.Now:yyyyMMdd-HHmmss}.zip");
+        if (path is not null)
+        {
+            await BackupAsync(path);
+        }
+    }
+
+    private async Task BackupAsync(string? destination)
+    {
+        _busy = true;
+        _error = null;
+        _status = "Writing the backup…";
+        try
+        {
+            var written = await Backups.CreateBackupAsync(destination);
+            _status = $"Backup written: {written}";
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Backup failed");
+            _status = null;
+            _error = "The backup could not be written. Nothing was changed. Details are in the log file.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task RestoreFromFileAsync()
+    {
+        var path = await Shell.PickFileAsync("Choose a WorriorVex backup", "Backups", [".zip"]);
+        if (path is null)
+        {
+            return;
+        }
+
+        var info = await Backups.InspectAsync(path);
+        if (!info.CanRestore)
+        {
+            _error = "That file cannot be restored: " + string.Join(" ", info.Problems);
+            return;
+        }
+
+        _error = null;
+        _restoring = info;
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (_restoring is not { } backup)
+        {
+            return;
+        }
+
+        _restoring = null;
+        if (BeforeRestore is not null && !await BeforeRestore())
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        _status = "Restoring…";
+        try
+        {
+            var safety = await Backups.RestoreAsync(backup.Path);
+            _status = $"Restored {Path.GetFileName(backup.Path)}. What you had before is saved as {Path.GetFileName(safety)}.";
+            await RefreshAsync();
+            await OnRestored.InvokeAsync();
+        }
+        catch (BackupException ex)
+        {
+            _status = null;
+            _error = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Restore failed");
+            _status = null;
+            _error = "The restore did not complete. Details are in the log file; the safety backup in the backups folder holds your data from before.";
+            await OnRestored.InvokeAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static string FormatSize(long bytes) => bytes >= 1024 * 1024 ? $"{bytes / (1024.0 * 1024.0):0.#} MB" : $"{Math.Max(1, bytes / 1024)} KB";
+}

@@ -69,7 +69,7 @@
         }
         else if (_selection is NavSelection.Data)
         {
-            <DataPage OnImported="AfterImportAsync" />
+            <DataPage OnImported="AfterImportAsync" OnRestored="AfterRestoreAsync" BeforeRestore="SaveBeforeLeavingAsync" />
         }
         else if (_selection is NavSelection.About)
         {
@@ -123,6 +123,11 @@
     {
         <MoveDialog @key="_move" Title="@($"Move \"{_move.Name}\"")" Notebooks="_notebooks" Folders="_folders" Excluded="_move.Excluded"
                     Error="@_dialogError" OnConfirm="ConfirmMoveAsync" OnCancel="CloseDialogs" />
+    }
+
+    @if (_export is { } export)
+    {
+        <ExportNoteDialog @key="export" Title="@export.Title" OnConfirm="format => ExportNoteAsync(export, format)" OnCancel="CloseDialogs" />
     }
 
     @if (_menu is not null)

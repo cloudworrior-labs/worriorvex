@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WorriorVex.Application.Attachments;
+using WorriorVex.Application.Backup;
+using WorriorVex.Application.Export;
 using WorriorVex.Application.Content;
 using WorriorVex.Application.Import;
 using WorriorVex.Application.Links;
@@ -13,6 +15,8 @@ using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
 using WorriorVex.Infrastructure.Attachments;
+using WorriorVex.Infrastructure.Backup;
+using WorriorVex.Infrastructure.Export;
 using WorriorVex.Infrastructure.Content;
 using WorriorVex.Infrastructure.Import;
 using WorriorVex.Infrastructure.Links;
@@ -54,6 +58,8 @@ public static class DependencyInjection
         services.AddSingleton<IAttachmentService, AttachmentService>();
         services.AddSingleton<INoteSearchService, NoteSearchService>();
         services.AddSingleton<IKeepNoteImporter, KeepNoteImporter>();
+        services.AddSingleton<IBackupService, BackupService>();
+        services.AddSingleton<IExportService, ExportService>();
         return services;
     }
 }

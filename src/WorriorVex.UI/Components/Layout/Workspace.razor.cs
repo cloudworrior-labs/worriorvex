@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using WorriorVex.Application.Export;
 using WorriorVex.Application.Notes;
+using WorriorVex.Application.Platform;
 using WorriorVex.Application.Search;
 using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
@@ -30,6 +32,7 @@ public partial class Workspace
     private List<TagSummary> _tags = [];
     private MenuState? _menu;
     private MoveRequest? _move;
+    private NoteSummary? _export;
     private (Guid Id, bool IsFolder)? _dragging;
     private int _connectionsVersion;
     private NavSelection _selection = new NavSelection.AllNotes();
@@ -63,6 +66,8 @@ public partial class Workspace
     [Inject] private ITrashService Trash { get; set; } = default!;
     [Inject] private INoteSearchService Search { get; set; } = default!;
     [Inject] private ITagService TagService { get; set; } = default!;
+    [Inject] private IExportService Exporter { get; set; } = default!;
+    [Inject] private IPlatformShell Shell { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private ILogger<Workspace> Logger { get; set; } = default!;
@@ -664,6 +669,7 @@ public partial class Workspace
             ContextMenu.Item.Line(),
             new("Move…", () => { OpenMove(note.Id, isFolder: false, note.Title); return Task.CompletedTask; }),
             new("Duplicate", () => DuplicateAsync(note.Id)),
+            new("Export…", () => { _menu = null; _export = note; return Task.CompletedTask; }),
             ContextMenu.Item.Line(),
             new("Move to trash", () => DeleteNoteAsync(note.Id)),
         };
@@ -867,6 +873,51 @@ public partial class Workspace
             await LoadStructureAsync();
             await GoToAsync(new NavSelection.Notebook(notebook.Id));
         }));
+
+    /// <summary>The whole data set was replaced from a backup: start over as if the app had just opened.</summary>
+    private async Task AfterRestoreAsync()
+    {
+        await RunAsync("The restored data could not be shown. Restart WorriorVex.", async () =>
+        {
+            _current = null;
+            _notes = [];
+            EndSearch();
+            await LoadStructureAsync();
+            _selection = new NavSelection.Data();
+            _notice = "The backup was restored. Everything you see now comes from it.";
+        });
+    }
+
+    private async Task ExportNoteAsync(NoteSummary note, ExportFormat format)
+    {
+        _export = null;
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        var suggested = ExportService_SafeName(note.Title) + IExportService.Extension(format);
+        var path = await Shell.PickSaveLocationAsync($"Export \"{note.Title}\"", suggested);
+        if (path is null)
+        {
+            return;
+        }
+
+        await RunAsync("The note could not be exported.", async () =>
+        {
+            var result = await Exporter.ExportNoteAsync(note.Id, format, path);
+            _notice = result.Problems.Count == 0
+                ? $"\"{note.Title}\" was exported to {result.Path}."
+                : $"\"{note.Title}\" was exported to {result.Path}, with problems: {string.Join(" ", result.Problems)}";
+        });
+    }
+
+    /// <summary>A file name from a title: no path separators or characters file systems refuse.</summary>
+    private static string ExportService_SafeName(string title)
+    {
+        var cleaned = Domain.Attachment.CleanFileName(title.Replace('/', '-').Replace('\\', '-'));
+        return cleaned.Length > 120 ? cleaned[..120].TrimEnd() : cleaned;
+    }
 
     /// <summary>A KeepNote notebook was imported (or an import stopped half-way): show what is there now.</summary>
     private async Task AfterImportAsync(Guid notebookId)

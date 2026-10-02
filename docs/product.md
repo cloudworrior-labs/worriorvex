@@ -45,10 +45,11 @@ delete → restore.
 | Attachments: attach any file, drop files, open, save a copy, rename, remove, clean up unused pictures (Phase 10) | done |
 | KeepNote import with scan, confirmation and report; first-run welcome (Phase 11) | done |
 | History dialog: list, preview and restore earlier versions (Phase 12) | done |
-| Backup and export | Phase 13 |
+| Backup (consistent SQLite copy + files + manifest), checked restore with a safety backup, export as HTML / Markdown / JSON and a `.worriorvex` package (Phase 13) | done |
 | Mobile | Phase 14 |
 
 ## Out of scope for the MVP
 
-Synchronisation, a web version, AI features, graph visualisation, scheduled backups, a command palette.
+Synchronisation, a web version, AI features, graph visualisation, scheduled backups, a command palette,
+importing a `.worriorvex` package (the format is written; a reader comes with sync or a second device).
 The data model keeps stable ids and created/updated/deleted timestamps so that sync can be added later.

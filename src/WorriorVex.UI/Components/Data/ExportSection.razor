@@ -1,0 +1,100 @@
+@using WorriorVex.Application.Export
+@using WorriorVex.Application.Platform
+@inject IExportService Exporter
+@inject IPlatformShell Shell
+@inject ILogger<ExportSection> Logger
+
+<section class="wn-data-section" aria-labelledby="wn-export-heading">
+    <h2 id="wn-export-heading">Export</h2>
+    <p>
+        Take your notes with you in formats other programs read. Nothing in WorriorVex changes.
+        A single note can be exported from its right-click menu.
+    </p>
+    <div class="wn-export-row">
+        <label for="wn-export-format">Everything, one file per note, as</label>
+        <select id="wn-export-format" class="wn-select" @bind="_format" disabled="@_busy">
+            <option value="@ExportFormat.Html">HTML (self-contained pages)</option>
+            <option value="@ExportFormat.Markdown">Markdown (with a folder of pictures and files)</option>
+            <option value="@ExportFormat.Json">JSON (text, tags, links, attachments, history)</option>
+        </select>
+        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="ExportAllAsync">Export to a folder…</button>
+    </div>
+    <div class="wn-export-row">
+        <span>Everything as one portable <code>.worriorvex</code> package (zip with manifest, notes, tags, links, history and files)</span>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="ExportPackageAsync">Save package…</button>
+    </div>
+    @if (_busy)
+    {
+        <p class="wn-progress" role="status" aria-live="polite">@(_progress ?? "Exporting…")</p>
+    }
+    else if (_result is { } result)
+    {
+        <p role="status">
+            Exported @result.Notes note(s) and @result.Files file(s) to <code>@result.Path</code>.
+            @if (result.Problems.Count > 0)
+            {
+                <text> @result.Problems.Count problem(s): @string.Join(" ", result.Problems)</text>
+            }
+        </p>
+    }
+    @if (_error is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_error</p>
+    }
+</section>
+
+@code {
+    private ExportFormat _format = ExportFormat.Html;
+    private ExportResult? _result;
+    private string? _progress;
+    private string? _error;
+    private bool _busy;
+
+    private async Task ExportAllAsync()
+    {
+        var folder = await Shell.PickFolderAsync("Choose a folder for the export");
+        if (folder is null)
+        {
+            return;
+        }
+
+        await RunAsync(progress => Exporter.ExportAllAsync(_format, folder, progress));
+    }
+
+    private async Task ExportPackageAsync()
+    {
+        var path = await Shell.PickSaveLocationAsync("Save a package", $"worriorvex-{DateTime.Now:yyyyMMdd}.worriorvex");
+        if (path is null)
+        {
+            return;
+        }
+
+        await RunAsync(progress => Exporter.ExportPackageAsync(path, progress));
+    }
+
+    private async Task RunAsync(Func<IProgress<string>, Task<ExportResult>> export)
+    {
+        _busy = true;
+        _error = null;
+        _result = null;
+        var progress = new Progress<string>(line =>
+        {
+            _progress = line;
+            InvokeAsync(StateHasChanged);
+        });
+        try
+        {
+            _result = await export(progress);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Export failed");
+            _error = "The export stopped with an error. Details are in the log file.";
+        }
+        finally
+        {
+            _busy = false;
+            _progress = null;
+        }
+    }
+}

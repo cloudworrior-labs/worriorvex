@@ -659,3 +659,9 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-history-preview { overflow-y: auto; border: var(--wn-border-width) solid var(--wn-border); border-radius: var(--wn-radius); padding: var(--wn-space-3); }
 .wn-history-preview h3 { margin: 0 0 var(--wn-space-2); font-size: 1.1rem; }
 .wn-prose-preview { padding: 0; font-size: 14px; }
+
+/* Backup and export */
+.wn-backups { list-style: none; margin: var(--wn-space-2) 0 0; padding: 0; }
+.wn-backup { display: flex; flex-wrap: wrap; align-items: center; gap: var(--wn-space-2) var(--wn-space-3); padding: var(--wn-space-1) 0; border-bottom: var(--wn-border-width) solid var(--wn-border); }
+.wn-export-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--wn-space-2); margin: var(--wn-space-3) 0; }
+.wn-select { padding: var(--wn-space-1) var(--wn-space-2); border: var(--wn-border-width) solid var(--wn-border); border-radius: var(--wn-radius); background: var(--wn-bg); color: var(--wn-text); font: inherit; }

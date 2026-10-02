@@ -81,3 +81,11 @@ not part of the EF Core model.
 ## Planned tables
 
 None at present; the remaining phases work with the tables above.
+
+## Backups
+
+`worriorvex-backup-<timestamp>.zip` = `manifest.json` (format, app version, latest migration id, counts) +
+`worriorvex.db` (made with `SqliteConnection.BackupDatabase`, so consistent while the app runs) +
+`attachments/*`. Restore extracts to a staging folder, writes a safety backup, clears connection pools,
+swaps the database and attachments folder in, then runs migrations and completes the search index, so a
+backup from an older version restores cleanly. A backup whose schema is newer than the app is refused.

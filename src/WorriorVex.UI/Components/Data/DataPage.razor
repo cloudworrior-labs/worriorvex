@@ -1,9 +1,13 @@
 <div class="wn-page wn-data">
-    <h1>Your data</h1>
-    <p>Import notes from elsewhere, keep copies of everything, and take your notes with you in open formats.</p>
+    <h1>Import &amp; backup</h1>
+    <p>Keep copies of everything, take your notes with you in open formats, and bring notes in from KeepNote.</p>
+    <BackupSection OnRestored="OnRestored" BeforeRestore="BeforeRestore" />
+    <ExportSection />
     <ImportSection OnImported="OnImported" />
 </div>
 
 @code {
     [Parameter] public EventCallback<Guid> OnImported { get; set; }
+    [Parameter] public EventCallback OnRestored { get; set; }
+    [Parameter] public Func<Task<bool>>? BeforeRestore { get; set; }
 }
