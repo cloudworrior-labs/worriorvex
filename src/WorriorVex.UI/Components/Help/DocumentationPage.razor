@@ -1,0 +1,222 @@
+@using WorriorVex.Application.Platform
+@inject AppInfo Info
+@inject IPlatformShell Shell
+
+<div class="wn-docs">
+    <nav class="wn-docs-topics" aria-label="Documentation topics">
+        <h1>Documentation</h1>
+        <ul>
+            @foreach (var topic in Topics)
+            {
+                var selected = topic.Id == _topic;
+                <li>
+                    <button type="button" class="wn-navitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "page" : null)"
+                            @onclick="() => _topic = topic.Id">@topic.Title</button>
+                </li>
+            }
+        </ul>
+    </nav>
+
+    <article class="wn-page wn-prose-static" aria-live="polite">
+        @switch (_topic)
+        {
+            case "start":
+                <h2>Getting started</h2>
+                <p>
+                    WorriorVex is a notebook that lives on your computer. Everything you write is saved
+                    here, on this machine. It works with the internet switched off and needs no account.
+                </p>
+                <ol>
+                    <li>Press <kbd>@Modifier</kbd> + <kbd>N</kbd>, or choose <strong>+ New</strong>, to start a note.</li>
+                    <li>Type a title, press <kbd>Enter</kbd>, and write.</li>
+                    <li>That is all. The note is saved for you, and it is there when you come back.</li>
+                </ol>
+                <p>
+                    New notes go to the <strong>Inbox</strong> unless you are inside a notebook or folder.
+                    Capture first; decide where it belongs later.
+                </p>
+                <h3>The window</h3>
+                <ul>
+                    <li><strong>Left:</strong> where things are. Inbox, All Notes, your notebooks and their folders, the Trash.</li>
+                    <li><strong>Middle:</strong> the notes in the place you selected, most recently changed first.</li>
+                    <li><strong>Right:</strong> the note you are working on.</li>
+                    <li><strong>Bottom:</strong> whether your work is saved.</li>
+                </ul>
+                break;
+
+            case "writing":
+                <h2>Writing notes</h2>
+                <p>
+                    The toolbar above the text gives you bold, italic, underline, strikethrough, inline code,
+                    three levels of heading, bulleted, numbered and check lists, quotes, code blocks and a
+                    dividing line. Each has a keyboard shortcut, listed under <em>Keyboard shortcuts</em>.
+                </p>
+                <h3>Typing shortcuts</h3>
+                <p>At the start of a line, type one of these followed by a space:</p>
+                <table>
+                    <thead><tr><th scope="col">Type</th><th scope="col">To get</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>#</code>, <code>##</code>, <code>###</code></td><td>A heading</td></tr>
+                        <tr><td><code>-</code> or <code>*</code></td><td>A bulleted list</td></tr>
+                        <tr><td><code>1.</code></td><td>A numbered list</td></tr>
+                        <tr><td><code>[ ]</code></td><td>A check list</td></tr>
+                        <tr><td><code>&gt;</code></td><td>A quote</td></tr>
+                        <tr><td><code>```</code></td><td>A code block</td></tr>
+                    </tbody>
+                </table>
+                <h3>Saving</h3>
+                <p>
+                    Notes save themselves a moment after you stop typing. The bar at the bottom shows
+                    <strong>Saved</strong>, <strong>Unsaved changes</strong> or <strong>Saving</strong>.
+                    Press <kbd>@Modifier</kbd> + <kbd>S</kbd> to save at once.
+                </p>
+                <p>
+                    If a save fails, the bar says so and offers <strong>Retry</strong>. Your text stays in the
+                    window, and WorriorVex will not let you move to another note until it is safely stored.
+                </p>
+                <h3>Earlier versions</h3>
+                <p>
+                    While you edit, WorriorVex quietly keeps an earlier version of the note about every ten
+                    minutes. A screen for browsing and restoring them is on its way.
+                </p>
+                break;
+
+            case "organising":
+                <h2>Notebooks and folders</h2>
+                <p>
+                    A <strong>notebook</strong> is a top-level container, such as <em>Projects</em> or
+                    <em>Personal</em>. Inside a notebook you can make <strong>folders</strong>, and folders inside folders.
+                </p>
+                <ul>
+                    <li><strong>New notebook:</strong> the <strong>+</strong> beside <em>Notebooks</em>.</li>
+                    <li><strong>New folder:</strong> select a notebook or folder, then <strong>New folder</strong> above the note list.</li>
+                    <li><strong>Rename or delete:</strong> select it, then <strong>Rename</strong> or <strong>Delete</strong> above the note list.</li>
+                    <li><strong>New note in a folder:</strong> select the folder, then <strong>+ New</strong>.</li>
+                </ul>
+                <p>
+                    <strong>All Notes</strong> shows every note from every notebook in one list, with the notebook's name under each title.
+                </p>
+                <p>
+                    The Inbox is always there and cannot be renamed or deleted. Moving a note from one place
+                    to another by hand is coming in a later version.
+                </p>
+                break;
+
+            case "trash":
+                <h2>The Trash</h2>
+                <p>
+                    Deleting never destroys anything straight away. A deleted note, folder or notebook moves
+                    to the <strong>Trash</strong> and stays there until you decide.
+                </p>
+                <ul>
+                    <li><strong>Delete a note:</strong> <strong>Delete</strong> at the right of the toolbar.</li>
+                    <li><strong>Delete a folder or notebook:</strong> select it, then <strong>Delete</strong> above the note list. Everything inside goes with it.</li>
+                    <li><strong>Restore:</strong> open the Trash, select the item, choose <strong>Restore</strong>. A folder or notebook comes back with everything that was in it.</li>
+                </ul>
+                <p>
+                    If the place an item came from no longer exists, it is restored to the top of its
+                    notebook, or to the Inbox when the notebook is gone too. WorriorVex tells you when it does this.
+                </p>
+                <h3>Removing for good</h3>
+                <p>
+                    <strong>Delete permanently</strong> and <strong>Empty trash</strong> remove notes together with
+                    their earlier versions and attached files. This cannot be undone, so you are always asked first.
+                </p>
+                break;
+
+            case "shortcuts":
+                <h2>Keyboard shortcuts</h2>
+                <table>
+                    <thead><tr><th scope="col">Press</th><th scope="col">To</th></tr></thead>
+                    <tbody>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Start a new note</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Save now</td></tr>
+                        <tr><td><kbd>Enter</kbd> in the title</td><td>Move to the text</td></tr>
+                        <tr><td><kbd>Esc</kbd></td><td>Close a dialog</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Bold / italic / underline</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td><td>Strikethrough</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>E</kbd></td><td>Inline code</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>–<kbd>3</kbd></td><td>Heading 1–3</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> / <kbd>8</kbd> / <kbd>9</kbd></td><td>Numbered / bulleted / check list</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></td><td>Quote</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Code block</td></tr>
+                        <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in a list</td><td>Indent / outdent</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Z</kbd></td><td>Undo</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo</td></tr>
+                    </tbody>
+                </table>
+                break;
+
+            case "data":
+                <h2>Your data</h2>
+                <p>Your notes are yours. They are kept in one folder on this computer:</p>
+                <p>
+                    <code>@Info.DataDirectory</code>
+                    <button type="button" class="wn-button wn-button-small" @onclick="() => Shell.OpenFolder(Info.DataDirectory)">Open folder</button>
+                </p>
+                <table>
+                    <thead><tr><th scope="col">In that folder</th><th scope="col">What it is</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>worriorvex.db</code></td><td>All notes, notebooks and folders, in a SQLite database</td></tr>
+                        <tr><td><code>attachments</code></td><td>Files attached to notes</td></tr>
+                        <tr><td><code>logs</code></td><td>A daily log, useful when reporting a problem. It never contains what you wrote</td></tr>
+                    </tbody>
+                </table>
+                <h3>Making a backup</h3>
+                <p>
+                    Until the built-in backup arrives: close WorriorVex, then copy the whole folder somewhere
+                    safe. To restore, close WorriorVex and put the copy back in the same place.
+                </p>
+                <h3>Privacy</h3>
+                <p>
+                    WorriorVex does not connect to the internet. There is no account, no telemetry and no
+                    analytics. The only time anything leaves the app is when you choose a link on these
+                    pages, which opens in your browser.
+                </p>
+                <h3>Keeping the data somewhere else</h3>
+                <p>
+                    Start WorriorVex with the environment variable <code>WORRIORVEX_DATA_DIR</code> set to
+                    another folder and it uses that folder instead.
+                </p>
+                break;
+
+            default:
+                <h2>What is coming</h2>
+                <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
+                <ul>
+                    <li>Images and tables in notes</li>
+                    <li>Search across everything you have written</li>
+                    <li>Tags, favourites, pinned notes, recent notes, moving notes between folders</li>
+                    <li>Links between notes, with backlinks</li>
+                    <li>Attaching files</li>
+                    <li>Importing notebooks from KeepNote</li>
+                    <li>Browsing and restoring earlier versions of a note</li>
+                    <li>Backup, and export to HTML, Markdown and JSON</li>
+                    <li>Android and iOS</li>
+                </ul>
+                <p>
+                    Follow progress, download new versions or report a problem at
+                    <ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink>.
+                    More from the makers at <ExternalLink Address="AppInfo.Website">www.cloudworrior.com</ExternalLink>.
+                </p>
+                break;
+        }
+    </article>
+</div>
+
+@code {
+    private static readonly (string Id, string Title)[] Topics =
+    [
+        ("start", "Getting started"),
+        ("writing", "Writing notes"),
+        ("organising", "Notebooks and folders"),
+        ("trash", "The Trash"),
+        ("shortcuts", "Keyboard shortcuts"),
+        ("data", "Your data"),
+        ("coming", "What is coming"),
+    ];
+
+    private string _topic = "start";
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+}

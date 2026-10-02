@@ -5,6 +5,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>WorriorVex</AssemblyName>
     <RootNamespace>WorriorVex.Desktop</RootNamespace>
+    <ApplicationIcon>Assets\worriorvex.ico</ApplicationIcon>
+    <Product>WorriorVex</Product>
+    <Company>Musa Consulting</Company>
+    <Copyright>© 2026 Musa Consulting</Copyright>
+    <Description>WorriorVex — your personal knowledge workspace.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +23,7 @@
 
   <ItemGroup>
     <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

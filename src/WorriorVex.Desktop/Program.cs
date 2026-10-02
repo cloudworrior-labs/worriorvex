@@ -1,7 +1,9 @@
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Photino.Blazor;
 using WorriorVex.Application.Notes;
+using WorriorVex.Application.Platform;
 using WorriorVex.Application.Storage;
 using WorriorVex.Infrastructure;
 using WorriorVex.Infrastructure.Logging;
@@ -30,6 +32,8 @@ internal static class Program
         });
         builder.Services.AddWorriorVexInfrastructure(paths.DataDirectory);
         builder.Services.AddSingleton(startup);
+        builder.Services.AddSingleton(new AppInfo(DisplayVersion(), paths.DataDirectory));
+        builder.Services.AddSingleton<IPlatformShell, PlatformShell>();
         builder.Services.AddSingleton(provider => new NoteAutosaver(
             provider.GetRequiredService<INoteService>(),
             provider.GetRequiredService<TimeProvider>()));
@@ -58,6 +62,16 @@ internal static class Program
             logger.LogCritical(e.ExceptionObject as Exception, "Unhandled exception");
 
         var autosaver = app.Services.GetRequiredService<NoteAutosaver>();
+        if (!OperatingSystem.IsMacOS())
+        {
+            // On macOS the icon comes from the application bundle.
+            var icon = Path.Combine(AppContext.BaseDirectory, "Assets", OperatingSystem.IsWindows() ? "worriorvex.ico" : "worriorvex.png");
+            if (File.Exists(icon))
+            {
+                app.MainWindow.SetIconFile(icon);
+            }
+        }
+
         app.MainWindow
             .SetTitle("WorriorVex")
             .SetSize(1280, 800)
@@ -77,5 +91,14 @@ internal static class Program
 
         app.Run();
         logger.LogInformation("WorriorVex closed");
+    }
+
+    /// <summary>"0.1.0 (1a2b3c4)": the version, and the commit it was built from when the build recorded one.</summary>
+    private static string DisplayVersion()
+    {
+        var informational = typeof(Program).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+        var parts = informational.Split('+', 2);
+        return parts.Length == 2 && parts[1].Length >= 7 ? $"{parts[0]} ({parts[1][..7]})" : parts[0];
     }
 }

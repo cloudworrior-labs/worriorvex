@@ -1,0 +1,57 @@
+@using WorriorVex.Application.Platform
+@inject AppInfo Info
+@inject IPlatformShell Shell
+
+<section class="wn-page" aria-labelledby="wn-about-title">
+    <div class="wn-about-head">
+        <img src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="88" height="88" />
+        <div>
+            <h1 id="wn-about-title">@AppInfo.ProductName</h1>
+            <p class="wn-about-tagline">@AppInfo.Tagline</p>
+        </div>
+    </div>
+
+    <dl class="wn-facts">
+        <dt>Version</dt>
+        <dd>@Info.Version</dd>
+
+        <dt>Published by</dt>
+        <dd>@AppInfo.Publisher</dd>
+
+        <dt>Website</dt>
+        <dd><ExternalLink Address="AppInfo.Website">www.cloudworrior.com</ExternalLink></dd>
+
+        <dt>Source code</dt>
+        <dd><ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink></dd>
+
+        <dt>Updates</dt>
+        <dd><ExternalLink Address="AppInfo.Releases">Releases and downloads</ExternalLink></dd>
+
+        <dt>Feedback</dt>
+        <dd><ExternalLink Address="AppInfo.Issues">Report a problem or suggest something</ExternalLink></dd>
+
+        <dt>Licence</dt>
+        <dd>@AppInfo.License. Free to use, change and share.</dd>
+
+        <dt>Your data</dt>
+        <dd>
+            <code>@Info.DataDirectory</code>
+            <button type="button" class="wn-button wn-button-small" @onclick="() => Shell.OpenFolder(Info.DataDirectory)">Open folder</button>
+        </dd>
+    </dl>
+
+    <p>
+        WorriorVex keeps your notes on this computer. It works without an internet connection,
+        needs no account and sends nothing anywhere: no telemetry, no analytics.
+    </p>
+
+    <h2>Built with</h2>
+    <ul class="wn-credits">
+        <li>.NET, Blazor, Entity Framework Core (MIT)</li>
+        <li>SQLite (public domain)</li>
+        <li>Photino (Apache 2.0)</li>
+        <li>TipTap and ProseMirror (MIT)</li>
+    </ul>
+
+    <p class="wn-about-copyright">@AppInfo.Copyright</p>
+</section>

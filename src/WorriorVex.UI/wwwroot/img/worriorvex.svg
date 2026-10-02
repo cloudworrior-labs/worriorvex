@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="WorriorVex">
+  <!-- A notebook page with a folded corner, carrying a W made of two V strokes. -->
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#253a59"/>
+      <stop offset="1" stop-color="#121c2d"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#page)" d="M244 64h486l230 230v486a180 180 0 0 1-180 180H244A180 180 0 0 1 64 780V244A180 180 0 0 1 244 64z"/>
+  <path fill="#46638f" d="M730 64l230 230H790a60 60 0 0 1-60-60z"/>
+  <g fill="none" stroke-width="104" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#6fa8ec" d="M512 440l131 280 131-370"/>
+    <path stroke="#f2f5f9" d="M250 350l131 370 131-280"/>
+  </g>
+</svg>

@@ -59,6 +59,8 @@ public partial class Workspace
         _ => "All Notes",
     };
 
+    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About;
+
     /// <summary>Folders can be created in a user's notebook or in a folder, not in the Inbox or a combined list.</summary>
     private bool CanHoldFolders => _selection switch
     {
@@ -143,6 +145,10 @@ public partial class Workspace
                 _notes = [];
                 _current = null;
                 return;
+            case NavSelection.Documentation or NavSelection.About:
+                _notes = [];
+                _current = null;
+                return;
             case NavSelection.Notebook notebook:
                 _notes = [.. await Notes.ListAsync(notebook.NotebookId)];
                 break;
@@ -195,8 +201,8 @@ public partial class Workspace
                 case NavSelection.Notebook notebook:
                     note = await Notes.CreateAsync(notebook.NotebookId);
                     break;
-                case NavSelection.Trash:
-                    // Nothing is created in the trash: a new note goes to the Inbox, and so does the view.
+                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About:
+                    // Nothing is created in the trash or on a help page: a new note goes to the Inbox, and so does the view.
                     note = await Notes.CreateAsync();
                     _selection = new NavSelection.Notebook(note.NotebookId);
                     await LoadListAsync(openFirst: false);

@@ -63,6 +63,16 @@
                     aria-current="@Current(new NavSelection.Trash())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.Trash())">Trash</button>
         </li>
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Documentation())"
+                    aria-current="@Current(new NavSelection.Documentation())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Documentation())">Documentation</button>
+        </li>
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.About())"
+                    aria-current="@Current(new NavSelection.About())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.About())">About</button>
+        </li>
     </ul>
 </nav>
 

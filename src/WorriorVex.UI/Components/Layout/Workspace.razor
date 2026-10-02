@@ -2,6 +2,7 @@
 
 <div class="wn-app">
     <header class="wn-topbar">
+        <img class="wn-brand-mark" src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="20" height="20" />
         <span class="wn-brand">WorriorVex</span>
         <span class="wn-topbar-spacer"></span>
         <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
@@ -9,7 +10,11 @@
 
     <NavPane Notebooks="_notebooks" Folders="_folders" Selection="_selection" OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" />
 
-    @if (_selection is NavSelection.Trash)
+    @if (IsHelpPage)
+    {
+        @* Help pages use the width of the list and editor panes together. *@
+    }
+    else if (_selection is NavSelection.Trash)
     {
         <TrashList Items="_trash" SelectedId="_trashItem?.Id" OnSelect="item => _trashItem = item" OnEmpty="ConfirmEmptyTrash" />
     }
@@ -29,7 +34,7 @@
         </NoteList>
     }
 
-    <main class="wn-main">
+    <main class="wn-main @(IsHelpPage ? "wn-main-wide" : null)">
         @if (_error is not null)
         {
             <div class="wn-banner" role="alert">
@@ -48,6 +53,14 @@
         @if (_loading)
         {
             <div class="wn-empty"><p>Loading…</p></div>
+        }
+        else if (_selection is NavSelection.Documentation)
+        {
+            <DocumentationPage />
+        }
+        else if (_selection is NavSelection.About)
+        {
+            <AboutPage />
         }
         else if (_selection is NavSelection.Trash)
         {

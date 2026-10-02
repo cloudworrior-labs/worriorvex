@@ -1,0 +1,10 @@
+@using WorriorVex.Application.Platform
+@inject IPlatformShell Shell
+
+@* A button, not an anchor: following a link inside the app window would replace the app with the page. *@
+<button type="button" class="wn-link" title="Opens @Address.Host in your browser" @onclick="() => Shell.OpenWebPage(Address)">@ChildContent</button>
+
+@code {
+    [Parameter, EditorRequired] public Uri Address { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+}

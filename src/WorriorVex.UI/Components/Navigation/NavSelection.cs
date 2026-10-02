@@ -13,4 +13,8 @@ public abstract record NavSelection
     public sealed record Folder(Guid NotebookId, Guid FolderId) : NavSelection;
 
     public sealed record Trash : NavSelection;
+
+    public sealed record Documentation : NavSelection;
+
+    public sealed record About : NavSelection;
 }

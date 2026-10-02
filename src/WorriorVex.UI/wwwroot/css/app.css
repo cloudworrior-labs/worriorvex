@@ -428,3 +428,57 @@ button.wn-twisty:hover { background: var(--wn-bg-hover); color: var(--wn-text); 
   border-radius: var(--wn-radius);
   background: var(--wn-bg);
 }
+
+/* Brand */
+.wn-brand-mark { display: block; border-radius: 4px; }
+
+/* Help pages: documentation and about */
+.wn-main-wide { grid-column: list / main; overflow-y: auto; }
+.wn-page { padding: var(--wn-space-5) var(--wn-space-6); max-width: 760px; }
+.wn-page h1 { margin: 0; font-size: 1.6rem; }
+.wn-page h2 { margin: var(--wn-space-5) 0 var(--wn-space-2); font-size: 1.15rem; }
+.wn-page h2:first-child { margin-top: 0; font-size: 1.5rem; }
+.wn-page h3 { margin: var(--wn-space-5) 0 var(--wn-space-1); font-size: 1rem; }
+.wn-page p, .wn-page ul, .wn-page ol { margin: 0 0 var(--wn-space-3); line-height: 1.6; }
+.wn-page ul, .wn-page ol { padding-left: 1.4em; }
+.wn-page li { margin-bottom: var(--wn-space-1); }
+.wn-page code { font-family: var(--wn-font-mono); font-size: 0.9em; background: var(--wn-code-bg); border-radius: 3px; padding: 0.1em 0.3em; overflow-wrap: anywhere; }
+.wn-page table { border-collapse: collapse; margin: 0 0 var(--wn-space-4); }
+.wn-page th, .wn-page td { padding: var(--wn-space-1) var(--wn-space-4) var(--wn-space-1) 0; text-align: left; vertical-align: top; border-bottom: var(--wn-border-width) solid var(--wn-border); }
+.wn-page th { color: var(--wn-text-muted); font-weight: 600; }
+
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 0.35em;
+  border: var(--wn-border-width) solid var(--wn-border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--wn-bg-pane);
+  font-family: var(--wn-font);
+  font-size: 0.86em;
+  text-align: center;
+}
+
+.wn-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--wn-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wn-docs { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100%; }
+.wn-docs-topics { padding: var(--wn-space-4) var(--wn-space-2); border-right: var(--wn-border-width) solid var(--wn-border); }
+.wn-docs-topics h1 { margin: 0 0 var(--wn-space-3); padding: 0 var(--wn-space-2); font-size: 1rem; font-weight: 600; }
+.wn-docs-topics ul { list-style: none; margin: 0; padding: 0; }
+
+.wn-about-head { display: flex; align-items: center; gap: var(--wn-space-4); margin-bottom: var(--wn-space-5); }
+.wn-about-head img { border-radius: 18px; }
+.wn-about-tagline { margin: 0; color: var(--wn-text-muted); }
+.wn-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--wn-space-2) var(--wn-space-5); margin: 0 0 var(--wn-space-5); }
+.wn-facts dt { color: var(--wn-text-muted); }
+.wn-facts dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--wn-space-2); }
+.wn-credits { color: var(--wn-text-muted); }
+.wn-about-copyright { margin-top: var(--wn-space-5); color: var(--wn-text-muted); }
