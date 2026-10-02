@@ -4,6 +4,7 @@ using WorriorVex.Application.Notes;
 using WorriorVex.Application.Tags;
 using WorriorVex.Domain;
 using WorriorVex.Infrastructure.Persistence;
+using WorriorVex.Infrastructure.Search;
 
 namespace WorriorVex.Infrastructure.Tags;
 
@@ -59,6 +60,7 @@ public sealed class TagService(
         {
             context.NoteTags.Add(NoteTag.Create(noteId, tag.Id));
             await context.SaveChangesAsync(cancellationToken);
+            await SearchIndex.RefreshTagsAsync(context, [noteId], cancellationToken);
         }
 
         return await Summaries(context, context.Tags.Where(t => t.Id == tag.Id)).FirstAsync(cancellationToken);
@@ -68,6 +70,7 @@ public sealed class TagService(
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         await context.NoteTags.Where(nt => nt.NoteId == noteId && nt.TagId == tagId).ExecuteDeleteAsync(cancellationToken);
+        await SearchIndex.RefreshTagsAsync(context, [noteId], cancellationToken);
     }
 
     public async Task<TagSummary> RenameAsync(Guid tagId, string name, CancellationToken cancellationToken = default)
@@ -84,14 +87,20 @@ public sealed class TagService(
 
         tag.Rename(name);
         await context.SaveChangesAsync(cancellationToken);
+        await SearchIndex.RefreshTagsAsync(context, await NotesWithAsync(context, tagId, cancellationToken), cancellationToken);
         return await Summaries(context, context.Tags.Where(t => t.Id == tagId)).FirstAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(Guid tagId, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var tagged = await NotesWithAsync(context, tagId, cancellationToken);
         await context.Tags.Where(t => t.Id == tagId).ExecuteDeleteAsync(cancellationToken);
+        await SearchIndex.RefreshTagsAsync(context, tagged, cancellationToken);
     }
+
+    private static Task<List<Guid>> NotesWithAsync(WorriorVexDbContext context, Guid tagId, CancellationToken cancellationToken) =>
+        context.NoteTags.Where(nt => nt.TagId == tagId).Select(nt => nt.NoteId).ToListAsync(cancellationToken);
 
     private static IQueryable<TagSummary> Summaries(WorriorVexDbContext context, IQueryable<Tag> tags) =>
         tags.AsNoTracking()

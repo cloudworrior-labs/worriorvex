@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using WorriorVex.Infrastructure.Search;
 
 namespace WorriorVex.Infrastructure.Persistence;
 
@@ -19,6 +20,13 @@ public sealed class DatabaseInitializer(
         }
 
         await context.Database.MigrateAsync(cancellationToken);
+
+        var indexed = await SearchIndex.CompleteAsync(context, cancellationToken);
+        if (indexed > 0)
+        {
+            logger.LogInformation("Added {Count} note(s) to the search index", indexed);
+        }
+
         logger.LogInformation("Database ready at {DataSource}", context.Database.GetDbConnection().DataSource);
     }
 }

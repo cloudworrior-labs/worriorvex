@@ -6,6 +6,7 @@ using WorriorVex.Domain;
 using WorriorVex.Infrastructure.Attachments;
 using WorriorVex.Infrastructure.Notes;
 using WorriorVex.Infrastructure.Persistence;
+using WorriorVex.Infrastructure.Search;
 
 namespace WorriorVex.Infrastructure.Trash;
 
@@ -208,6 +209,7 @@ public sealed class TrashService(
                 .Select(a => a.StoredFileName)
                 .ToListAsync(cancellationToken);
             await context.Notebooks.Where(n => n.Id == id).ExecuteDeleteAsync(cancellationToken);
+            await SearchIndex.RemoveOrphansAsync(context, cancellationToken);
             files.Delete(notebookFiles);
             logger.LogInformation("Notebook {NotebookId} deleted permanently with {FileCount} attachment file(s)", id, notebookFiles.Count);
             return;
@@ -228,6 +230,7 @@ public sealed class TrashService(
 
         // The database removes everything below the node, and all that hangs on those notes, with it.
         await context.Nodes.Where(n => n.Id == id).ExecuteDeleteAsync(cancellationToken);
+        await SearchIndex.RemoveOrphansAsync(context, cancellationToken);
         files.Delete(storedFiles);
         logger.LogInformation("Item {NodeId} deleted permanently with {FileCount} attachment file(s)", id, storedFiles.Count);
     }

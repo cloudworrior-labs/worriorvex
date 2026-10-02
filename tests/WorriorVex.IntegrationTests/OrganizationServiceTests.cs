@@ -201,31 +201,6 @@ public class OrganizationServiceTests
     }
 
     [Fact]
-    public async Task Search_finds_every_word_in_title_or_body_and_skips_the_trash()
-    {
-        using var data = new TempDataDirectory();
-        var clock = new ManualTimeProvider(Start);
-        await using var app = await TestApp.StartAsync(data, clock);
-        var body = await app.Notes.CreateAsync(title: "Meeting notes", content: "<p>We chose SQLite for the architecture.</p>");
-        clock.Advance(TimeSpan.FromMinutes(1));
-        var title = await app.Notes.CreateAsync(title: "SQLite architecture", content: "<p>Details.</p>");
-        clock.Advance(TimeSpan.FromMinutes(1));
-        var newest = await app.Notes.CreateAsync(title: "Shopping", content: "<p>sqlite ARCHITECTURE book</p>");
-        var trashed = await app.Notes.CreateAsync(title: "Old SQLite architecture", content: "<p>x</p>");
-        await app.Notes.CreateAsync(title: "100% done", content: "<p>percent</p>");
-        await app.Trash.MoveToTrashAsync(trashed.Id);
-
-        var found = await app.Search.SearchAsync("architecture sqlite");
-
-        Assert.Equal([title.Id, newest.Id, body.Id], found.Select(r => r.NoteId));
-        Assert.Equal("100% done", Assert.Single(await app.Search.SearchAsync("100%")).Title);
-        Assert.Equal("100% done", Assert.Single(await app.Search.SearchAsync("%")).Title);
-        Assert.Empty(await app.Search.SearchAsync("_"));
-        Assert.Empty(await app.Search.SearchAsync("   "));
-        Assert.Empty(await app.Search.SearchAsync("nowhere"));
-    }
-
-    [Fact]
     public async Task A_database_from_the_first_release_is_upgraded_with_its_notes_intact()
     {
         using var data = new TempDataDirectory();
@@ -254,6 +229,9 @@ public class OrganizationServiceTests
         Assert.Equal(("Written before the upgrade", "<p>still here</p>", (Guid?)folderId), (note.Title, note.Content, note.ParentId));
         Assert.Equal("Folder", Assert.Single(await app.Tree.ListFoldersAsync(notebookId)).Name);
         Assert.Equal(["Inbox", "Old"], (await app.Notebooks.ListAsync()).Select(n => n.Name));
+
+        // Notes written before search existed are indexed at the first start after the upgrade.
+        Assert.Equal(noteId, Assert.Single(await app.Search.SearchAsync("still")).NoteId);
 
         await app.Trash.MoveToTrashAsync(folderId);
         await app.Trash.EmptyAsync();

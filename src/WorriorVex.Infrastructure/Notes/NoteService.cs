@@ -4,6 +4,7 @@ using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
 using WorriorVex.Domain;
 using WorriorVex.Infrastructure.Persistence;
+using WorriorVex.Infrastructure.Search;
 
 namespace WorriorVex.Infrastructure.Notes;
 
@@ -52,7 +53,12 @@ public sealed class NoteService(
         var sortOrder = await NextSortOrderAsync(context, targetNotebookId, parentId, cancellationToken);
         var node = Node.CreateNote(targetNotebookId, parentId, title, sanitizer.Sanitize(content), timeProvider.GetUtcNow(), sortOrder);
         context.Nodes.Add(node);
+
+        // The note and its entry in the search index are written together or not at all.
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await SearchIndex.IndexNoteAsync(context, node.Id, node.Name, node.Note!.Content, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return ToDetail(node);
     }
 
@@ -108,7 +114,14 @@ public sealed class NoteService(
             context.NoteRevisions.Add(NoteRevision.Create(id, previousTitle, previousContent, now, RevisionPolicy.EditReason));
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        if (changed)
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            await SearchIndex.IndexNoteAsync(context, node.Id, node.Name, node.Note.Content, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+
         return ToDetail(node);
     }
 
