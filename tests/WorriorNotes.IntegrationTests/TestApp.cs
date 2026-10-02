@@ -1,7 +1,14 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WorriorNotes.Application.Attachments;
+using WorriorNotes.Application.Links;
 using WorriorNotes.Application.Notes;
+using WorriorNotes.Application.Revisions;
+using WorriorNotes.Application.Search;
+using WorriorNotes.Application.Tags;
+using WorriorNotes.Application.Trash;
+using WorriorNotes.Application.Tree;
 using WorriorNotes.Infrastructure;
 using WorriorNotes.Infrastructure.Persistence;
 
@@ -19,7 +26,17 @@ internal sealed class TestApp : IAsyncDisposable
 
     public INoteService Notes => _provider.GetRequiredService<INoteService>();
     public INotebookService Notebooks => _provider.GetRequiredService<INotebookService>();
+    public ITreeService Tree => _provider.GetRequiredService<ITreeService>();
+    public ITrashService Trash => _provider.GetRequiredService<ITrashService>();
+    public ITagService Tags => _provider.GetRequiredService<ITagService>();
+    public INoteLinkService Links => _provider.GetRequiredService<INoteLinkService>();
+    public IRevisionService Revisions => _provider.GetRequiredService<IRevisionService>();
+    public IAttachmentService Attachments => _provider.GetRequiredService<IAttachmentService>();
+    public INoteSearchService Search => _provider.GetRequiredService<INoteSearchService>();
     public T Get<T>() where T : notnull => _provider.GetRequiredService<T>();
+
+    /// <summary>Starts over a throwaway directory with a clock the test moves by hand.</summary>
+    public static Task<TestApp> StartAsync(TempDataDirectory data, ManualTimeProvider clock) => StartAsync(data.Path, clock);
 
     public static async Task<TestApp> StartAsync(string dataDirectory, TimeProvider? timeProvider = null)
     {

@@ -14,6 +14,9 @@ public sealed class Notebook
     public int SortOrder { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
+
+    public bool IsDeleted => DeletedAt is not null;
 
     public static Notebook Create(string name, DateTimeOffset now, int sortOrder = 0) => new()
     {
@@ -44,6 +47,23 @@ public sealed class Notebook
 
         Name = ValidateName(name);
         UpdatedAt = now;
+    }
+
+    public void SetSortOrder(int sortOrder) => SortOrder = sortOrder;
+
+    public void MoveToTrash(DateTimeOffset now)
+    {
+        if (Kind == NotebookKind.Inbox)
+        {
+            throw new DomainException("The Inbox cannot be deleted.");
+        }
+
+        DeletedAt ??= now;
+    }
+
+    public void Restore()
+    {
+        DeletedAt = null;
     }
 
     private static string ValidateName(string name)

@@ -184,13 +184,16 @@ public class NoteAutosaverTests
             return new NoteDetail(id, Guid.Empty, title ?? string.Empty, content ?? string.Empty, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch);
         }
 
-        public Task<NoteDetail> CreateAsync(Guid? notebookId = null, string? title = null, string? content = null, CancellationToken cancellationToken = default) =>
+        public Task<NoteDetail> CreateAsync(Guid? notebookId = null, Guid? parentId = null, string? title = null, string? content = null, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<NoteDetail?> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
-        public Task<IReadOnlyList<NoteSummary>> ListAsync(Guid notebookId, CancellationToken cancellationToken = default) =>
+        public Task<IReadOnlyList<NoteSummary>> ListAsync(Guid notebookId, Guid? parentId = null, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<IReadOnlyList<NoteSummary>> ListAllAsync(CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
     }
 }

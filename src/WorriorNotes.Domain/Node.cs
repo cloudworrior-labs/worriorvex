@@ -21,6 +21,12 @@ public sealed class Node
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
 
+    /// <summary>Easy to reach from anywhere. Independent of <see cref="IsPinned"/>.</summary>
+    public bool IsFavorite { get; private set; }
+
+    /// <summary>Kept at the top of the list it lives in. Independent of <see cref="IsFavorite"/>.</summary>
+    public bool IsPinned { get; private set; }
+
     public Note? Note { get; private set; }
 
     public bool IsDeleted => DeletedAt is not null;
@@ -94,6 +100,50 @@ public sealed class Node
     public void Restore()
     {
         DeletedAt = null;
+    }
+
+    /// <summary>
+    /// Places the node under another parent, possibly in another notebook. Whether the parent is a
+    /// suitable folder is for the caller to check; a node can only rule out being its own parent.
+    /// Moving is not an edit, so <see cref="UpdatedAt"/> stays as it is.
+    /// </summary>
+    public void MoveTo(Guid notebookId, Guid? parentId, int sortOrder)
+    {
+        if (notebookId == Guid.Empty)
+        {
+            throw new DomainException("A node must belong to a notebook.");
+        }
+
+        if (parentId == Id)
+        {
+            throw new DomainException("A folder cannot be moved into itself.");
+        }
+
+        NotebookId = notebookId;
+        ParentId = parentId;
+        SortOrder = sortOrder;
+    }
+
+    public void SetSortOrder(int sortOrder) => SortOrder = sortOrder;
+
+    public void SetFavorite(bool isFavorite)
+    {
+        EnsureNote("Only a note can be a favorite.");
+        IsFavorite = isFavorite;
+    }
+
+    public void SetPinned(bool isPinned)
+    {
+        EnsureNote("Only a note can be pinned.");
+        IsPinned = isPinned;
+    }
+
+    private void EnsureNote(string message)
+    {
+        if (Type != NodeType.Note)
+        {
+            throw new DomainException(message);
+        }
     }
 
     private static Node Create(Guid notebookId, Guid? parentId, NodeType type, string name, DateTimeOffset now, int sortOrder)

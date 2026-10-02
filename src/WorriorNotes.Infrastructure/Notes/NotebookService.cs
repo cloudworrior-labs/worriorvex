@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WorriorNotes.Application.Common;
 using WorriorNotes.Application.Notes;
 using WorriorNotes.Domain;
 using WorriorNotes.Infrastructure.Persistence;
@@ -23,10 +24,55 @@ public sealed class NotebookService(
 
         return await context.Notebooks
             .AsNoTracking()
+            .Where(n => n.DeletedAt == null)
             .OrderBy(n => n.SortOrder)
             .ThenBy(n => n.Name)
             .Select(n => new NotebookSummary(n.Id, n.Name, n.Kind == NotebookKind.Inbox))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<NotebookSummary> CreateAsync(string name, CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var highest = await context.Notebooks
+            .Where(n => n.Kind == NotebookKind.User)
+            .Select(n => (int?)n.SortOrder)
+            .MaxAsync(cancellationToken);
+
+        var notebook = Notebook.Create(name, timeProvider.GetUtcNow(), highest is { } value ? value + 1 : 0);
+        context.Notebooks.Add(notebook);
+        await context.SaveChangesAsync(cancellationToken);
+        return ToSummary(notebook);
+    }
+
+    public async Task<NotebookSummary> RenameAsync(Guid id, string name, CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var notebook = await FindLiveAsync(context, id, cancellationToken);
+        notebook.Rename(name, timeProvider.GetUtcNow());
+        await context.SaveChangesAsync(cancellationToken);
+        return ToSummary(notebook);
+    }
+
+    public async Task ReorderAsync(Guid id, int index, CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var notebooks = await context.Notebooks
+            .Where(n => n.Kind == NotebookKind.User && n.DeletedAt == null)
+            .OrderBy(n => n.SortOrder)
+            .ThenBy(n => n.Name)
+            .ToListAsync(cancellationToken);
+
+        var moving = notebooks.FirstOrDefault(n => n.Id == id)
+            ?? throw new EntityNotFoundException("Notebook", id);
+        notebooks.Remove(moving);
+        notebooks.Insert(Math.Clamp(index, 0, notebooks.Count), moving);
+        for (var position = 0; position < notebooks.Count; position++)
+        {
+            notebooks[position].SetSortOrder(position);
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     internal static async Task<Notebook> GetOrCreateInboxAsync(
@@ -63,6 +109,10 @@ public sealed class NotebookService(
 
     private static Task<Notebook?> FindInboxAsync(WorriorNotesDbContext context, CancellationToken cancellationToken) =>
         context.Notebooks.FirstOrDefaultAsync(n => n.Kind == NotebookKind.Inbox, cancellationToken);
+
+    private static async Task<Notebook> FindLiveAsync(WorriorNotesDbContext context, Guid id, CancellationToken cancellationToken) =>
+        await context.Notebooks.FirstOrDefaultAsync(n => n.Id == id && n.DeletedAt == null, cancellationToken)
+        ?? throw new EntityNotFoundException("Notebook", id);
 
     private static NotebookSummary ToSummary(Notebook notebook) =>
         new(notebook.Id, notebook.Name, notebook.Kind == NotebookKind.Inbox);
