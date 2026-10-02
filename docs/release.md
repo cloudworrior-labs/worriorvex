@@ -47,6 +47,7 @@ The cask lives in this repository (`Casks/worriorvex.rb`, generated from
 
 ```bash
 brew tap cloudworrior-labs/worriorvex https://github.com/cloudworrior-labs/worriorvex
+brew trust cloudworrior-labs/worriorvex   # recent Homebrew asks you to trust a third-party tap once
 brew install --cask worriorvex
 ```
 
