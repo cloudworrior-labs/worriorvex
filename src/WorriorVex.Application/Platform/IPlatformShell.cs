@@ -8,4 +8,11 @@ public interface IPlatformShell
 
     /// <summary>Shows a folder in the system's file manager.</summary>
     void OpenFolder(string path);
+
+    /// <summary>
+    /// Lets the user choose one file with the system's file dialog.
+    /// Returns its path, or <c>null</c> when the dialog was cancelled.
+    /// </summary>
+    /// <param name="extensions">Extensions to offer, with their dot, such as ".png".</param>
+    Task<string?> PickFileAsync(string title, string kind, IReadOnlyCollection<string> extensions);
 }

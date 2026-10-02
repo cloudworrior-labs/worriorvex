@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The window may only load what ships with the app or lies in the attachments folder. Nothing from the network. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'" />
     <title>WorriorVex</title>
     <base href="/" />
     <link href="_content/WorriorVex.UI/css/app.css" rel="stylesheet" />

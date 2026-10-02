@@ -1,11 +1,13 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Photino.Blazor;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Platform;
 using WorriorVex.Application.Storage;
 using WorriorVex.Infrastructure;
+using WorriorVex.Infrastructure.Attachments;
 using WorriorVex.Infrastructure.Logging;
 using WorriorVex.Infrastructure.Persistence;
 using WorriorVex.Infrastructure.Storage;
@@ -23,7 +25,11 @@ internal static class Program
         var paths = new ApplicationDataPathProvider();
         var startup = new StartupStatus { DataDirectory = paths.DataDirectory };
 
-        var builder = PhotinoBlazorAppBuilder.CreateDefault(args);
+        // The window loads the UI from wwwroot and the images in notes from the attachments folder.
+        var files = new CompositeFileProvider(
+            new PhysicalFileProvider(Path.Combine(AppContext.BaseDirectory, "wwwroot")),
+            new AttachmentImageFileProvider(paths.AttachmentsDirectory));
+        var builder = PhotinoBlazorAppBuilder.CreateDefault(files, args);
         builder.Services.AddLogging(logging =>
         {
             logging.SetMinimumLevel(LogLevel.Information);
@@ -33,7 +39,8 @@ internal static class Program
         builder.Services.AddWorriorVexInfrastructure(paths.DataDirectory);
         builder.Services.AddSingleton(startup);
         builder.Services.AddSingleton(new AppInfo(DisplayVersion(), paths.DataDirectory));
-        builder.Services.AddSingleton<IPlatformShell, PlatformShell>();
+        builder.Services.AddSingleton<PlatformShell>();
+        builder.Services.AddSingleton<IPlatformShell>(provider => provider.GetRequiredService<PlatformShell>());
         builder.Services.AddSingleton(provider => new NoteAutosaver(
             provider.GetRequiredService<INoteService>(),
             provider.GetRequiredService<TimeProvider>()));
@@ -61,6 +68,7 @@ internal static class Program
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             logger.LogCritical(e.ExceptionObject as Exception, "Unhandled exception");
 
+        app.Services.GetRequiredService<PlatformShell>().Window = app.MainWindow;
         var autosaver = app.Services.GetRequiredService<NoteAutosaver>();
         if (!OperatingSystem.IsMacOS())
         {

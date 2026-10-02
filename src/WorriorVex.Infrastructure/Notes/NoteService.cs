@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WorriorVex.Application.Content;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
 using WorriorVex.Domain;
@@ -8,6 +9,7 @@ namespace WorriorVex.Infrastructure.Notes;
 
 public sealed class NoteService(
     IDbContextFactory<WorriorVexDbContext> contextFactory,
+    INoteHtmlSanitizer sanitizer,
     TimeProvider timeProvider) : INoteService
 {
     public async Task<NoteDetail> CreateAsync(
@@ -48,7 +50,7 @@ public sealed class NoteService(
         }
 
         var sortOrder = await NextSortOrderAsync(context, targetNotebookId, parentId, cancellationToken);
-        var node = Node.CreateNote(targetNotebookId, parentId, title, content, timeProvider.GetUtcNow(), sortOrder);
+        var node = Node.CreateNote(targetNotebookId, parentId, title, sanitizer.Sanitize(content), timeProvider.GetUtcNow(), sortOrder);
         context.Nodes.Add(node);
         await context.SaveChangesAsync(cancellationToken);
         return ToDetail(node);
@@ -98,7 +100,7 @@ public sealed class NoteService(
         var previousTitle = node.Name;
         var previousContent = node.Note!.Content;
         var now = timeProvider.GetUtcNow();
-        node.Edit(title, content, now);
+        node.Edit(title, sanitizer.Sanitize(content), now);
 
         var changed = node.Name != previousTitle || node.Note.Content != previousContent;
         if (changed && previousContent.Length > 0 && await RevisionIsDueAsync(context, node, now, cancellationToken))

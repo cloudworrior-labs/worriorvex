@@ -30,12 +30,37 @@ exports directly, and matches KeepNote's format for import. `ContentFormat` leav
 
 ## Sanitisation
 
-The editor schema is not the only defence. Before HTML from outside (KeepNote import, paste, restore
-from a package) is stored, it will go through a server-side allow-list sanitiser in the Application
-layer (planned for Phase 6). Content already in the database is only ever rendered through the editor.
+Two layers, because the editor is not the only way content arrives.
+
+1. **Editor schema.** Markup the schema does not know never enters the document. The image node only
+   accepts the address of an attachment, so pasted web pages lose their remote images at this point.
+2. **`INoteHtmlSanitizer`**, applied by `NoteService` to everything that is stored, whoever the caller is
+   (editor, importer, restore). It is an allow-list built on
+   [HtmlSanitizer](https://github.com/mganss/HtmlSanitizer) (MIT, on AngleSharp): the tags and attributes
+   the editor writes, nothing else. No `style`, no event handlers, no scripts, frames, forms or embedded
+   content. Links must be absolute `http`/`https` addresses and get `rel="noopener noreferrer nofollow"`;
+   any other address leaves the text and drops the link. An `img` survives only when its source is
+   `attachments/<32 hex>.<png|jpg|jpeg|gif|webp>`.
+
+Writing our own sanitiser was rejected: HTML parsing has too many edge cases to get right by hand, and
+this library is the established one for .NET.
+
+The window itself carries a Content-Security-Policy (`default-src 'self'`, no remote sources, no inline
+script), so even content that slipped through could not load or send anything over the network.
+
+## Images
+
+Images are attachments: the file is copied into the attachments folder under a generated name and the
+note refers to it as `attachments/<stored name>`. The desktop host serves exactly those files to its own
+window through `AttachmentImageFileProvider`, on the app's own origin; no web server is involved.
+Images are added from a native file dialog, by pasting, or by dropping a file on the note.
+Accepted types: PNG, JPEG, GIF, WebP (SVG is refused because it can carry script).
+
+Known gap: removing an image from a note leaves its file in the attachments folder until the note is
+deleted permanently. The attachments screen (Phase 10) will show and clean these up.
 
 ## Current state
 
-Enabled today: StarterKit (paragraphs, headings, bold, italic, underline, strike, inline code, lists,
-block quote, code block, horizontal rule, links, undo/redo) and task lists. Images, tables and the link
-dialog arrive with Phases 6 and 10.
+Enabled: StarterKit (paragraphs, headings, bold, italic, underline, strike, inline code, lists, block
+quote, code block, horizontal rule, links, undo/redo), task lists, images and tables (insert, add and
+delete rows and columns, header row). Not yet: resizing images and columns, merging cells.

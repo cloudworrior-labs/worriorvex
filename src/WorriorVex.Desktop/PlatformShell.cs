@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Photino.NET;
 using WorriorVex.Application.Platform;
 
 namespace WorriorVex.Desktop;
@@ -23,6 +24,32 @@ internal sealed class PlatformShell(ILogger<PlatformShell> logger) : IPlatformSh
         if (Directory.Exists(path))
         {
             Start(path);
+        }
+    }
+
+    /// <summary>The application window; set once it exists. File dialogs belong to it.</summary>
+    public PhotinoWindow? Window { get; set; }
+
+    public async Task<string?> PickFileAsync(string title, string kind, IReadOnlyCollection<string> extensions)
+    {
+        if (Window is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var filters = new[] { (kind, extensions.Select(e => "*" + e).ToArray()) };
+            var chosen = await Window.ShowOpenFileAsync(title, null, false, filters);
+            var path = chosen?.FirstOrDefault(p => !string.IsNullOrEmpty(p));
+
+            // The dialog's filter is a convenience; what was actually chosen is checked here.
+            return path is not null && extensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase) ? path : null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "The file dialog could not be shown");
+            return null;
         }
     }
 

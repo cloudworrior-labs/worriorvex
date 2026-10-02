@@ -1,17 +1,27 @@
 @implements IAsyncDisposable
+@using WorriorVex.Application.Attachments
+@using WorriorVex.Application.Content
+@using WorriorVex.Application.Platform
+@using WorriorVex.Domain
 @inject IJSRuntime JS
+@inject IAttachmentService Attachments
+@inject IPlatformShell Shell
+@inject ILogger<NoteEditor> Logger
 
 <section class="wn-editor" aria-label="Editor">
-    <input @ref="_titleInput"
-           class="wn-title"
-           type="text"
-           value="@_title"
-           maxlength="500"
-           placeholder="Untitled"
-           aria-label="Note title"
-           spellcheck="true"
-           @oninput="OnTitleInput"
-           @onkeydown="OnTitleKeyDown" />
+    <div class="wn-title-row">
+        <input @ref="_titleInput"
+               class="wn-title"
+               type="text"
+               value="@_title"
+               maxlength="500"
+               placeholder="Untitled"
+               aria-label="Note title"
+               spellcheck="true"
+               @oninput="OnTitleInput"
+               @onkeydown="OnTitleKeyDown" />
+        <button type="button" class="wn-tool" title="Move this note to the trash" @onclick="OnDelete">Delete</button>
+    </div>
 
     @* Pressing a mouse button on the toolbar must not take focus (and the selection) away from the text. *@
     <div class="wn-toolbar" role="toolbar" aria-label="Formatting">
@@ -31,12 +41,36 @@
                 }
             </div>
         }
-        <span class="wn-toolbar-spacer"></span>
-        <button type="button" class="wn-tool" title="Move this note to the trash" @onclick="OnDelete">Delete</button>
+        <div class="wn-toolbar-group">
+            <button type="button" class="wn-tool @(_active.Contains("link") ? "is-active" : null)" title="Link (@Modifier+click a link to open it)"
+                    aria-pressed="@(_active.Contains("link") ? "true" : "false")" @onmousedown:preventDefault @onclick="PromptLinkAsync">Link</button>
+            @if (_active.Contains("link"))
+            {
+                <button type="button" class="wn-tool" title="Remove link" @onmousedown:preventDefault @onclick="@(() => RunAsync("unlink"))">Unlink</button>
+            }
+            <button type="button" class="wn-tool" title="Insert image from a file" @onmousedown:preventDefault @onclick="PickImageAsync">Image</button>
+            <button type="button" class="wn-tool" title="Insert table" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">Table</button>
+        </div>
+        @if (_active.Contains("table"))
+        {
+            <div class="wn-toolbar-group" role="group" aria-label="Table">
+                @foreach (var item in TableTools)
+                {
+                    <button type="button" class="wn-tool" title="@item.Label" aria-label="@item.Label"
+                            @onmousedown:preventDefault @onclick="() => RunAsync(item.Command)">@item.Text</button>
+                }
+            </div>
+        }
     </div>
 
     <div class="wn-editor-surface" @ref="_surface"></div>
 </section>
+
+@if (_linkPrompt)
+{
+    <PromptDialog Title="Link" Label="Web address" InitialValue="@_linkAddress" ConfirmText="Apply" MaxLength="2000"
+                  Error="@_linkError" OnConfirm="ApplyLinkAsync" OnCancel="CloseLinkPrompt" />
+}
 
 @code {
     private static readonly ToolbarItem[][] ToolbarGroups =
@@ -46,6 +80,22 @@
         [new("bulletList", "• List", "Bulleted list"), new("orderedList", "1. List", "Numbered list"), new("taskList", "☑ List", "Checklist")],
         [new("blockquote", "“ ”", "Block quote"), new("codeBlock", "{ }", "Code block"), new("horizontalRule", "—", "Horizontal rule")],
     ];
+
+    private static readonly ToolbarItem[] TableTools =
+    [
+        new("addRow", "+ Row", "Add a row below"),
+        new("addColumn", "+ Column", "Add a column to the right"),
+        new("deleteRow", "− Row", "Delete this row"),
+        new("deleteColumn", "− Column", "Delete this column"),
+        new("toggleHeaderRow", "Header", "Turn the first row into a header or back"),
+        new("deleteTable", "Delete table", "Delete the whole table"),
+    ];
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+
+    private bool _linkPrompt;
+    private string _linkAddress = string.Empty;
+    private string? _linkError;
 
     private ElementReference _surface;
     private ElementReference _titleInput;
@@ -64,6 +114,9 @@
 
     /// <summary>Raised with the latest title and body whenever the user changes either.</summary>
     [Parameter] public EventCallback<NoteEdit> OnEdited { get; set; }
+
+    /// <summary>Something the user tried did not work; the text says what and why.</summary>
+    [Parameter] public EventCallback<string> OnProblem { get; set; }
 
     /// <summary>The user asked to move this note to the trash.</summary>
     [Parameter] public EventCallback OnDelete { get; set; }
@@ -127,6 +180,123 @@
     {
         _active = [.. active];
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Called by the editor for an image that was pasted or dropped. Stores it as an attachment of
+    /// this note and returns the address to show it by, or <c>null</c> when it was refused.
+    /// </summary>
+    [JSInvokable]
+    public async Task<string?> OnImageFile(IJSStreamReference file, string name, string contentType)
+    {
+        try
+        {
+            await using var content = await file.OpenReadStreamAsync(Attachment.MaxSizeBytes);
+            return await AttachImageAsync(name, contentType, content);
+        }
+        catch (Exception ex) when (ex is not DomainException)
+        {
+            Logger.LogError(ex, "A pasted or dropped image could not be read");
+            await OnProblem.InvokeAsync("The image could not be added.");
+            return null;
+        }
+        finally
+        {
+            await file.DisposeAsync();
+        }
+    }
+
+    /// <summary>Called by the editor when a link is clicked with Ctrl or Cmd held.</summary>
+    [JSInvokable]
+    public void OnOpenLink(string? address)
+    {
+        if (NoteContentRules.IsWebLink(address))
+        {
+            Shell.OpenWebPage(new Uri(address!));
+        }
+    }
+
+    private async Task PickImageAsync()
+    {
+        var path = await Shell.PickFileAsync("Insert image", "Images", [.. NoteContentRules.ImageContentTypes.Keys]);
+        if (path is null || _editor is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var content = File.OpenRead(path);
+            var source = await AttachImageAsync(Path.GetFileName(path), NoteContentRules.ImageContentType(path), content);
+            if (source is not null)
+            {
+                await _editor.InvokeVoidAsync("insertImage", source, Path.GetFileNameWithoutExtension(path));
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logger.LogError(ex, "The chosen image could not be read");
+            await OnProblem.InvokeAsync("That file could not be read.");
+        }
+    }
+
+    private async Task<string?> AttachImageAsync(string? name, string? contentType, Stream content)
+    {
+        var fileName = NoteContentRules.ImageFileName(name, contentType);
+        if (fileName is null)
+        {
+            await OnProblem.InvokeAsync("Only PNG, JPEG, GIF and WebP images can be placed in a note.");
+            return null;
+        }
+
+        try
+        {
+            var attachment = await Attachments.AddAsync(Note.Id, fileName, contentType, content);
+            return NoteContentRules.AttachmentSource(attachment.StoredFileName);
+        }
+        catch (DomainException ex)
+        {
+            await OnProblem.InvokeAsync(ex.Message);
+            return null;
+        }
+    }
+
+    private async Task PromptLinkAsync()
+    {
+        if (_editor is null)
+        {
+            return;
+        }
+
+        _linkAddress = await _editor.InvokeAsync<string>("getLinkAddress");
+        _linkError = null;
+        _linkPrompt = true;
+    }
+
+    private async Task ApplyLinkAsync(string address)
+    {
+        // "example.com" is what people type; the address stored is always a full web address.
+        var full = address.Contains("://", StringComparison.Ordinal) ? address : "https://" + address;
+        if (!NoteContentRules.IsWebLink(full) || full.Any(char.IsWhiteSpace))
+        {
+            _linkError = "Enter a web address, such as https://www.cloudworrior.com";
+            return;
+        }
+
+        _linkPrompt = false;
+        if (_editor is not null)
+        {
+            await _editor.InvokeVoidAsync("setLink", full);
+        }
+    }
+
+    private async Task CloseLinkPrompt()
+    {
+        _linkPrompt = false;
+        if (_editor is not null)
+        {
+            await _editor.InvokeVoidAsync("focus");
+        }
     }
 
     private Task OnTitleInput(ChangeEventArgs args)

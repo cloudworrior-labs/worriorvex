@@ -14,9 +14,18 @@ export function register(dotNetRef) {
     }
   };
 
+  // A file dropped outside the editor would otherwise make the window navigate to that file.
+  const ignoreDrop = (event) => event.preventDefault();
+
   window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('dragover', ignoreDrop);
+  window.addEventListener('drop', ignoreDrop);
   return {
-    dispose: () => window.removeEventListener('keydown', onKeyDown),
+    dispose: () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('dragover', ignoreDrop);
+      window.removeEventListener('drop', ignoreDrop);
+    },
   };
 }
 

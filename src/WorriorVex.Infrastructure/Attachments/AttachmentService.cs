@@ -62,7 +62,7 @@ public sealed class AttachmentService(
             .AsNoTracking()
             .Where(a => a.NoteId == noteId)
             .OrderBy(a => a.CreatedAt)
-            .Select(a => new AttachmentInfo(a.Id, a.NoteId, a.OriginalFileName, a.ContentType, a.Size, a.CreatedAt))
+            .Select(a => new AttachmentInfo(a.Id, a.NoteId, a.OriginalFileName, a.ContentType, a.Size, a.CreatedAt, a.StoredFileName))
             .ToListAsync(cancellationToken);
     }
 
@@ -133,5 +133,5 @@ public sealed class AttachmentService(
     }
 
     private static AttachmentInfo ToInfo(Attachment attachment) =>
-        new(attachment.Id, attachment.NoteId, attachment.OriginalFileName, attachment.ContentType, attachment.Size, attachment.CreatedAt);
+        new(attachment.Id, attachment.NoteId, attachment.OriginalFileName, attachment.ContentType, attachment.Size, attachment.CreatedAt, attachment.StoredFileName);
 }

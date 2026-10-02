@@ -46,6 +46,8 @@ The installers are not code-signed yet, so the operating system asks for confirm
 - Desktop app with a three-pane workspace, light and dark theme following the system
 - Inbox for quick capture, notebooks, nested folders, an All Notes list
 - Rich text: headings, bold, italic, underline, strikethrough, lists, checklists, quotes, code, rules
+- Links, tables, and images added from a file, by pasting or by dropping
+- Everything stored is sanitised; the app window can load nothing from the network
 - Autosave with a visible save state; a failed save keeps your edits and offers Retry
 - Trash for notes, folders and whole notebooks: restore, delete permanently, empty
 - Earlier versions of a note are kept automatically while you edit
@@ -57,7 +59,7 @@ earlier versions, moving notes and folders, basic search.
 
 ## Roadmap
 
-Images and tables → full-text search → tags, favourites, pins, move → links and backlinks → attachments →
+Full-text search → tags, favourites, pins, move → links and backlinks → attachments →
 KeepNote import → revision history → backup and export → Android and iOS.
 Details: [`docs/product.md`](docs/product.md) and the full
 [development plan](WorriorVex-Development-Plan.md).

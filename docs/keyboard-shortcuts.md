@@ -25,6 +25,9 @@
 | `Ctrl/⌘ + Shift + B` | Block quote |
 | `Ctrl/⌘ + Alt + C` | Code block |
 | `Tab` / `Shift + Tab` in a list | Indent / outdent |
+| `Tab` / `Shift + Tab` in a table | Next / previous cell |
+| `Ctrl/⌘` + click on a link | Open the link in the browser |
+| `Ctrl/⌘ + V` with an image copied | Paste the image into the note |
 | `Ctrl/⌘ + Z`, `Ctrl/⌘ + Shift + Z` | Undo, redo |
 
 The editor shortcuts are TipTap's defaults. Typing `# `, `- `, `1. `, `[ ] `, `> ` or three backticks at

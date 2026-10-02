@@ -49,7 +49,32 @@
                 <p>
                     The toolbar above the text gives you bold, italic, underline, strikethrough, inline code,
                     three levels of heading, bulleted, numbered and check lists, quotes, code blocks and a
-                    dividing line. Each has a keyboard shortcut, listed under <em>Keyboard shortcuts</em>.
+                    dividing line. Most have a keyboard shortcut, listed under <em>Keyboard shortcuts</em>.
+                </p>
+                <h3>Links</h3>
+                <p>
+                    Select some words and choose <strong>Link</strong>, then type the web address. With nothing
+                    selected, the address itself is inserted as the link. To change a link, put the cursor in it
+                    and choose <strong>Link</strong> again; <strong>Unlink</strong> removes it.
+                    Hold <kbd>@Modifier</kbd> and click a link to open it in your browser.
+                </p>
+                <h3>Images</h3>
+                <p>
+                    Choose <strong>Image</strong> to pick a picture from your computer, paste one from the
+                    clipboard, or drag an image file onto the note. PNG, JPEG, GIF and WebP are accepted.
+                    The picture is copied into WorriorVex's own data folder, so the note keeps working if the
+                    original file is moved or deleted.
+                </p>
+                <p>
+                    Pictures that live on the internet are not shown: text pasted from a web page keeps its
+                    words and loses its pictures. This is deliberate, so that opening a note never contacts
+                    another computer.
+                </p>
+                <h3>Tables</h3>
+                <p>
+                    <strong>Table</strong> inserts a table of three columns with a header row. While the cursor
+                    is in a table, buttons appear to add or delete rows and columns, to switch the header row
+                    on or off, and to delete the table. <kbd>Tab</kbd> moves to the next cell and adds a row at the end.
                 </p>
                 <h3>Typing shortcuts</h3>
                 <p>At the start of a line, type one of these followed by a space:</p>
@@ -141,6 +166,9 @@
                         <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></td><td>Quote</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Code block</td></tr>
                         <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in a list</td><td>Indent / outdent</td></tr>
+                        <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in a table</td><td>Next / previous cell</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + click on a link</td><td>Open it in your browser</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>V</kbd> with a picture copied</td><td>Paste the picture into the note</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>Z</kbd></td><td>Undo</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo</td></tr>
                     </tbody>
@@ -158,7 +186,7 @@
                     <thead><tr><th scope="col">In that folder</th><th scope="col">What it is</th></tr></thead>
                     <tbody>
                         <tr><td><code>worriorvex.db</code></td><td>All notes, notebooks and folders, in a SQLite database</td></tr>
-                        <tr><td><code>attachments</code></td><td>Files attached to notes</td></tr>
+                        <tr><td><code>attachments</code></td><td>The pictures in your notes</td></tr>
                         <tr><td><code>logs</code></td><td>A daily log, useful when reporting a problem. It never contains what you wrote</td></tr>
                     </tbody>
                 </table>
@@ -184,7 +212,6 @@
                 <h2>What is coming</h2>
                 <p>WorriorVex is young. These parts are planned, in roughly this order:</p>
                 <ul>
-                    <li>Images and tables in notes</li>
                     <li>Search across everything you have written</li>
                     <li>Tags, favourites, pinned notes, recent notes, moving notes between folders</li>
                     <li>Links between notes, with backlinks</li>

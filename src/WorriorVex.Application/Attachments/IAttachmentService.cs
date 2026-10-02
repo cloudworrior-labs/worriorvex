@@ -1,6 +1,8 @@
 namespace WorriorVex.Application.Attachments;
 
-public sealed record AttachmentInfo(Guid Id, Guid NoteId, string FileName, string ContentType, long Size, DateTimeOffset CreatedAt);
+/// <param name="FileName">The name the user knows the file by.</param>
+/// <param name="StoredFileName">The generated name of the file in the attachments folder.</param>
+public sealed record AttachmentInfo(Guid Id, Guid NoteId, string FileName, string ContentType, long Size, DateTimeOffset CreatedAt, string StoredFileName);
 
 public interface IAttachmentService
 {

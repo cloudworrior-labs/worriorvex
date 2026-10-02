@@ -4,12 +4,29 @@
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { TaskList, TaskItem } from '@tiptap/extension-list';
+import Image from '@tiptap/extension-image';
+import { TableKit } from '@tiptap/extension-table';
 
 const CHANGE_DELAY_MS = 250;
 
+// An image in a note is always one of the note's own attachments. Anything else (a web address,
+// embedded data) is not accepted into the document, so opening a note never fetches from the network.
+const ATTACHMENT_IMAGE = /^attachments\/[0-9a-f]{32}\.(png|jpg|jpeg|gif|webp)$/;
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+const WEB_LINK = /^https?:\/\//i;
+
+const NoteImage = Image.extend({
+  parseHTML() {
+    return [{ tag: 'img[src]', getAttrs: (element) => (ATTACHMENT_IMAGE.test(element.getAttribute('src') || '') ? null : false) }];
+  },
+}).configure({ inline: false, allowBase64: false });
+
+const imageFiles = (transfer) => Array.from(transfer?.files || []).filter((file) => IMAGE_TYPES.includes(file.type));
+
 /**
  * @param {HTMLElement} element  host element for the editor
- * @param {object} dotNetRef     .NET object with OnEditorChanged(html) and OnEditorSelectionChanged(activeMarks)
+ * @param {object} dotNetRef     .NET object with OnEditorChanged(html), OnEditorSelectionChanged(activeMarks),
+ *                               OnImageFile(stream, name, type) returning the image address, and OnOpenLink(address)
  * @param {string} html          initial content
  */
 export function create(element, dotNetRef, html) {
@@ -29,14 +46,36 @@ export function create(element, dotNetRef, html) {
     dotNetRef.invokeMethodAsync('OnEditorSelectionChanged', active);
   };
 
+  // Hands an image file to .NET, which stores it as an attachment, then places it in the note.
+  const addImage = async (file, position) => {
+    const stream = DotNet.createJSStreamReference(file);
+    const source = await dotNetRef.invokeMethodAsync('OnImageFile', stream, file.name || 'image', file.type);
+    if (source && !editor.isDestroyed) {
+      // A dropped image goes where it was dropped, a pasted one where the cursor is.
+      const chain = editor.chain().focus();
+      if (position !== undefined) {
+        chain.setTextSelection(Math.min(position, editor.state.doc.content.size));
+      }
+      chain.setImage({ src: source, alt: file.name || '' }).run();
+    }
+  };
+
   const editor = new Editor({
     element,
     extensions: [
       StarterKit.configure({
-        link: { openOnClick: false, autolink: true, defaultProtocol: 'https' },
+        link: {
+          openOnClick: false,
+          autolink: true,
+          defaultProtocol: 'https',
+          protocols: ['http', 'https'],
+          isAllowedUri: (url) => WEB_LINK.test(url),
+        },
       }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      NoteImage,
+      TableKit.configure({ table: { resizable: false } }),
     ],
     content: html || '',
     editorProps: {
@@ -46,6 +85,34 @@ export function create(element, dotNetRef, html) {
         'aria-multiline': 'true',
         'aria-label': 'Note content',
         spellcheck: 'true',
+      },
+      handlePaste: (view, event) => {
+        const files = imageFiles(event.clipboardData);
+        if (files.length === 0) {
+          return false;
+        }
+        event.preventDefault();
+        files.forEach((file) => addImage(file));
+        return true;
+      },
+      handleDrop: (view, event, slice, moved) => {
+        const files = moved ? [] : imageFiles(event.dataTransfer);
+        if (files.length === 0) {
+          return false;
+        }
+        event.preventDefault();
+        const position = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+        files.forEach((file) => addImage(file, position));
+        return true;
+      },
+      handleClick: (view, position, event) => {
+        // A plain click places the cursor so a link can be edited; with Ctrl or Cmd it is followed.
+        const link = event.metaKey || event.ctrlKey ? event.target.closest?.('a[href]') : null;
+        if (!link) {
+          return false;
+        }
+        dotNetRef.invokeMethodAsync('OnOpenLink', link.getAttribute('href'));
+        return true;
       },
     },
     onUpdate: () => {
@@ -87,6 +154,23 @@ export function create(element, dotNetRef, html) {
         action(editor.chain().focus()).run();
       }
     },
+    /** The address of the link at the cursor, or an empty string. */
+    getLinkAddress: () => editor.getAttributes('link').href || '',
+    /** Makes the selection (or the link at the cursor) point to an address; an empty address removes the link. */
+    setLink(address) {
+      const chain = editor.chain().focus().extendMarkRange('link');
+      if (!address) {
+        chain.unsetLink().run();
+      } else if (editor.state.selection.empty && !editor.isActive('link')) {
+        // Nothing selected: the address itself becomes the linked text.
+        chain.insertContent({ type: 'text', text: address, marks: [{ type: 'link', attrs: { href: address } }] }).run();
+      } else {
+        chain.setLink({ href: address }).run();
+      }
+    },
+    insertImage(source, alt) {
+      editor.chain().focus().setImage({ src: source, alt: alt || '' }).run();
+    },
     destroy() {
       if (timer !== null) {
         clearTimeout(timer);
@@ -113,6 +197,14 @@ const COMMANDS = {
   blockquote: (c) => c.toggleBlockquote(),
   codeBlock: (c) => c.toggleCodeBlock(),
   horizontalRule: (c) => c.setHorizontalRule(),
+  insertTable: (c) => c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }),
+  addRow: (c) => c.addRowAfter(),
+  addColumn: (c) => c.addColumnAfter(),
+  deleteRow: (c) => c.deleteRow(),
+  deleteColumn: (c) => c.deleteColumn(),
+  toggleHeaderRow: (c) => c.toggleHeaderRow(),
+  deleteTable: (c) => c.deleteTable(),
+  unlink: (c) => c.extendMarkRange('link').unsetLink(),
   undo: (c) => c.undo(),
   redo: (c) => c.redo(),
 };
@@ -131,4 +223,6 @@ const ACTIVE_CHECKS = [
   ['taskList', (e) => e.isActive('taskList')],
   ['blockquote', (e) => e.isActive('blockquote')],
   ['codeBlock', (e) => e.isActive('codeBlock')],
+  ['link', (e) => e.isActive('link')],
+  ['table', (e) => e.isActive('table')],
 ];

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WorriorVex.Application.Attachments;
+using WorriorVex.Application.Content;
 using WorriorVex.Application.Links;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Revisions;
@@ -11,6 +12,7 @@ using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
 using WorriorVex.Infrastructure.Attachments;
+using WorriorVex.Infrastructure.Content;
 using WorriorVex.Infrastructure.Links;
 using WorriorVex.Infrastructure.Notes;
 using WorriorVex.Infrastructure.Revisions;
@@ -38,6 +40,7 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<DatabaseInitializer>();
+        services.AddSingleton<INoteHtmlSanitizer, NoteHtmlSanitizer>();
         services.AddSingleton<INotebookService, NotebookService>();
         services.AddSingleton<INoteService, NoteService>();
         services.AddSingleton<ITreeService, TreeService>();

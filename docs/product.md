@@ -38,7 +38,7 @@ delete → restore.
 | Application services for all of the above, plus tree, move and basic search (Phase 4) | done, tested |
 | Notebooks, nested folders, All Notes, delete and restore, trash screen (Phase 5) | done |
 | About and Documentation pages, icon, installers for Windows, macOS, Linux | done |
-| Images, tables, sanitiser | Phase 6 |
+| Links, images (file, paste, drop), tables, HTML sanitiser, content security policy (Phase 6) | done |
 | Full-text search (FTS5) and search screen | Phase 7 |
 | Screens for tags, favourites, pins, recent, move, context menus | Phase 8 |
 | Screens for links and backlinks | Phase 9 |

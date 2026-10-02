@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "@tiptap/core": "^3.0.0",
-    "@tiptap/starter-kit": "^3.0.0",
-    "@tiptap/extension-list": "^3.0.0"
+    "@tiptap/extension-image": "^3.31.4",
+    "@tiptap/extension-list": "^3.0.0",
+    "@tiptap/extension-table": "^3.31.4",
+    "@tiptap/starter-kit": "^3.0.0"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

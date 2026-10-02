@@ -482,3 +482,18 @@ kbd {
 .wn-facts dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--wn-space-2); }
 .wn-credits { color: var(--wn-text-muted); }
 .wn-about-copyright { margin-top: var(--wn-space-5); color: var(--wn-text-muted); }
+
+/* Images and tables in notes */
+.wn-prose img { display: block; max-width: 100%; height: auto; margin: 0 0 0.7em; border-radius: var(--wn-radius); }
+.wn-prose img.ProseMirror-selectednode { outline: 2px solid var(--wn-focus); outline-offset: 2px; }
+
+.wn-prose table { border-collapse: collapse; table-layout: fixed; width: 100%; margin: 0 0 0.7em; overflow: hidden; }
+.wn-prose th, .wn-prose td { position: relative; min-width: 3em; padding: var(--wn-space-1) var(--wn-space-2); border: var(--wn-border-width) solid var(--wn-border); vertical-align: top; }
+.wn-prose th { background: var(--wn-bg-pane); font-weight: 600; text-align: left; }
+.wn-prose th > p, .wn-prose td > p { margin: 0; }
+.wn-prose .selectedCell::after { content: ""; position: absolute; inset: 0; background: var(--wn-bg-selected); opacity: 0.45; pointer-events: none; }
+.wn-prose .tableWrapper { overflow-x: auto; }
+.wn-prose a { cursor: text; }
+
+.wn-title-row { display: flex; align-items: center; gap: var(--wn-space-2); padding-right: var(--wn-space-4); }
+.wn-title-row .wn-title { flex: 1; min-width: 0; }

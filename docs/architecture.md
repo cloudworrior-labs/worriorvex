@@ -39,7 +39,8 @@ not before. Host choice and editor choice are explained in [`decisions/`](decisi
 | `IRevisionService` | list, view and restore earlier versions |
 | `IAttachmentService` | store, open, rename and delete attached files under generated names |
 | `INoteSearchService` | substring search (to be replaced by FTS5) |
-| `IPlatformShell` | open a web page or folder outside the app; implemented by the host |
+| `INoteHtmlSanitizer` | reduces HTML to what a note may contain; applied to everything stored |
+| `IPlatformShell` | open a web page or folder outside the app, show a file dialog; implemented by the host |
 
 Only folders contain other nodes. The services enforce it; the database does not.
 
@@ -52,6 +53,8 @@ Only folders contain other nodes. The services enforce it; the database does not
 - Time comes from `TimeProvider`, so tests control the clock.
 - The schema changes only through EF Core migrations, applied at startup. `EnsureCreated` is not used.
 - Paths come from `IApplicationDataPathProvider`; no OS path is hard-coded.
+- Note content is untrusted. It is sanitised before it is stored, and the window's
+  Content-Security-Policy allows nothing from outside the app (see [`decisions/editor.md`](decisions/editor.md)).
 
 ## Autosave
 

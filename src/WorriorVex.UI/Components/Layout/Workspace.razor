@@ -82,7 +82,7 @@
         }
         else
         {
-            <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" OnDelete="DeleteCurrentNoteAsync" />
+            <NoteEditor @ref="_editor" Note="_current" OnEdited="OnEdited" OnDelete="DeleteCurrentNoteAsync" OnProblem="@(message => _error = message)" />
         }
     </main>
 
