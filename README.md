@@ -10,7 +10,8 @@ as a modern replacement for [KeepNote](http://keepnote.org).
 > Capture quickly. Organize naturally. Find everything. Own your data.
 
 WorriorVex works with the internet, servers and the cloud switched off. There is no account, no
-telemetry and no AI dependency. Your notes live in a SQLite file on your own disk.
+telemetry and no AI dependency. Your notes live in a SQLite file on your own disk. The only network
+request it can make is an opt-in check for a newer version (off by default).
 
 > **Status: feature-complete for the desktop MVP, not yet widely tested.** Phases 0–13 of the plan are
 > built. Back up before trusting it with the only copy of anything.
@@ -30,12 +31,13 @@ Download the latest version from the [Releases page](https://github.com/cloudwor
 With Homebrew on macOS:
 
 ```bash
-brew tap cloudworrior-labs/worriorvex https://github.com/cloudworrior-labs/worriorvex
-brew trust cloudworrior-labs/worriorvex   # recent Homebrew asks you to trust a third-party tap once
+brew tap cloudworrior-labs/tap
+brew trust cloudworrior-labs/tap   # recent Homebrew asks this once for any third-party tap
 brew install --cask worriorvex
 ```
 
-The installers are not code-signed yet, so the operating system asks for confirmation the first time:
+The installers are not code-signed yet (that costs money and changes nothing about how the app works), so
+the operating system asks for confirmation the first time only:
 
 - **Windows:** SmartScreen shows "Windows protected your PC". Choose **More info**, then **Run anyway**.
 - **macOS:** right-click the app and choose **Open**, or run

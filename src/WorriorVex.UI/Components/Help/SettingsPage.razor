@@ -47,6 +47,16 @@
         <label><input type="checkbox" checked="@_draft.OpenLastPlace" @onchange="e => SaveAsync(_draft with { OpenLastPlace = (bool)e.Value! })" /> Open where I left off (otherwise the Inbox)</label>
     </div>
 
+    <h2>Updates</h2>
+    <div class="wn-setting">
+        <label><input type="checkbox" checked="@_draft.CheckForUpdates" @onchange="e => SaveAsync(_draft with { CheckForUpdates = (bool)e.Value! })" /> Check for a new version when WorriorVex starts</label>
+    </div>
+    <p class="wn-dialog-hint">
+        This is the only thing that contacts the internet: one request to github.com asking which version is the
+        newest. Nothing about you or your notes is sent. With it off, WorriorVex never goes online; you can still
+        check from the About page.
+    </p>
+
     @if (_error is not null)
     {
         <p class="wn-dialog-error" role="alert">@_error</p>

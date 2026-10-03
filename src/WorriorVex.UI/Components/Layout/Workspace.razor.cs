@@ -9,6 +9,7 @@ using WorriorVex.Application.Settings;
 using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
+using WorriorVex.Application.Updates;
 using WorriorVex.Domain;
 using Microsoft.AspNetCore.Components.Web;
 using WorriorVex.UI.Components.Dialogs;
@@ -38,6 +39,7 @@ public partial class Workspace
     private int _connectionsVersion;
     private bool _sidebarHidden;
     private bool _confirmedDeletion;
+    private UpdateCheck? _update;
     private NavSelection _selection = new NavSelection.AllNotes();
     private NoteDetail? _current;
     private TrashItem? _trashItem;
@@ -71,6 +73,7 @@ public partial class Workspace
     [Inject] private ITagService TagService { get; set; } = default!;
     [Inject] private IExportService Exporter { get; set; } = default!;
     [Inject] private ISettingsService Settings { get; set; } = default!;
+    [Inject] private IUpdateChecker Updates { get; set; } = default!;
     [Inject] private IPlatformShell Shell { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
@@ -140,6 +143,25 @@ public partial class Workspace
         finally
         {
             _loading = false;
+        }
+
+        if (Settings.Current.CheckForUpdates)
+        {
+            _ = CheckForUpdatesAsync();
+        }
+    }
+
+    /// <summary>Runs in the background after start; a newer version shows as a banner, anything else is silent.</summary>
+    private async Task CheckForUpdatesAsync()
+    {
+        var check = await Updates.CheckAsync();
+        if (check is { IsNewer: true })
+        {
+            await InvokeAsync(() =>
+            {
+                _update = check;
+                StateHasChanged();
+            });
         }
     }
 

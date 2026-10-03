@@ -11,7 +11,7 @@ This page is the short version and records what exists today.
 ## Promises
 
 - Works with the internet, any server and any cloud switched off. No account.
-- No telemetry, no analytics, no remote AI calls.
+- No telemetry, no analytics, no remote AI calls. The one optional network request is an update check, off by default.
 - Your data is a SQLite file and a folder of attachments on your disk, with backup and open export formats.
 - Edits are never lost silently: autosave, visible save state, retry on failure.
 - KeepNote notebooks can be imported without modifying the original.

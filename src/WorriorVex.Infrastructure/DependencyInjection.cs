@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WorriorVex.Application.Attachments;
 using WorriorVex.Application.Backup;
@@ -15,6 +16,7 @@ using WorriorVex.Application.Storage;
 using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
+using WorriorVex.Application.Updates;
 using WorriorVex.Infrastructure.Attachments;
 using WorriorVex.Infrastructure.Backup;
 using WorriorVex.Infrastructure.Export;
@@ -28,6 +30,7 @@ using WorriorVex.Infrastructure.Settings;
 using WorriorVex.Infrastructure.Tags;
 using WorriorVex.Infrastructure.Trash;
 using WorriorVex.Infrastructure.Tree;
+using WorriorVex.Infrastructure.Updates;
 using WorriorVex.Infrastructure.Persistence;
 using WorriorVex.Infrastructure.Storage;
 
@@ -61,6 +64,7 @@ public static class DependencyInjection
         services.AddSingleton<INoteSearchService, NoteSearchService>();
         services.AddSingleton<IKeepNoteImporter, KeepNoteImporter>();
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IUpdateChecker>(provider => new GitHubUpdateChecker(provider.GetRequiredService<ILogger<GitHubUpdateChecker>>()));
         services.AddSingleton<IBackupService, BackupService>();
         services.AddSingleton<IExportService, ExportService>();
         return services;

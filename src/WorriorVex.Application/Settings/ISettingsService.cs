@@ -30,6 +30,12 @@ public sealed record AppSettings
     /// <summary>Ask before moving a note to the trash.</summary>
     public bool ConfirmDeletion { get; init; }
 
+    /// <summary>
+    /// Ask github.com for a newer version when the app starts. Off by default: the app otherwise
+    /// never touches the network.
+    /// </summary>
+    public bool CheckForUpdates { get; init; }
+
     /// <summary>Open where the user left off instead of the Inbox.</summary>
     public bool OpenLastPlace { get; init; } = true;
 

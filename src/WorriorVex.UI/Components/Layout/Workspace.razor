@@ -59,6 +59,16 @@
                 <button type="button" class="wn-button" @onclick="() => _notice = null">Dismiss</button>
             </div>
         }
+        else if (_update is { } update)
+        {
+            <div class="wn-banner wn-banner-info" role="status">
+                <span>WorriorVex @update.LatestVersion is available (you have @update.CurrentVersion).</span>
+                <span>
+                    <button type="button" class="wn-button" @onclick="() => Shell.OpenWebPage(update.DownloadPage)">Open the downloads page</button>
+                    <button type="button" class="wn-button" @onclick="() => _update = null">Later</button>
+                </span>
+            </div>
+        }
 
         @if (_loading)
         {

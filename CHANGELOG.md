@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Optional check for a new version (Settings → Updates, off by default; About → Check now).
+- Homebrew: the cask moved to its own tap, `brew tap cloudworrior-labs/tap`.
+
 ## 0.2.0 — 2026-10-03
 
 Everything since the first release.

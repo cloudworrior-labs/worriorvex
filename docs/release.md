@@ -10,8 +10,8 @@
    git push origin v0.2.0
    ```
 
-The `Release` workflow then runs the tests, builds on Windows, macOS and Linux runners, creates the
-GitHub release with all files and checksums, and updates the Homebrew cask in `Casks/worriorvex.rb`.
+The `Release` workflow then runs the tests, builds on Windows, macOS and Linux runners, and creates the
+GitHub release with all files and checksums. The Homebrew tap picks the release up by itself.
 The version shown in the app comes from the tag.
 
 ## What is built
@@ -42,14 +42,22 @@ Both need secrets in the repository settings and a signing step in the workflow.
 
 ## Homebrew
 
-The cask lives in this repository (`Casks/worriorvex.rb`, generated from
-`installer/macos/worriorvex.rb.template`), so the repository itself is the tap:
+The cask lives in its own tap, https://github.com/cloudworrior-labs/homebrew-tap. A workflow there
+rewrites `Casks/worriorvex.rb` from the latest release every six hours and on demand (Actions → Update
+cask → Run workflow), computing the checksums from the published disk images. Nothing in this repository
+needs to change for a release to reach Homebrew.
 
 ```bash
-brew tap cloudworrior-labs/worriorvex https://github.com/cloudworrior-labs/worriorvex
-brew trust cloudworrior-labs/worriorvex   # recent Homebrew asks you to trust a third-party tap once
+brew tap cloudworrior-labs/tap
+brew trust cloudworrior-labs/tap
 brew install --cask worriorvex
 ```
+
+## Update check
+
+The app can ask `api.github.com/repos/cloudworrior-labs/worriorvex/releases/latest` for the newest tag
+(Settings → Updates, off by default; About → Check now). It compares the tag with its own version and
+offers the downloads page. It sends only the request; there is no telemetry.
 
 ## Icon
 

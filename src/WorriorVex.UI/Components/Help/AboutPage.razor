@@ -1,6 +1,8 @@
 @using WorriorVex.Application.Platform
+@using WorriorVex.Application.Updates
 @inject AppInfo Info
 @inject IPlatformShell Shell
+@inject IUpdateChecker Updates
 
 <section class="wn-page" aria-labelledby="wn-about-title">
     <div class="wn-about-head">
@@ -25,7 +27,27 @@
         <dd><ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink></dd>
 
         <dt>Updates</dt>
-        <dd><ExternalLink Address="AppInfo.Releases">Releases and downloads</ExternalLink></dd>
+        <dd>
+            <ExternalLink Address="AppInfo.Releases">Releases and downloads</ExternalLink>
+            <button type="button" class="wn-button wn-button-small" disabled="@_checking" @onclick="CheckAsync">@(_checking ? "Checking…" : "Check now")</button>
+            @if (_check is { } check)
+            {
+                <span>
+                    @if (check.IsNewer)
+                    {
+                        <text>Version @check.LatestVersion is available. </text><ExternalLink Address="check.DownloadPage">Open the downloads page</ExternalLink>
+                    }
+                    else
+                    {
+                        <text>You have the newest version (@check.LatestVersion).</text>
+                    }
+                </span>
+            }
+            else if (_checkFailed)
+            {
+                <span>The release page could not be reached.</span>
+            }
+        </dd>
 
         <dt>Feedback</dt>
         <dd><ExternalLink Address="AppInfo.Issues">Report a problem or suggest something</ExternalLink></dd>
@@ -42,7 +64,8 @@
 
     <p>
         WorriorVex keeps your notes on this computer. It works without an internet connection,
-        needs no account and sends nothing anywhere: no telemetry, no analytics.
+        needs no account and sends nothing anywhere: no telemetry, no analytics. "Check now" above and the
+        optional check at start ask github.com for the newest version number and nothing more.
     </p>
 
     <h2>Built with</h2>
@@ -56,3 +79,19 @@
 
     <p class="wn-about-copyright">@AppInfo.Copyright</p>
 </section>
+
+@code {
+    private UpdateCheck? _check;
+    private bool _checking;
+    private bool _checkFailed;
+
+    /// <summary>Contacts github.com once, because the user asked for it here and now.</summary>
+    private async Task CheckAsync()
+    {
+        _checking = true;
+        _checkFailed = false;
+        _check = await Updates.CheckAsync();
+        _checkFailed = _check is null;
+        _checking = false;
+    }
+}

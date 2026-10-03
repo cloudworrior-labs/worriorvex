@@ -18,8 +18,8 @@ right-click the app and choose **Open**, or run `xattr -dr com.apple.quarantine 
 **Homebrew (macOS):**
 
 ```bash
-brew tap cloudworrior-labs/worriorvex https://github.com/cloudworrior-labs/worriorvex
-brew trust cloudworrior-labs/worriorvex   # recent Homebrew asks you to trust a third-party tap once
+brew tap cloudworrior-labs/tap
+brew trust cloudworrior-labs/tap   # recent Homebrew asks this once for any third-party tap
 brew install --cask worriorvex
 ```
 
