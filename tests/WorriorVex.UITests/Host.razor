@@ -1,0 +1,14 @@
+@using Microsoft.AspNetCore.Components.Web
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <base href="/" />
+    <title>WorriorVex</title>
+    <link href="_content/WorriorVex.UI/css/app.css" rel="stylesheet" />
+</head>
+<body>
+    <WorriorVex.UI.App @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+</html>

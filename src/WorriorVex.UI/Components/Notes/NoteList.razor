@@ -29,8 +29,9 @@
                     @if (_renamingId == note.Id)
                     {
                         <div class="wn-noteitem"><InlineRename Value="@note.Title" OnCommit="title => CommitRenameAsync(note.Id, title)" OnCancel="() => _renamingId = null" /></div>
-                        continue;
                     }
+                    else
+                    {
                     <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
                             draggable="true" @ondragstart="() => OnDragStart.InvokeAsync(note.Id)" @ondragend="OnDragEnd"
                             @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((note, e))"
@@ -58,6 +59,7 @@
                             }
                         </span>
                     </button>
+                    }
                 </li>
             }
         </ul>

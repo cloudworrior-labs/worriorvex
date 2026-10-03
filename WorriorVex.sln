@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorriorVex.IntegrationTests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorriorVex.Application.Tests", "tests\WorriorVex.Application.Tests\WorriorVex.Application.Tests.csproj", "{BAD444FF-D671-44F2-B2F5-16B47EA9C7F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorriorVex.UITests", "tests\WorriorVex.UITests\WorriorVex.UITests.csproj", "{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,18 @@ Global
 		{BAD444FF-D671-44F2-B2F5-16B47EA9C7F1}.Release|x64.Build.0 = Release|Any CPU
 		{BAD444FF-D671-44F2-B2F5-16B47EA9C7F1}.Release|x86.ActiveCfg = Release|Any CPU
 		{BAD444FF-D671-44F2-B2F5-16B47EA9C7F1}.Release|x86.Build.0 = Release|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Debug|x64.Build.0 = Debug|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Debug|x86.Build.0 = Debug|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Release|x64.ActiveCfg = Release|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Release|x64.Build.0 = Release|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Release|x86.ActiveCfg = Release|Any CPU
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,5 +156,6 @@ Global
 		{3C6072DF-FEE5-4783-8564-671D9706C0B4} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{BA46D1AD-6629-4DB8-9B56-47A694CC750F} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{BAD444FF-D671-44F2-B2F5-16B47EA9C7F1} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{CB181DDE-353D-4E88-B2E3-4753C7B16BB3} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

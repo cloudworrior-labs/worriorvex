@@ -106,3 +106,12 @@ once, also changing the culture used for dates and numbers. The documentation pa
 per language (`DocsEn`, `DocsNl`, `DocsDe`, `DocsPl`) with the same topics. `TranslationTests` keep the
 three files in step and check placeholders. To add a language: add a `(code, name)` to
 `Translator.Languages`, an `i18n/<code>.json`, and a `Docs<Code>` component.
+
+## Browser tests
+
+`tests/WorriorVex.UITests` hosts the shared interface as a Blazor Server app on a free port (an
+in-process `WebApplication` with a throwaway data folder and a fake platform shell whose dialogs
+answer with what the test set) and drives Chromium with Playwright through the flows a person uses:
+writing a note, growing the tree, renaming in place, searching, switching language, trash and restore.
+Run them with `pwsh tests/WorriorVex.UITests/bin/Debug/net10.0/playwright.ps1 install chromium` once,
+then `dotnet test tests/WorriorVex.UITests`. CI runs them on Linux.

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Browser tests. The shared interface is hosted as a Blazor Server app on a free port with a fake
+    platform shell, and Playwright drives Chromium through the flows a person would use. They need
+    the Playwright browser: `pwsh bin/<Configuration>/net10.0/playwright.ps1 install chromium`.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.52.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WorriorVex.Infrastructure\WorriorVex.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\WorriorVex.UI\WorriorVex.UI.csproj" />
+  </ItemGroup>
+
+</Project>
