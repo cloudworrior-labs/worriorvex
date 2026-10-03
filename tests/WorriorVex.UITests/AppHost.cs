@@ -26,6 +26,9 @@ public sealed class AppHost : IAsyncDisposable
     public string Url { get; private set; } = string.Empty;
     public FakeShell Shell { get; } = new();
 
+    /// <summary>Warnings and errors the app logged, for assertions and for reading when a test fails.</summary>
+    public List<string> Logs { get; } = [];
+
     /// <summary>A package path to hand the app at start, as "Open with WorriorVex" would.</summary>
     public string? PackageToImport { get; set; }
 
@@ -41,6 +44,7 @@ public sealed class AppHost : IAsyncDisposable
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.WebHost.UseStaticWebAssets();
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
+        builder.Logging.AddProvider(new ListLoggerProvider(Logs));
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddWorriorVexInfrastructure(DataDirectory);
         builder.Services.AddWorriorVexUI();
@@ -100,4 +104,23 @@ public sealed class FakeShell : IPlatformShell
     public Task<string?> PickFolderAsync(string title) => Task.FromResult(NextFolder);
     public Task<string?> PickFileAsync(string title, string kind, IReadOnlyCollection<string> extensions) => Task.FromResult(NextFile);
     public Task<string?> PickSaveLocationAsync(string title, string suggestedFileName) => Task.FromResult(NextSaveLocation);
+}
+
+internal sealed class ListLoggerProvider(List<string> sink) : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName) => new ListLogger(categoryName, sink);
+    public void Dispose() { }
+
+    private sealed class ListLogger(string category, List<string> sink) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Warning;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            lock (sink)
+            {
+                sink.Add($"[{logLevel}] {category}: {formatter(state, exception)}{(exception is null ? "" : " :: " + exception)}");
+            }
+        }
+    }
 }

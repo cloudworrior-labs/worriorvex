@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 — 2026-10-03
+
+- Fixed: after changing the language (or any time the workspace was rebuilt) the navigation pane's
+  edge no longer followed the mouse. Both pane edges now re-attach whenever the page changes.
+- Fixed: dragging the note list's edge measured from the wrong side and collapsed the list.
+
 ## 0.5.0 — 2026-10-03
 
 - The interface and the built-in documentation are available in English, Dutch, Polish and German

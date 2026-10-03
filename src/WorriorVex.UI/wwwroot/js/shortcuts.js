@@ -80,19 +80,18 @@ export function applyAppearance(theme, fontSize, lineHeight, accent, font) {
 /**
  * Makes a pane edge draggable. While dragging, the CSS variable follows the pointer; when the
  * pointer is released, .NET is told the final width so it can be remembered.
- * @param {HTMLElement} handle   the separator element
+ * @param {HTMLElement} handle   the separator element, at the pane's right edge
+ * @param {string} paneSelector  the pane whose width changes; its left edge is where measuring starts
  * @param {string} variable      CSS custom property on :root holding the pane width, e.g. "--wn-nav-width"
  * @param {number} min           smallest width in pixels
  * @param {number} max           largest width in pixels
- * @param {boolean} fromLeft     the pane lies to the left of the handle
- * @param {number} offset        pixels between the viewport's left edge and the pane's left edge
  * @param {object} dotNetRef     .NET object with OnPaneResized(variable, width)
  */
-export function attachResizer(handle, variable, min, max, fromLeft, offset, dotNetRef) {
+export function attachResizer(handle, paneSelector, variable, min, max, dotNetRef) {
   const root = document.documentElement;
   let width = null;
+  let paneLeft = 0;
   const onMove = (event) => {
-    const paneLeft = fromLeft ? offset : handle.getBoundingClientRect().right;
     width = Math.round(Math.min(max, Math.max(min, event.clientX - paneLeft)));
     root.style.setProperty(variable, `${width}px`);
   };
@@ -101,6 +100,8 @@ export function attachResizer(handle, variable, min, max, fromLeft, offset, dotN
       return;
     }
     event.preventDefault();
+    // Measured once per drag: the pane's left edge does not move while its right edge is dragged.
+    paneLeft = document.querySelector(paneSelector)?.getBoundingClientRect().left ?? 0;
     handle.setPointerCapture(event.pointerId);
     document.body.classList.add('is-resizing');
     handle.addEventListener('pointermove', onMove);

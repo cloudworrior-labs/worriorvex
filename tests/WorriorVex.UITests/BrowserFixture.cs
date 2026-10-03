@@ -11,7 +11,14 @@ public sealed class BrowserFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-        Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+        // Chromium by default; WORRIORVEX_UITEST_BROWSER=webkit runs the same tests on WebKit, the engine behind the macOS and Linux shells.
+        var engine = Environment.GetEnvironmentVariable("WORRIORVEX_UITEST_BROWSER")?.ToLowerInvariant() switch
+        {
+            "webkit" => Playwright.Webkit,
+            "firefox" => Playwright.Firefox,
+            _ => Playwright.Chromium,
+        };
+        Browser = await engine.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
     }
 
     public async Task DisposeAsync()

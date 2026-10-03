@@ -100,7 +100,14 @@ public sealed class NoteFlowTests(BrowserFixture browser) : UITest(browser)
         await Expect(Nav("Instellingen")).ToHaveCountAsync(1);
         await Expect(Page.Locator(".wn-settings h1")).ToHaveTextAsync("Instellingen");
         await Page.SelectOptionAsync("#wn-language", "en");
-        await Expect(Nav("Settings")).ToHaveCountAsync(1);
+        try
+        {
+            await Expect(Nav("Settings")).ToHaveCountAsync(1);
+        }
+        catch (PlaywrightException)
+        {
+            Assert.Fail(string.Join("\n", App.Logs.Where(l => !l.Contains("EntityFrameworkCore")).Select(l => l[..Math.Min(1200, l.Length)])));
+        }
     }
 
     [Fact]

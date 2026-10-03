@@ -77,7 +77,11 @@ public partial class Workspace
     private ElementReference _listResizer;
     private IJSObjectReference? _navResizerHandle;
     private IJSObjectReference? _listResizerHandle;
-    private bool _listResizerAttached;
+    private readonly SemaphoreSlim _attachGate = new(1, 1);
+    private bool _disposed;
+    private string? _navResizerAttachedTo;
+    private string? _listResizerAttachedTo;
+    private string? _treeKeysAttachedTo;
 
     private IJSObjectReference? _shortcutsModule;
     private IJSObjectReference? _shortcuts;
@@ -241,27 +245,35 @@ public partial class Workspace
             await ApplyAppearanceAsync(Settings.Current);
             await _shortcutsModule.InvokeVoidAsync("setPaneWidth", NavWidthVariable, Settings.Current.NavigationWidth);
             await _shortcutsModule.InvokeVoidAsync("setPaneWidth", ListWidthVariable, Settings.Current.ListWidth);
-            _navResizerHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _navResizer, NavWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, true, 0, _self);
-            if (_navPane is not null)
-            {
-                _treeKeysHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachTreeKeys", _navPane.Root);
-            }
         }
 
-        // The list's handle comes and goes with the list pane, so it is attached whenever it is newly rendered.
-        if (_shortcutsModule is not null && !IsHelpPage && !_listResizerAttached)
+        if (_shortcutsModule is null || _disposed)
         {
-            _listResizerAttached = true;
-            _listResizerHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _listResizer, ListWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, false, 0, _self);
+            return;
         }
-        else if (IsHelpPage && _listResizerAttached)
+
+        // The pane handles and the tree get their JavaScript attached to the element that is in the page now.
+        // Elements are created afresh whenever the workspace re-keys (a language change) or a pane comes back
+        // after a help page, so each is attached again whenever its element changes. Renders overlap, so only
+        // one pass runs at a time; a render that arrives meanwhile is followed by another pass of its own.
+        if (await _attachGate.WaitAsync(0))
         {
-            _listResizerAttached = false;
-            if (_listResizerHandle is not null)
+            try
             {
-                await _listResizerHandle.InvokeVoidAsync("dispose");
-                await _listResizerHandle.DisposeAsync();
-                _listResizerHandle = null;
+                (_navResizerHandle, _navResizerAttachedTo) = await AttachAsync(_navResizerHandle, _navResizerAttachedTo, _navResizer,
+                    () => _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _navResizer, ".wn-nav", NavWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, _self));
+                (_listResizerHandle, _listResizerAttachedTo) = await AttachAsync(_listResizerHandle, _listResizerAttachedTo, IsHelpPage ? default : _listResizer,
+                    () => _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _listResizer, ".wn-notelist", ListWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, _self));
+                (_treeKeysHandle, _treeKeysAttachedTo) = await AttachAsync(_treeKeysHandle, _treeKeysAttachedTo, _navPane?.Root ?? default,
+                    () => _shortcutsModule.InvokeAsync<IJSObjectReference>("attachTreeKeys", _navPane!.Root));
+            }
+            catch (JSException ex)
+            {
+                Logger.LogWarning(ex, "A pane handle could not be attached");
+            }
+            finally
+            {
+                _attachGate.Release();
             }
         }
 
@@ -271,6 +283,34 @@ public partial class Workspace
             _editor.FocusTitleOnNextLoad();
             StateHasChanged();
         }
+    }
+
+    /// <summary>
+    /// Keeps a JavaScript handle attached to the current element: detaches when the element went away or
+    /// was replaced (its reference id changed) and attaches to the new one. A default reference means "none".
+    /// </summary>
+    private static async Task<(IJSObjectReference? Handle, string? AttachedTo)> AttachAsync(IJSObjectReference? handle, string? attachedTo, ElementReference element, Func<ValueTask<IJSObjectReference>> attach)
+    {
+        var id = string.IsNullOrEmpty(element.Id) ? null : element.Id;
+        if (id == attachedTo)
+        {
+            return (handle, attachedTo);
+        }
+
+        if (handle is not null)
+        {
+            try
+            {
+                await handle.InvokeVoidAsync("dispose");
+                await handle.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSException or ObjectDisposedException or JSDisconnectedException)
+            {
+                // The old element is gone with its listeners; nothing left to detach.
+            }
+        }
+
+        return (id is null ? null : await attach(), id);
     }
 
     /// <summary>A pane edge was dragged; remember the width.</summary>
@@ -1719,6 +1759,7 @@ public partial class Workspace
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
         Autosaver.StateChanged -= OnSaveStateChanged;
         Autosaver.NoteSaved -= OnNoteSaved;
         Settings.Changed -= OnSettingsChanged;
@@ -1747,8 +1788,9 @@ public partial class Workspace
                 await _shortcutsModule.DisposeAsync();
             }
         }
-        catch (JSDisconnectedException)
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or ObjectDisposedException)
         {
+            // The page is going away; whatever is left on it goes with it.
         }
 
         _self?.Dispose();
