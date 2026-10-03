@@ -28,13 +28,25 @@ chmod 755 "$pkg/opt/worriorvex/WorriorVex"
 ln -s /opt/worriorvex/WorriorVex "$pkg/usr/bin/worriorvex"
 cp "$root/assets/icon/worriorvex-512.png" "$pkg/usr/share/icons/hicolor/512x512/apps/worriorvex.png"
 
+mkdir -p "$pkg/usr/share/mime/packages"
+cat > "$pkg/usr/share/mime/packages/worriorvex.xml" <<MIME
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-worriorvex">
+    <comment>WorriorVex package</comment>
+    <glob pattern="*.worriorvex"/>
+    <sub-class-of type="application/zip"/>
+  </mime-type>
+</mime-info>
+MIME
 cat > "$pkg/usr/share/applications/worriorvex.desktop" <<DESKTOP
 [Desktop Entry]
 Type=Application
 Name=WorriorVex
 GenericName=Notes
 Comment=Your personal knowledge workspace
-Exec=/opt/worriorvex/WorriorVex
+Exec=/opt/worriorvex/WorriorVex %f
+MimeType=application/x-worriorvex;
 Icon=worriorvex
 Terminal=false
 Categories=Office;Utility;

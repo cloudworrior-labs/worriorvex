@@ -31,8 +31,12 @@ public abstract class UITest(BrowserFixture browser) : IAsyncLifetime
     protected IPage Page { get; private set; } = default!;
     private IBrowserContext _context = default!;
 
+    /// <summary>Set up the host before it starts (a package to open, a shell answer).</summary>
+    protected virtual void Configure(AppHost app) { }
+
     public async Task InitializeAsync()
     {
+        Configure(App);
         await App.StartAsync();
         _context = await browser.Browser.NewContextAsync(new BrowserNewContextOptions { ViewportSize = new ViewportSize { Width = 1400, Height = 900 } });
         Page = await _context.NewPageAsync();

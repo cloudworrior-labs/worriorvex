@@ -47,7 +47,15 @@ delete → restore.
 | History dialog: list, preview and restore earlier versions (Phase 12) | done |
 | Backup (consistent SQLite copy + files + manifest), checked restore with a safety backup, export as HTML / Markdown / JSON and a `.worriorvex` package (Phase 13) | done |
 | Settings (theme, text size, spell check, autosave pause, confirm deletion, last place), sidebar toggle, compact toolbar; Linux validated under WebKitGTK (Phase 14) | done |
-| Mobile (Android, iOS) | Phase 14, not started: needs the MAUI workload and devices; design in `docs/mobile.md` |
+| Resizable panes, tree with notes as leaves, inline rename, keyboard navigation, sorting, density, word count (0.3–0.5) | done |
+| Editor: find & replace, marker, callouts, code colouring, image and column resizing, cell merge, `[[` links, paste cleaning, templates (0.5) | done |
+| Search scope, saved searches, "did you mean", link counts, Loose ends (0.5) | done |
+| Scheduled backups, package and Markdown import, attachment check, file association (0.5) | done |
+| Accent colours, editor font, high-contrast themes, focus mode; English, Dutch, Polish and German (0.5) | done |
+| Browser tests (Playwright) in CI; 10,000-note performance pass (`docs/performance.md`) (0.5) | done |
+| Windows run by hand | not yet done by the maintainers; CI builds and tests on Windows |
+| Native menu bar, system tray, global quick-capture hotkey | not possible with the Photino host (no menu or tray API); would need platform code or another shell |
+| Mobile (Android, iOS) | not started: needs the MAUI workload and devices; design in `docs/mobile.md` |
 | Signed installers, auto-update | Phase 15, needs certificates |
 
 ## Out of scope for the MVP

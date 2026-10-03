@@ -4,7 +4,7 @@
     <p>@T["Keep copies of everything, take your notes with you in open formats, and bring notes in from KeepNote, another WorriorVex or a folder of Markdown files."]</p>
     <BackupSection OnRestored="OnRestored" BeforeRestore="BeforeRestore" />
     <ExportSection />
-    <ImportSection OnImported="OnImported" />
+    <ImportSection OnImported="OnImported" PackageToImport="@PackageToImport" />
     <AttachmentCheckSection />
 </div>
 
@@ -12,4 +12,7 @@
     [Parameter] public EventCallback<Guid> OnImported { get; set; }
     [Parameter] public EventCallback OnRestored { get; set; }
     [Parameter] public Func<Task<bool>>? BeforeRestore { get; set; }
+
+    /// <summary>A package the app was opened with; the import section starts on it.</summary>
+    [Parameter] public string? PackageToImport { get; set; }
 }

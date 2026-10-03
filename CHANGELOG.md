@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-10-03
 
 - The interface and the built-in documentation are available in English, Dutch, Polish and German
   (Settings → Language; follows the system language by default).
@@ -24,6 +24,8 @@
   focus mode (Ctrl/⌘+Shift+F) that shows only the note.
 - Big notebooks: folders start collapsed and the tree remembers what you opened; the note list only
   renders the rows in view. Measured with 10,000 notes (docs/performance.md).
+- Open a `.worriorvex` package with WorriorVex (file association on Windows and Linux; command line
+  everywhere) and it is imported straight away.
 - Note templates: Ctrl/⌘+Shift+N (or the ▾ next to + New) makes a note from one of the notes in the
   "Templates" notebook, which is created with three starters; `{{date}}` becomes today's date.
 

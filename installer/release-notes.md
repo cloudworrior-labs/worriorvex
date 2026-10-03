@@ -1,6 +1,11 @@
 WorriorVex {{VERSION}} — your personal knowledge workspace. Local-first: no account, no cloud, no telemetry.
 
-What changed: see [CHANGELOG.md](https://github.com/cloudworrior-labs/worriorvex/blob/main/CHANGELOG.md).
+New in 0.5.0: resizable panes and a notebook tree that grows like KeepNote's; find & replace, marker,
+callouts, coloured code, resizable images and tables, templates; scoped and saved searches with "did you
+mean"; scheduled backups, package and Markdown import, an attachment check; accent colours, fonts,
+high-contrast themes, focus mode; and the whole app in English, Dutch, Polish and German.
+
+What changed in detail: see [CHANGELOG.md](https://github.com/cloudworrior-labs/worriorvex/blob/main/CHANGELOG.md).
 
 ## Install
 

@@ -247,6 +247,19 @@
     private ImportReport? _fileReport;
     private string? _fileError;
     private bool _busyFiles;
+    private string? _startedWith;
+
+    /// <summary>A package handed to the app at start ("Open with WorriorVex"); imported as soon as the page shows.</summary>
+    [Parameter] public string? PackageToImport { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (PackageToImport is { } path && path != _startedWith)
+        {
+            _startedWith = path;
+            await RunFileImportAsync(progress => Packages.ImportAsync(path, progress));
+        }
+    }
 
     private async Task ImportPackageAsync()
     {

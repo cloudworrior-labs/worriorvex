@@ -33,6 +33,8 @@ public partial class Workspace
     private List<NoteSummary> _notes = [];
     private List<NoteSummary> _treeNotes = [];
     private bool _templatePicker;
+    private string? _pendingPackage;
+    [Inject] private StartupStatus Startup { get; set; } = default!;
     private NavPane? _navPane;
     private IJSObjectReference? _treeKeysHandle;
     private List<TrashItem> _trash = [];
@@ -189,6 +191,14 @@ public partial class Workspace
 
         BackupScheduler.Completed += OnAutoBackup;
         BackupScheduler.Start();
+
+        if (Startup.PackageToImport is { } package)
+        {
+            Startup.PackageToImport = null;
+            _pendingPackage = package;
+            _selection = new NavSelection.Data();
+            _notice = T["Opening the package “{0}”…", Path.GetFileName(package)];
+        }
     }
 
     /// <summary>Runs in the background after start; a newer version shows as a banner, anything else is silent.</summary>

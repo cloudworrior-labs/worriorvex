@@ -26,6 +26,9 @@ public sealed class AppHost : IAsyncDisposable
     public string Url { get; private set; } = string.Empty;
     public FakeShell Shell { get; } = new();
 
+    /// <summary>A package path to hand the app at start, as "Open with WorriorVex" would.</summary>
+    public string? PackageToImport { get; set; }
+
     public async Task StartAsync()
     {
         Directory.CreateDirectory(DataDirectory);
@@ -41,7 +44,7 @@ public sealed class AppHost : IAsyncDisposable
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddWorriorVexInfrastructure(DataDirectory);
         builder.Services.AddWorriorVexUI();
-        builder.Services.AddSingleton(new StartupStatus());
+        builder.Services.AddSingleton(new StartupStatus { DataDirectory = DataDirectory, PackageToImport = PackageToImport });
         builder.Services.AddSingleton(new AppInfo("0.0.0 (ui tests)", DataDirectory));
         builder.Services.AddSingleton<IPlatformShell>(Shell);
         builder.Services.AddSingleton(p => new NoteAutosaver(p.GetRequiredService<INoteService>(), p.GetRequiredService<TimeProvider>()));

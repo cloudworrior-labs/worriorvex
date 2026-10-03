@@ -107,7 +107,7 @@
         }
         else if (_selection is NavSelection.Data)
         {
-            <DataPage OnImported="AfterImportAsync" OnRestored="AfterRestoreAsync" BeforeRestore="SaveBeforeLeavingAsync" />
+            <DataPage OnImported="AfterImportAsync" OnRestored="AfterRestoreAsync" BeforeRestore="SaveBeforeLeavingAsync" PackageToImport="@_pendingPackage" />
         }
         else if (_selection is NavSelection.Settings)
         {

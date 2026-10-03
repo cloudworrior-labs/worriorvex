@@ -23,7 +23,12 @@ internal static class Program
     private static void Main(string[] args)
     {
         var paths = new ApplicationDataPathProvider();
-        var startup = new StartupStatus { DataDirectory = paths.DataDirectory };
+        var startup = new StartupStatus
+        {
+            DataDirectory = paths.DataDirectory,
+            // "Open with WorriorVex" on a package hands its path on the command line (Windows and Linux).
+            PackageToImport = args.FirstOrDefault(a => a.EndsWith(".worriorvex", StringComparison.OrdinalIgnoreCase) && File.Exists(a)),
+        };
 
         // The window loads the UI from wwwroot and the images in notes from the attachments folder.
         var files = new CompositeFileProvider(

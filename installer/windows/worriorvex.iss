@@ -53,6 +53,13 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs 
 Name: "{autoprograms}\WorriorVex"; Filename: "{app}\WorriorVex.exe"
 Name: "{autodesktop}\WorriorVex"; Filename: "{app}\WorriorVex.exe"; Tasks: desktopicon
 
+[Registry]
+; "Open with WorriorVex" for packages exported from another computer.
+Root: HKA; Subkey: "Software\Classes\.worriorvex"; ValueType: string; ValueName: ""; ValueData: "WorriorVex.Package"; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\WorriorVex.Package"; ValueType: string; ValueName: ""; ValueData: "WorriorVex package"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\WorriorVex.Package\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\WorriorVex.exe,0"
+Root: HKA; Subkey: "Software\Classes\WorriorVex.Package\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\WorriorVex.exe"" ""%1"""
+
 [Run]
 Filename: "{app}\WorriorVex.exe"; Description: "{cm:LaunchProgram,WorriorVex}"; Flags: nowait postinstall skipifsilent
 
