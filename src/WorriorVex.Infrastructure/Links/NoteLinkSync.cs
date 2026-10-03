@@ -8,8 +8,8 @@ namespace WorriorVex.Infrastructure.Links;
 /// <summary>Keeps the NoteLinks rows of a note equal to the <c>note:</c> links in its text.</summary>
 internal static class NoteLinkSync
 {
-    /// <summary>Call after the note's content is set, inside the transaction that saves it.</summary>
-    public static async Task SyncAsync(WorriorVexDbContext context, Guid sourceNoteId, string html, DateTimeOffset now, CancellationToken cancellationToken)
+    /// <summary>Call after the note's content is set, inside the transaction that saves it. Returns how many links the note now has.</summary>
+    public static async Task<int> SyncAsync(WorriorVexDbContext context, Guid sourceNoteId, string html, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var wanted = NoteContentRules.NoteLinkTargets(html).Where(id => id != sourceNoteId).ToHashSet();
         var existing = await context.NoteLinks.Where(l => l.SourceNoteId == sourceNoteId).ToListAsync(cancellationToken);
@@ -28,5 +28,6 @@ internal static class NoteLinkSync
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        return wanted.Count(id => existing.Any(l => l.TargetNoteId == id)) + (missing.Count > 0 ? await context.NoteLinks.CountAsync(l => l.SourceNoteId == sourceNoteId && missing.Contains(l.TargetNoteId), cancellationToken) : 0);
     }
 }

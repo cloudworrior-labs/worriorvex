@@ -89,6 +89,7 @@ public partial class Workspace
     [Inject] private ISettingsService Settings { get; set; } = default!;
     [Inject] private WorriorVex.Application.Templates.ITemplateService TemplateService { get; set; } = default!;
     [Inject] private IUpdateChecker Updates { get; set; } = default!;
+    [Inject] private WorriorVex.Application.Backup.IBackupScheduler BackupScheduler { get; set; } = default!;
     [Inject] private IPlatformShell Shell { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
@@ -181,9 +182,26 @@ public partial class Workspace
         {
             _ = CheckForUpdatesAsync();
         }
+
+        BackupScheduler.Completed += OnAutoBackup;
+        BackupScheduler.Start();
     }
 
     /// <summary>Runs in the background after start; a newer version shows as a banner, anything else is silent.</summary>
+    private void OnAutoBackup(string? path, Exception? error) => _ = InvokeAsync(() =>
+    {
+        if (error is null)
+        {
+            _notice = $"Automatic backup saved to {Path.GetFileName(path)}.";
+        }
+        else
+        {
+            _error = "The automatic backup failed. Details are in the log file.";
+        }
+
+        StateHasChanged();
+    });
+
     private async Task CheckForUpdatesAsync()
     {
         var check = await Updates.CheckAsync();
@@ -355,7 +373,7 @@ public partial class Workspace
             await Autosaver.FlushAsync();
         }
 
-        var saved = await Notes.UpdateAsync(rename.NoteId, rename.Title, null);
+        var saved = await Notes.RenameAsync(rename.NoteId, rename.Title);
         if (_current?.Id == rename.NoteId)
         {
             _current = saved;
@@ -1674,6 +1692,7 @@ public partial class Workspace
         Autosaver.StateChanged -= OnSaveStateChanged;
         Autosaver.NoteSaved -= OnNoteSaved;
         Settings.Changed -= OnSettingsChanged;
+        BackupScheduler.Completed -= OnAutoBackup;
 
         try
         {

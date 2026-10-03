@@ -294,6 +294,22 @@
                 break;
 
             case "import":
+                <h2>Importing</h2>
+                <p>
+                    <strong>Import &amp; backup → Import</strong> brings notes in from two other places.
+                    A <strong>WorriorVex package</strong> (<code>.worriorvex</code>, made with Export → "Everything, as a
+                    package") from another computer is added as new notebooks; links, tags and files come along,
+                    and nothing you already have is changed. A <strong>folder of Markdown or text files</strong>
+                    (an Obsidian vault, a Joplin export, your own <code>.md</code> files) becomes one notebook:
+                    subfolders turn into folders, pictures are attached, <code>[[wiki links]]</code> and relative
+                    links become links between notes, and tags in front matter or written as <code>#tag</code> are kept.
+                </p>
+                <h3>Checking attached files</h3>
+                <p>
+                    <strong>Check attached files</strong> compares the attachments your notes list with the files on
+                    disk and reports files that are missing, files that changed outside WorriorVex, and files nothing
+                    refers to any more (which it can delete for you).
+                </p>
                 <h2>Importing from KeepNote</h2>
                 <p>
                     Choose <strong>Import &amp; backup</strong> in the navigation, then <strong>Choose a KeepNote notebook
@@ -355,6 +371,12 @@
                     attached file and a description of what is inside, into the <code>backups</code> folder. <strong>Save a
                     backup to…</strong> puts it where you choose, for example on another disk. Backups are safe to take
                     while you work.
+                </p>
+                <h3>Automatic backups</h3>
+                <p>
+                    On the same page you can have WorriorVex take a backup every day or every week while it is open.
+                    These go to the backups folder with names starting <code>auto-</code>, and only the newest few
+                    (you choose how many) are kept. Backups you take yourself are never deleted.
                 </p>
                 <h3>Restoring</h3>
                 <p>

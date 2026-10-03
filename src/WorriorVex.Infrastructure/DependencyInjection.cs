@@ -64,6 +64,10 @@ public static class DependencyInjection
         services.AddSingleton<IAttachmentService, AttachmentService>();
         services.AddSingleton<INoteSearchService, NoteSearchService>();
         services.AddSingleton<IKeepNoteImporter, KeepNoteImporter>();
+        services.AddSingleton<IPackageImporter, Import.PackageImporter>();
+        services.AddSingleton<IBackupScheduler, Backup.BackupScheduler>();
+        services.AddSingleton<IAttachmentIntegrity, Attachments.AttachmentIntegrity>();
+        services.AddSingleton<IMarkdownImporter, Import.MarkdownImporter>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IUpdateChecker>(provider => new GitHubUpdateChecker(provider.GetRequiredService<ILogger<GitHubUpdateChecker>>()));
         services.AddSingleton<IBackupService, BackupService>();

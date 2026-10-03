@@ -14,6 +14,10 @@
 - Search: limit a search to the notebook or folder you were in ("Only in …"), save searches to the
   navigation pane, and "Did you mean …?" when a word is a letter or two off.
 - Lists show how many links a note has; a "Loose ends" view lists notes with no tag and no link.
+- Automatic backups: daily or weekly into the backups folder while the app is open, keeping the newest N.
+- Import a `.worriorvex` package from another computer, or a folder of Markdown / text files (Obsidian,
+  Joplin): folders, images, `[[wiki links]]`, front-matter and `#inline` tags come along.
+- "Check attached files" on the Import & backup page: missing, changed and unused files.
 - Note templates: Ctrl/⌘+Shift+N (or the ▾ next to + New) makes a note from one of the notes in the
   "Templates" notebook, which is created with three starters; `{{date}}` becomes today's date.
 

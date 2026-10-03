@@ -42,3 +42,20 @@ public interface IBackupService
 
 /// <summary>The file is not a backup WorriorVex can restore.</summary>
 public sealed class BackupException(string message) : Exception(message);
+
+/// <summary>
+/// Takes backups on a schedule (Settings → Your data) while the app is open: when one is due, a backup
+/// named <c>auto-…</c> goes to the backups folder and the oldest automatic backups beyond the number
+/// to keep are deleted. Backups the user took by hand are never touched.
+/// </summary>
+public interface IBackupScheduler : IAsyncDisposable
+{
+    /// <summary>Starts watching the clock. Safe to call more than once.</summary>
+    void Start();
+
+    /// <summary>Raised after an automatic backup was written (with its path) or failed (with the error).</summary>
+    event Action<string?, Exception?>? Completed;
+
+    /// <summary>Runs the check now instead of waiting for the next tick; a backup is taken only when one is due.</summary>
+    Task RunNowAsync(CancellationToken cancellationToken = default);
+}

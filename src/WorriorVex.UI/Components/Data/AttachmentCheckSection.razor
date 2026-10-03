@@ -1,0 +1,141 @@
+@using WorriorVex.Application.Attachments
+@inject IAttachmentIntegrity Integrity
+@inject ILogger<AttachmentCheckSection> Logger
+
+<section class="wn-data-section" aria-labelledby="wn-check-heading">
+    <h2 id="wn-check-heading">Check attached files</h2>
+    <p>
+        Compares the list of attached files with the files on disk: files that are missing, files that changed since
+        they were attached, and files nobody refers to any more. Nothing is changed unless you ask.
+    </p>
+    @if (_busy)
+    {
+        <p class="wn-progress" role="status">@(_progress ?? "Checking…")</p>
+    }
+    else if (_result is { } result)
+    {
+        <div class="wn-report" role="status">
+            <ul class="wn-report-counts">
+                <li><strong>@result.Checked</strong> files present</li>
+                <li><strong>@result.Missing.Count</strong> missing</li>
+                <li><strong>@result.Damaged.Count</strong> changed on disk</li>
+                <li><strong>@result.Orphans.Count</strong> unused (@FormatSize(result.OrphanBytes))</li>
+            </ul>
+            @if (result.Missing.Count > 0)
+            {
+                <details open>
+                    <summary>Missing files</summary>
+                    <ul>
+                        @foreach (var (note, file) in result.Missing)
+                        {
+                            <li>"@file" in "@note" — the attachment is listed but its file is gone. Restore it from a backup, or remove the attachment from the note.</li>
+                        }
+                    </ul>
+                </details>
+            }
+            @if (result.Damaged.Count > 0)
+            {
+                <details open>
+                    <summary>Files changed outside WorriorVex</summary>
+                    <ul>
+                        @foreach (var (note, file) in result.Damaged)
+                        {
+                            <li>"@file" in "@note" — its contents no longer match what was attached.</li>
+                        }
+                    </ul>
+                </details>
+            }
+            @if (result.Orphans.Count > 0)
+            {
+                <p>
+                    @result.Orphans.Count file(s) in the attachments folder belong to no note (left behind by an interrupted
+                    import or an old restore). They can be deleted.
+                    <button type="button" class="wn-button wn-button-small" @onclick="DeleteOrphansAsync">Delete unused files</button>
+                </p>
+            }
+            else if (result.Missing.Count == 0 && result.Damaged.Count == 0)
+            {
+                <p><strong>Everything is in order.</strong></p>
+            }
+            @if (_deleted is { } deleted)
+            {
+                <p role="status">@deleted unused file(s) deleted.</p>
+            }
+        </div>
+    }
+    <div class="wn-data-actions wn-dialog-actions">
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="CheckAsync">@(_result is null ? "Check now" : "Check again")</button>
+    </div>
+    @if (_error is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_error</p>
+    }
+</section>
+
+@code {
+    private AttachmentCheck? _result;
+    private string? _progress;
+    private string? _error;
+    private int? _deleted;
+    private bool _busy;
+
+    private async Task CheckAsync()
+    {
+        _busy = true;
+        _error = null;
+        _deleted = null;
+        var progress = new Progress<string>(line =>
+        {
+            _progress = line;
+            InvokeAsync(StateHasChanged);
+        });
+        try
+        {
+            _result = await Integrity.CheckAsync(progress);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "The attachment check failed");
+            _error = "The check could not be completed. Details are in the log file.";
+        }
+        finally
+        {
+            _busy = false;
+            _progress = null;
+        }
+    }
+
+    private async Task DeleteOrphansAsync()
+    {
+        if (_result is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _deleted = await Integrity.DeleteOrphansAsync(_result.Orphans);
+            _result = _result with { Orphans = [], OrphanBytes = 0 };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unused attachment files could not be deleted");
+            _error = "The files could not be deleted. Details are in the log file.";
+        }
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
+
+        if (bytes < 1024 * 1024)
+        {
+            return $"{bytes / 1024.0:0.#} KB";
+        }
+
+        return $"{bytes / (1024.0 * 1024.0):0.#} MB";
+    }
+}

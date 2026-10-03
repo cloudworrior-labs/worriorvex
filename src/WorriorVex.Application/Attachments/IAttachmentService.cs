@@ -28,3 +28,18 @@ public interface IAttachmentService
     /// <summary>Removes the attachment and its file.</summary>
     Task DeleteAsync(Guid attachmentId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>What a look through the attachments folder found.</summary>
+/// <param name="Missing">Attachments whose file is not on disk (note title and file name).</param>
+/// <param name="Orphans">Files in the folder that no attachment refers to.</param>
+/// <param name="Damaged">Files whose contents no longer match the hash recorded when they were added.</param>
+public sealed record AttachmentCheck(int Checked, IReadOnlyList<(string Note, string FileName)> Missing, IReadOnlyList<string> Orphans, IReadOnlyList<(string Note, string FileName)> Damaged, long OrphanBytes);
+
+public interface IAttachmentIntegrity
+{
+    /// <summary>Compares the attachments table with the files on disk. Changes nothing.</summary>
+    Task<AttachmentCheck> CheckAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Deletes files that no attachment refers to. Returns how many were deleted.</summary>
+    Task<int> DeleteOrphansAsync(IReadOnlyList<string> storedFileNames, CancellationToken cancellationToken = default);
+}

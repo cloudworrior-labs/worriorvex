@@ -10,6 +10,13 @@ public enum ThemeSetting
 /// <summary>Order of notes in a list. Pinned notes always come first.</summary>
 public sealed record SavedSearch(string Name, string Query);
 
+public enum BackupSchedule
+{
+    Off,
+    Daily,
+    Weekly,
+}
+
 public enum NoteSort
 {
     Updated,
@@ -65,6 +72,14 @@ public sealed record AppSettings
     /// <summary>Show notes as leaves under their notebooks and folders in the navigation tree.</summary>
     public bool ShowNotesInTree { get; init; } = true;
 
+    /// <summary>Automatic backups to the backups folder, taken while the app runs.</summary>
+    public BackupSchedule AutoBackup { get; init; } = BackupSchedule.Off;
+
+    /// <summary>How many automatic backups to keep; older ones are deleted when a new one is written.</summary>
+    public int AutoBackupKeep { get; init; } = 7;
+
+    public DateTimeOffset? LastAutoBackupAt { get; init; }
+
     public const int MinPaneWidth = 140;
     public const int MaxPaneWidth = 600;
 
@@ -87,6 +102,7 @@ public sealed record AppSettings
         AutosaveDelayMilliseconds = Math.Clamp(AutosaveDelayMilliseconds, MinAutosaveMilliseconds, MaxAutosaveMilliseconds),
         NavigationWidth = Math.Clamp(NavigationWidth, MinPaneWidth, MaxPaneWidth),
         ListWidth = Math.Clamp(ListWidth, MinPaneWidth, MaxPaneWidth),
+        AutoBackupKeep = Math.Clamp(AutoBackupKeep, 1, 100),
     };
 }
 

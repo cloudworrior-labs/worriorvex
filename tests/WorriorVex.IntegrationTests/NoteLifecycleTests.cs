@@ -11,6 +11,22 @@ public class NoteLifecycleTests
     private static readonly DateTimeOffset Start = new(2026, 10, 1, 9, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public async Task Renaming_a_note_keeps_its_body_and_updates_search()
+    {
+        using var data = new TempDataDirectory();
+        await using var app = await TestApp.StartAsync(data.Path);
+        var note = await app.Notes.CreateAsync(title: "Old", content: "<p>kept body</p>");
+
+        var renamed = await app.Notes.RenameAsync(note.Id, "New name");
+
+        Assert.Equal("New name", renamed.Title);
+        Assert.Equal("<p>kept body</p>", renamed.Content);
+        Assert.Equal("<p>kept body</p>", (await app.Notes.GetAsync(note.Id))!.Content);
+        Assert.Contains(await app.Search.SearchAsync("new"), r => r.NoteId == note.Id);
+        Assert.DoesNotContain(await app.Search.SearchAsync("old"), r => r.NoteId == note.Id);
+    }
+
+    [Fact]
     public async Task First_start_creates_the_database_from_migrations()
     {
         using var data = new TempDataDirectory();

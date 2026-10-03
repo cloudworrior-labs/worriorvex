@@ -49,6 +49,13 @@ public interface INoteService
     /// </summary>
     Task<NoteDetail> DuplicateAsync(Guid id, CancellationToken cancellationToken = default);
 
-    /// <summary>Saves a note's title and body. <see cref="NoteDetail.UpdatedAt"/> only moves when something changed.</summary>
+    /// <summary>
+    /// Saves a note's title and body together, as the editor has them. A null title means "Untitled" and a null
+    /// body means empty; to change only the title use <see cref="RenameAsync"/>.
+    /// <see cref="NoteDetail.UpdatedAt"/> only moves when something changed.
+    /// </summary>
     Task<NoteDetail> UpdateAsync(Guid id, string? title, string? content, CancellationToken cancellationToken = default);
+
+    /// <summary>Changes the title and nothing else.</summary>
+    Task<NoteDetail> RenameAsync(Guid id, string title, CancellationToken cancellationToken = default);
 }

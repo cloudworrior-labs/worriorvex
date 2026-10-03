@@ -1,8 +1,64 @@
 @using WorriorVex.Application.Import
 @using WorriorVex.Application.Platform
 @inject IKeepNoteImporter Importer
+@inject IPackageImporter Packages
+@inject IMarkdownImporter Markdown
 @inject IPlatformShell Shell
 @inject ILogger<ImportSection> Logger
+
+<section class="wn-data-section" aria-labelledby="wn-import-files-heading">
+    <h2 id="wn-import-files-heading">Import</h2>
+    <p>
+        <strong>A WorriorVex package</strong> (<code>.worriorvex</code>, from Export → "Everything, as a package" on another
+        computer) brings its notebooks, notes, tags, files and links in as new notebooks; nothing you have is changed.
+        <strong>A folder of Markdown or text files</strong> (an Obsidian vault, a Joplin export, plain <code>.md</code> notes)
+        becomes a notebook: subfolders turn into folders, pictures next to the files are attached, and
+        <code>[[wiki links]]</code> become links between notes.
+    </p>
+    @if (_fileReport is { } fileReport)
+    {
+        <div class="wn-report" role="status">
+            <h3>Import complete</h3>
+            <ul class="wn-report-counts">
+                <li><strong>@fileReport.Notebooks</strong> notebooks</li>
+                <li><strong>@fileReport.Folders</strong> folders</li>
+                <li><strong>@fileReport.Notes</strong> notes</li>
+                <li><strong>@fileReport.Attachments</strong> files and pictures</li>
+                <li><strong>@fileReport.Tags</strong> tags</li>
+                <li><strong>@fileReport.Links</strong> links between notes</li>
+            </ul>
+            @if (fileReport.Problems.Count > 0)
+            {
+                <details>
+                    <summary>@fileReport.Problems.Count problem(s) during the import</summary>
+                    <ul>
+                        @foreach (var problem in fileReport.Problems)
+                        {
+                            <li>@problem</li>
+                        }
+                    </ul>
+                </details>
+            }
+            <p>Took @fileReport.Duration.TotalSeconds.ToString("0.0") s.</p>
+            <button type="button" class="wn-button" @onclick="() => _fileReport = null">Import something else</button>
+        </div>
+    }
+    else if (_busyFiles)
+    {
+        <p class="wn-progress" role="status">@(_progress ?? "Importing…")</p>
+    }
+    else
+    {
+        <div class="wn-data-actions wn-dialog-actions">
+            <button type="button" class="wn-button wn-button-primary" @onclick="ImportPackageAsync">Import a package…</button>
+            <button type="button" class="wn-button" @onclick="ImportMarkdownAsync">Import a folder of Markdown files…</button>
+        </div>
+    }
+    @if (_fileError is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_fileError</p>
+    }
+</section>
 
 <section class="wn-data-section" aria-labelledby="wn-import-heading">
     <h2 id="wn-import-heading">Import from KeepNote</h2>
@@ -189,5 +245,58 @@
         _scan = null;
         _report = null;
         _error = null;
+    }
+
+    private ImportReport? _fileReport;
+    private string? _fileError;
+    private bool _busyFiles;
+
+    private async Task ImportPackageAsync()
+    {
+        var path = await Shell.PickFileAsync("Choose a WorriorVex package", "WorriorVex packages", [".worriorvex", ".zip"]);
+        if (path is not null)
+        {
+            await RunFileImportAsync(progress => Packages.ImportAsync(path, progress));
+        }
+    }
+
+    private async Task ImportMarkdownAsync()
+    {
+        var path = await Shell.PickFolderAsync("Choose the folder with the Markdown files");
+        if (path is not null)
+        {
+            await RunFileImportAsync(progress => Markdown.ImportAsync(path, progress));
+        }
+    }
+
+    private async Task RunFileImportAsync(Func<IProgress<string>, Task<ImportReport>> import)
+    {
+        _busyFiles = true;
+        _fileError = null;
+        var progress = new Progress<string>(line =>
+        {
+            _progress = line;
+            InvokeAsync(StateHasChanged);
+        });
+        try
+        {
+            _fileReport = await import(progress);
+            await OnImported.InvokeAsync(_fileReport.NotebookIds.FirstOrDefault());
+        }
+        catch (ImportException ex)
+        {
+            _fileError = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Import failed");
+            _fileError = "The import stopped with an error. What was imported so far is in a new notebook; you can delete it and try again. Details are in the log file.";
+            await OnImported.InvokeAsync(Guid.Empty);
+        }
+        finally
+        {
+            _busyFiles = false;
+            _progress = null;
+        }
     }
 }

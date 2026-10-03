@@ -3,6 +3,9 @@
 @inject IBackupService Backups
 @inject IPlatformShell Shell
 @inject AppInfo Info
+@inject WorriorVex.Application.Settings.ISettingsService Settings
+@inject IBackupScheduler Scheduler
+@using WorriorVex.Application.Settings
 @inject ILogger<BackupSection> Logger
 
 <section class="wn-data-section" aria-labelledby="wn-backup-heading">
@@ -29,6 +32,27 @@
     {
         <p class="wn-dialog-error" role="alert">@_error</p>
     }
+
+    <h3>Automatic backups</h3>
+    <p>
+        While WorriorVex is open it can take a backup for you, into the backups folder, and keep only the newest few.
+        Backups you take yourself are never deleted.
+    </p>
+    <div class="wn-setting">
+        <label for="wn-auto-backup">Take a backup</label>
+        <select id="wn-auto-backup" class="wn-select" value="@Settings.Current.AutoBackup" @onchange="e => SaveScheduleAsync(Enum.Parse<BackupSchedule>(e.Value!.ToString()!), Settings.Current.AutoBackupKeep)">
+            <option value="@BackupSchedule.Off">Never</option>
+            <option value="@BackupSchedule.Daily">Every day</option>
+            <option value="@BackupSchedule.Weekly">Every week</option>
+        </select>
+        <label for="wn-auto-keep">keep the last</label>
+        <input id="wn-auto-keep" type="number" class="wn-input wn-input-short" min="1" max="100" value="@Settings.Current.AutoBackupKeep"
+               @onchange="e => SaveScheduleAsync(Settings.Current.AutoBackup, int.TryParse(e.Value?.ToString(), out var n) ? n : Settings.Current.AutoBackupKeep)" />
+        @if (Settings.Current.LastAutoBackupAt is { } last)
+        {
+            <span class="wn-setting-value">Last automatic backup @last.ToLocalTime().ToString("g")</span>
+        }
+    </div>
 
     @if (_backups.Count > 0)
     {
@@ -80,6 +104,22 @@
     private string BackupsFolder => Path.Combine(Info.DataDirectory, "backups");
 
     protected override Task OnInitializedAsync() => RefreshAsync();
+
+    private async Task SaveScheduleAsync(BackupSchedule schedule, int keep)
+    {
+        try
+        {
+            await Settings.SaveAsync(Settings.Current with { AutoBackup = schedule, AutoBackupKeep = keep });
+            // Switching it on takes the first backup right away rather than up to a day later.
+            await Scheduler.RunNowAsync();
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "The backup schedule could not be saved");
+            _error = "The setting could not be saved.";
+        }
+    }
 
     private async Task RefreshAsync()
     {

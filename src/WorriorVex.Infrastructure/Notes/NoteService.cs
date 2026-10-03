@@ -221,6 +221,24 @@ public sealed class NoteService(
         return await Summaries(context, query).ToListAsync(cancellationToken);
     }
 
+    public async Task<NoteDetail> RenameAsync(Guid id, string title, CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var node = await context.Nodes
+            .Include(n => n.Note)
+            .FirstOrDefaultAsync(n => n.Id == id && n.Type == NodeType.Note, cancellationToken)
+            ?? throw new NoteNotFoundException(id);
+        var previousTitle = node.Name;
+        node.Rename(title, timeProvider.GetUtcNow());
+        if (node.Name != previousTitle)
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            await SearchIndex.IndexNoteAsync(context, node.Id, node.Name, node.Note!.Content, cancellationToken);
+        }
+
+        return ToDetail(node);
+    }
+
     public async Task<NoteDetail> UpdateAsync(Guid id, string? title, string? content, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
