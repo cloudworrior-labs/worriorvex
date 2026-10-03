@@ -61,6 +61,14 @@ public partial class Workspace
     private bool _loading = true;
     private bool _focusNewNote;
 
+    private const string NavWidthVariable = "--wn-nav-width";
+    private const string ListWidthVariable = "--wn-list-width";
+    private ElementReference _navResizer;
+    private ElementReference _listResizer;
+    private IJSObjectReference? _navResizerHandle;
+    private IJSObjectReference? _listResizerHandle;
+    private bool _listResizerAttached;
+
     private IJSObjectReference? _shortcutsModule;
     private IJSObjectReference? _shortcuts;
     private DotNetObjectReference<Workspace>? _self;
@@ -173,6 +181,26 @@ public partial class Workspace
             _shortcutsModule = await JS.InvokeAsync<IJSObjectReference>("import", UiAssets.Shortcuts);
             _shortcuts = await _shortcutsModule.InvokeAsync<IJSObjectReference>("register", _self);
             await ApplyAppearanceAsync(Settings.Current);
+            await _shortcutsModule.InvokeVoidAsync("setPaneWidth", NavWidthVariable, Settings.Current.NavigationWidth);
+            await _shortcutsModule.InvokeVoidAsync("setPaneWidth", ListWidthVariable, Settings.Current.ListWidth);
+            _navResizerHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _navResizer, NavWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, true, 0, _self);
+        }
+
+        // The list's handle comes and goes with the list pane, so it is attached whenever it is newly rendered.
+        if (_shortcutsModule is not null && !IsHelpPage && !_listResizerAttached)
+        {
+            _listResizerAttached = true;
+            _listResizerHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _listResizer, ListWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, false, 0, _self);
+        }
+        else if (IsHelpPage && _listResizerAttached)
+        {
+            _listResizerAttached = false;
+            if (_listResizerHandle is not null)
+            {
+                await _listResizerHandle.InvokeVoidAsync("dispose");
+                await _listResizerHandle.DisposeAsync();
+                _listResizerHandle = null;
+            }
         }
 
         if (_focusNewNote && _editor is not null)
@@ -181,6 +209,39 @@ public partial class Workspace
             _editor.FocusTitleOnNextLoad();
             StateHasChanged();
         }
+    }
+
+    /// <summary>A pane edge was dragged; remember the width.</summary>
+    [JSInvokable]
+    public async Task OnPaneResized(string variable, int width)
+    {
+        var settings = variable == NavWidthVariable
+            ? Settings.Current with { NavigationWidth = width }
+            : Settings.Current with { ListWidth = width };
+        try
+        {
+            await Settings.SaveAsync(settings);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "The pane width could not be remembered");
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ResizeByKeyAsync(KeyboardEventArgs args, string variable)
+    {
+        var step = args.Key switch { "ArrowLeft" => -16, "ArrowRight" => 16, _ => 0 };
+        if (step == 0 || _shortcutsModule is null)
+        {
+            return;
+        }
+
+        var current = variable == NavWidthVariable ? Settings.Current.NavigationWidth : Settings.Current.ListWidth;
+        var width = Math.Clamp(current + step, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth);
+        await _shortcutsModule.InvokeVoidAsync("setPaneWidth", variable, width);
+        await OnPaneResized(variable, width);
     }
 
     [JSInvokable]
@@ -1361,6 +1422,15 @@ public partial class Workspace
             {
                 await _shortcuts.InvokeVoidAsync("dispose");
                 await _shortcuts.DisposeAsync();
+            }
+
+            foreach (var handle in new[] { _navResizerHandle, _listResizerHandle })
+            {
+                if (handle is not null)
+                {
+                    await handle.InvokeVoidAsync("dispose");
+                    await handle.DisposeAsync();
+                }
             }
 
             if (_shortcutsModule is not null)

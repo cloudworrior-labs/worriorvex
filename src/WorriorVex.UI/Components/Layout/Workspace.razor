@@ -13,6 +13,11 @@
              OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu"
              OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 
+    <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="Width of the navigation pane"
+            aria-valuemin="@AppSettings.MinPaneWidth" aria-valuemax="@AppSettings.MaxPaneWidth" aria-valuenow="@Settings.Current.NavigationWidth"
+            title="Drag to resize; arrow keys when focused" style="grid-area: nav; justify-self: end; position: relative; height: 100%;"
+            @onkeydown="e => ResizeByKeyAsync(e, NavWidthVariable)"></button>
+
     @if (IsHelpPage)
     {
         @* Help pages use the width of the list and editor panes together. *@
@@ -42,6 +47,14 @@
                 <button type="button" class="wn-button wn-button-small" @onclick="ConfirmDeleteContainer">Delete</button>
             }
         </NoteList>
+    }
+
+    @if (!IsHelpPage)
+    {
+        <button type="button" class="wn-resizer" @ref="_listResizer" role="separator" aria-orientation="vertical" aria-label="Width of the note list"
+                aria-valuemin="@AppSettings.MinPaneWidth" aria-valuemax="@AppSettings.MaxPaneWidth" aria-valuenow="@Settings.Current.ListWidth"
+                title="Drag to resize; arrow keys when focused" style="grid-area: list; justify-self: end; position: relative; height: 100%;"
+                @onkeydown="e => ResizeByKeyAsync(e, ListWidthVariable)"></button>
     }
 
     <main class="wn-main @(IsHelpPage ? "wn-main-wide" : null)">

@@ -39,6 +39,15 @@ public sealed record AppSettings
     /// <summary>Open where the user left off instead of the Inbox.</summary>
     public bool OpenLastPlace { get; init; } = true;
 
+    public const int MinPaneWidth = 140;
+    public const int MaxPaneWidth = 600;
+
+    /// <summary>Width of the navigation pane in pixels.</summary>
+    public int NavigationWidth { get; init; } = 200;
+
+    /// <summary>Width of the note list pane in pixels.</summary>
+    public int ListWidth { get; init; } = 280;
+
     /// <summary>Where the user was when the app closed: a notebook id and, inside it, a folder id.</summary>
     public Guid? LastNotebookId { get; init; }
 
@@ -50,6 +59,8 @@ public sealed record AppSettings
         EditorFontSize = Math.Clamp(EditorFontSize, MinFontSize, MaxFontSize),
         EditorLineHeight = Math.Clamp(EditorLineHeight, 1.2, 2.2),
         AutosaveDelayMilliseconds = Math.Clamp(AutosaveDelayMilliseconds, MinAutosaveMilliseconds, MaxAutosaveMilliseconds),
+        NavigationWidth = Math.Clamp(NavigationWidth, MinPaneWidth, MaxPaneWidth),
+        ListWidth = Math.Clamp(ListWidth, MinPaneWidth, MaxPaneWidth),
     };
 }
 

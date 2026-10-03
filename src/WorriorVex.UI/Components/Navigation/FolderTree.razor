@@ -18,7 +18,7 @@
                     <span class="wn-twisty" aria-hidden="true"></span>
                 }
                 <button type="button" class="wn-navitem @(selected ? "is-selected" : null) @(DropTarget == folder.Id ? "is-droptarget" : null)"
-                        aria-current="@(selected ? "true" : null)" draggable="true"
+                        aria-current="@(selected ? "true" : null)" draggable="true" title="@folder.Name"
                         @onclick="() => OnSelect.InvokeAsync(selection)"
                         @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
                         @ondragstart="() => OnDragStart.InvokeAsync(folder.Id)" @ondragend="OnDragEnd"

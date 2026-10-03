@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-10-03
 
+- The navigation and note-list panes can be resized by dragging their right edge (or with the arrow
+  keys when the edge has focus); the widths are remembered. Long notebook names show in full on hover.
 - Optional check for a new version (Settings → Updates, off by default; About → Check now).
 - Homebrew: the cask moved to its own tap, `brew tap cloudworrior-labs/tap`.
 

@@ -60,3 +60,60 @@ export function applyAppearance(theme, fontSize, lineHeight) {
   root.style.setProperty('--wn-prose-size', `${fontSize}px`);
   root.style.setProperty('--wn-prose-line-height', String(lineHeight));
 }
+
+/**
+ * Makes a pane edge draggable. While dragging, the CSS variable follows the pointer; when the
+ * pointer is released, .NET is told the final width so it can be remembered.
+ * @param {HTMLElement} handle   the separator element
+ * @param {string} variable      CSS custom property on :root holding the pane width, e.g. "--wn-nav-width"
+ * @param {number} min           smallest width in pixels
+ * @param {number} max           largest width in pixels
+ * @param {boolean} fromLeft     the pane lies to the left of the handle
+ * @param {number} offset        pixels between the viewport's left edge and the pane's left edge
+ * @param {object} dotNetRef     .NET object with OnPaneResized(variable, width)
+ */
+export function attachResizer(handle, variable, min, max, fromLeft, offset, dotNetRef) {
+  const root = document.documentElement;
+  let width = null;
+  const onMove = (event) => {
+    const paneLeft = fromLeft ? offset : handle.getBoundingClientRect().right;
+    width = Math.round(Math.min(max, Math.max(min, event.clientX - paneLeft)));
+    root.style.setProperty(variable, `${width}px`);
+  };
+  const onDown = (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    handle.setPointerCapture(event.pointerId);
+    document.body.classList.add('is-resizing');
+    handle.addEventListener('pointermove', onMove);
+  };
+  const onUp = (event) => {
+    handle.removeEventListener('pointermove', onMove);
+    document.body.classList.remove('is-resizing');
+    if (handle.hasPointerCapture?.(event.pointerId)) {
+      handle.releasePointerCapture(event.pointerId);
+    }
+    if (width !== null) {
+      dotNetRef.invokeMethodAsync('OnPaneResized', variable, width);
+      width = null;
+    }
+  };
+  handle.addEventListener('pointerdown', onDown);
+  handle.addEventListener('pointerup', onUp);
+  handle.addEventListener('pointercancel', onUp);
+  return {
+    dispose: () => {
+      handle.removeEventListener('pointerdown', onDown);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
+      handle.removeEventListener('pointermove', onMove);
+    },
+  };
+}
+
+/** Sets a pane width without dragging (keyboard, or restoring the saved value). */
+export function setPaneWidth(variable, width) {
+  document.documentElement.style.setProperty(variable, `${width}px`);
+}

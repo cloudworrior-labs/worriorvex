@@ -55,7 +55,7 @@
                         {
                             <span class="wn-twisty" aria-hidden="true"></span>
                         }
-                        <button type="button" class="wn-navitem @SelectedClass(selection) @DropClass(notebook.Id)" aria-current="@Current(selection)"
+                        <button type="button" class="wn-navitem @SelectedClass(selection) @DropClass(notebook.Id)" aria-current="@Current(selection)" title="@notebook.Name"
                                 @onclick="() => OnSelect.InvokeAsync(selection)"
                                 @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
                                 @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>

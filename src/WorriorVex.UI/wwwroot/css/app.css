@@ -105,7 +105,7 @@ button, input { font: inherit; color: inherit; }
 /* Layout */
 .wn-app {
   display: grid;
-  grid-template-columns: 200px 280px minmax(0, 1fr);
+  grid-template-columns: var(--wn-nav-width, 200px) var(--wn-list-width, 280px) minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "top top top"
@@ -113,6 +113,26 @@ button, input { font: inherit; color: inherit; }
     "status status status";
   height: 100%;
 }
+
+/* Pane edges that can be dragged */
+.wn-nav, .wn-notelist { position: relative; }
+
+.wn-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.wn-resizer:hover, .wn-resizer:focus-visible, body.is-resizing .wn-resizer { background: var(--wn-accent); opacity: 0.5; outline: none; }
+body.is-resizing { cursor: col-resize; user-select: none; }
+body.is-resizing .wn-editor-surface, body.is-resizing iframe { pointer-events: none; }
 
 .wn-topbar {
   grid-area: top;
@@ -687,7 +707,7 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-select { padding: var(--wn-space-1) var(--wn-space-2); border: var(--wn-border-width) solid var(--wn-border); border-radius: var(--wn-radius); background: var(--wn-bg); color: var(--wn-text); font: inherit; }
 
 /* Sidebar toggle */
-.wn-app.is-nav-hidden { grid-template-columns: 0 280px minmax(0, 1fr); }
+.wn-app.is-nav-hidden { grid-template-columns: 0 var(--wn-list-width, 280px) minmax(0, 1fr); }
 .wn-app.is-nav-hidden .wn-nav { display: none; }
 .wn-topbar .wn-iconbutton { width: 28px; height: 28px; font-size: 1rem; }
 
