@@ -1,0 +1,410 @@
+@using WorriorVex.Application.Platform
+@inject AppInfo Info
+@inject IPlatformShell Shell
+
+@* Polska dokumentacja. Tematy odpowiadają DocsEn. *@
+@switch (Topic)
+{
+    case "start":
+        <h2>Pierwsze kroki</h2>
+        <p>
+            WorriorVex to notatnik, który mieszka na Twoim komputerze. Wszystko, co napiszesz, jest zapisywane tutaj,
+            na tym urządzeniu. Działa bez internetu i nie wymaga konta.
+        </p>
+        <ol>
+            <li>Naciśnij <kbd>@Modifier</kbd> + <kbd>N</kbd> lub wybierz <strong>+ Nowa</strong>, aby zacząć notatkę.</li>
+            <li>Wpisz tytuł, naciśnij <kbd>Enter</kbd> i pisz.</li>
+            <li>To wszystko. Notatka zapisuje się sama i czeka, gdy wrócisz.</li>
+        </ol>
+        <p>
+            Nowe notatki trafiają do <strong>Skrzynki</strong>, chyba że jesteś w notatniku lub folderze.
+            Najpierw zapisz; gdzie to należy, zdecydujesz później.
+        </p>
+        <h3>Okno</h3>
+        <ul>
+            <li><strong>Lewa strona:</strong> gdzie co jest. Przeciągnij prawą krawędź, aby ją poszerzyć; <kbd>@Modifier</kbd> + <kbd>\</kbd> ukrywa lub pokazuje. Skrzynka, Wszystkie notatki, Twoje notatniki z folderami, Kosz.</li>
+            <li><strong>Środek:</strong> notatki w wybranym miejscu, ostatnio zmienione na górze. Tę krawędź też można przeciągać.</li>
+            <li><strong>Prawa strona:</strong> notatka, nad którą pracujesz.</li>
+            <li><strong>Dół:</strong> czy praca jest zapisana.</li>
+        </ul>
+        break;
+
+    case "writing":
+        <h2>Pisanie notatek</h2>
+        <p>
+            Pasek narzędzi nad tekstem daje pogrubienie, kursywę, podkreślenie, przekreślenie, kod w wierszu, trzy poziomy
+            nagłówków, listy punktowane, numerowane i listy zadań, cytaty, bloki kodu i linię oddzielającą. Większość ma
+            skrót klawiszowy, wymieniony w <em>Skrótach klawiszowych</em>.
+        </p>
+        <h3>Linki</h3>
+        <p>
+            Zaznacz słowa i wybierz <strong>Link</strong>, a potem wpisz adres internetowy. Bez zaznaczenia sam adres
+            zostaje wstawiony jako link. Aby zmienić link, ustaw w nim kursor i wybierz ponownie <strong>Link</strong>;
+            <strong>Usuń link</strong> go usuwa. Przytrzymaj <kbd>@Modifier</kbd> i kliknij link, aby otworzyć go w przeglądarce.
+        </p>
+        <h3>Powiązania między notatkami</h3>
+        <p>
+            Wybierz <strong>Link do notatki</strong>, znajdź właściwą notatkę i wybierz ją. Przy zaznaczonym tekście to on
+            staje się linkiem; w przeciwnym razie wstawiany jest tytuł drugiej notatki. Przytrzymaj <kbd>@Modifier</kbd> i
+            kliknij taki link, aby przejść do tej notatki. Wpisz <code>[[</code>, aby od razu otworzyć wybór.
+        </p>
+        <p>
+            Pod tekstem <strong>Odnosi się do</strong> wymienia notatki, do których ta prowadzi, <strong>Powiązane z</strong>
+            notatki, które prowadzą tutaj, a <strong>Powiązane etykietami</strong> notatki o wspólnych etykietach. Aktualizują
+            się same podczas pisania; niczego nie trzeba pilnować ręcznie. Słowa linku nie zmieniają się po zmianie nazwy
+            drugiej notatki.
+        </p>
+        <h3>Obrazy</h3>
+        <p>
+            Wybierz <strong>Obraz</strong>, aby wskazać obraz z komputera, wklej go ze schowka lub przeciągnij plik obrazu na
+            notatkę. Przyjmowane są PNG, JPEG, GIF i WebP. Obraz jest kopiowany do własnego folderu danych WorriorVex, więc
+            notatka działa dalej, gdy oryginalny plik zostanie przeniesiony lub usunięty.
+        </p>
+        <p>
+            Obrazy z internetu nie są pokazywane: tekst wklejony ze strony zachowuje słowa, a traci obrazy. To celowe, aby
+            otwarcie notatki nigdy nie łączyło się z innym komputerem.
+        </p>
+        <p>Wskaż obraz i przeciągnij mały kwadrat w jego prawym dolnym rogu, aby go zmniejszyć lub powiększyć.</p>
+        <h3>Załączone pliki</h3>
+        <p>
+            <strong>Załącz</strong> dodaje do notatki dowolny plik, podobnie jak upuszczenie na tekst pliku niebędącego
+            obrazem. Załączniki są wymienione pod notatką z opcjami <strong>Otwórz</strong> (w programie, którego system używa
+            do takich plików), <strong>Zapisz jako…</strong> (kopia w wybranym miejscu), <strong>Zmień nazwę…</strong> i
+            <strong>Usuń…</strong>. Plik jest kopiowany do folderu danych WorriorVex przy załączaniu; oryginał nigdy nie jest
+            ruszany.
+        </p>
+        <p>
+            Obrazy umieszczone w tekście też są załącznikami. Ten, którego nie ma już w tekście, zostaje oznaczony, a przycisk
+            proponuje usunięcie wszystkich takich pozostałości naraz.
+        </p>
+        <h3>Tabele</h3>
+        <p>
+            <strong>Tabela</strong> wstawia tabelę z trzema kolumnami i wierszem nagłówka. Gdy kursor jest w tabeli, pojawiają
+            się przyciski do dodawania i usuwania wierszy i kolumn, włączania i wyłączania nagłówka, scalania zaznaczonych
+            komórek lub dzielenia jednej oraz usuwania tabeli. <kbd>Tab</kbd> przechodzi do następnej komórki i dodaje wiersz
+            na końcu. Przeciągnij linię między dwiema kolumnami, aby zmienić ich szerokość.
+        </p>
+        <h3>Zakreślacz, ramki i kod</h3>
+        <p>
+            Przycisk <mark>ab</mark> wyróżnia zaznaczone słowa jak zakreślaczem. <strong>Ramka…</strong> umieszcza bieżący
+            akapit w kolorowej ramce (Informacja, Wskazówka, Ostrzeżenie lub Niebezpieczeństwo); wybierz ponownie, aby ją
+            zdjąć. Blok kodu dostaje listę <strong>Język</strong>, gdy kursor jest w nim; wybierz język, a kod zostanie
+            pokolorowany.
+        </p>
+        <h3>Znajdź i zamień</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>F</kbd> (lub <strong>Znajdź</strong> na pasku) otwiera pasek nad tekstem. Dopasowania
+            są zaznaczane podczas pisania; <kbd>Enter</kbd> przechodzi do następnego, <kbd>Shift</kbd> + <kbd>Enter</kbd> do
+            poprzedniego. <strong>Zamień</strong> zmienia bieżące dopasowanie, <strong>Wszystkie</strong> każde.
+            <kbd>Esc</kbd> zamyka pasek.
+        </p>
+        <h3>Szablony</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> lub <strong>▾</strong> obok <strong>+ Nowa</strong> tworzy
+            notatkę z szablonu. Szablony to zwykłe notatki w notatniku o nazwie <strong>Templates</strong>, tworzonym przy
+            pierwszym użyciu z trzema przykładami (notatki ze spotkania, notatka dzienna, projekt). Edytuj je lub dodaj własne;
+            wpisz <code>{{date}}</code> tam, gdzie ma się pojawić dzisiejsza data.
+        </p>
+        <h3>Skróty podczas pisania</h3>
+        <p>Na początku wiersza wpisz jedno z poniższych, a po nim spację:</p>
+        <table>
+            <thead><tr><th scope="col">Wpisz</th><th scope="col">Aby uzyskać</th></tr></thead>
+            <tbody>
+                <tr><td><code>#</code>, <code>##</code>, <code>###</code></td><td>Nagłówek</td></tr>
+                <tr><td><code>-</code> lub <code>*</code></td><td>Listę punktowaną</td></tr>
+                <tr><td><code>1.</code></td><td>Listę numerowaną</td></tr>
+                <tr><td><code>[ ]</code></td><td>Listę zadań</td></tr>
+                <tr><td><code>&gt;</code></td><td>Cytat</td></tr>
+                <tr><td><code>```</code></td><td>Blok kodu</td></tr>
+                <tr><td><code>[[</code> (w dowolnym miejscu)</td><td>Link do innej notatki: otwiera się wybór</td></tr>
+            </tbody>
+        </table>
+        <h3>Zapisywanie</h3>
+        <p>
+            Notatki zapisują się same chwilę po tym, jak przestaniesz pisać. Pasek na dole pokazuje <strong>Zapisano</strong>,
+            <strong>Niezapisane zmiany</strong> lub <strong>Zapisywanie</strong>. Naciśnij <kbd>@Modifier</kbd> + <kbd>S</kbd>,
+            aby zapisać od razu.
+        </p>
+        <p>
+            Jeśli zapis się nie uda, pasek o tym powie i zaproponuje <strong>Ponów</strong>. Tekst zostaje w oknie, a WorriorVex
+            nie pozwoli przejść do innej notatki, dopóki nie zostanie bezpiecznie zapisana.
+        </p>
+        <h3>Wcześniejsze wersje</h3>
+        <p>
+            Podczas edycji WorriorVex mniej więcej co dziesięć minut po cichu zachowuje wersję sprzed zmiany.
+            <strong>Historia</strong> na pasku je wymienia; wybierz jedną, aby ją przeczytać, i <strong>Przywróć tę
+            wersję</strong>, aby ją odzyskać. Obecna treść notatki też zostaje zachowana jako wersja, więc przywracanie
+            nigdy niczego nie traci.
+        </p>
+        break;
+
+    case "searching":
+        <h2>Wyszukiwanie</h2>
+        <p>
+            Pole wyszukiwania u góry przeszukuje tytuły, tekst i etykiety wszystkich notatek. Naciśnij <kbd>@Modifier</kbd> +
+            <kbd>K</kbd>, aby do niego przejść i zacząć pisać; wyniki pojawiają się podczas pisania, najlepsze najpierw, z
+            zaznaczonymi pasującymi słowami. Dopasowanie w tytule liczy się bardziej niż w tekście.
+        </p>
+        <p>
+            Gdy zaczynasz wyszukiwanie z notatnika lub folderu, zaznacz <strong>Tylko w „…”</strong> nad wynikami, aby szukać
+            tylko tam. <strong>Zapisz wyszukiwanie</strong> zachowuje je w panelu nawigacji pod <strong>Zapisanymi
+            wyszukiwaniami</strong> (kliknij prawym przyciskiem, aby zmienić nazwę lub usunąć). Jeśli słowo niczego nie
+            znajduje, ale podobne słowo występuje w notatkach, wyniki proponują <em>Czy chodziło o …?</em>
+        </p>
+        <ul>
+            <li>Każde wpisane słowo musi wystąpić. Słowo pasuje też do dłuższych słów, które się od niego zaczynają: <code>archi</code> znajdzie <em>architekturę</em>.</li>
+            <li>Akcenty i wielkość liter nie mają znaczenia: <code>resume</code> znajdzie <em>Résumé</em>.</li>
+            <li>Dokładną frazę ujmij w cudzysłów: <code>"plan kwartalny"</code>.</li>
+            <li><code>tag:projekt</code> znajduje notatki z tą etykietą.</li>
+            <li><code>in:Projekty</code> ogranicza wyniki do notatnika lub folderu o tej nazwie; nazwy ze spacjami ujmij w cudzysłów.</li>
+        </ul>
+        <p>
+            Strzałkami przechodzisz po wynikach, <kbd>Enter</kbd> otwiera jeden, albo kliknij go. <kbd>Esc</kbd> opuszcza
+            wyszukiwanie i wraca tam, gdzie byłeś. Notatki w koszu nie są przeszukiwane.
+        </p>
+        break;
+
+    case "organising":
+        <h2>Notatniki i foldery</h2>
+        <p>
+            <strong>Notatnik</strong> to pojemnik najwyższego poziomu, np. <em>Projekty</em> lub <em>Osobiste</em>.
+            W notatniku możesz tworzyć <strong>foldery</strong>, a w folderach kolejne foldery.
+        </p>
+        <ul>
+            <li><strong>Nowy notatnik:</strong> <strong>+</strong> obok <em>Notatniki</em>.</li>
+            <li><strong>Nowy folder:</strong> wskaż notatnik lub folder w nawigacji i naciśnij <strong>+</strong> na końcu jego wiersza; albo wybierz go i kliknij <strong>Nowy folder</strong> nad listą notatek. Foldery zagnieżdżają się dowolnie głęboko.</li>
+            <li><strong>Zwijanie i rozwijanie:</strong> małe pole <strong>−</strong> / <strong>+</strong> po lewej stronie wiersza. Notatki pojawiają się jako liście pod swoim folderem (wyłącz to w Ustawienia → Wygląd, jeśli wolisz same foldery).</li>
+            <li><strong>Zmiana nazwy:</strong> kliknij dwukrotnie notatnik, folder lub notatkę albo naciśnij na nich <kbd>F2</kbd>; <kbd>Enter</kbd> zatwierdza nową nazwę, <kbd>Esc</kbd> rezygnuje.</li>
+            <li><strong>Klawiatura:</strong> <kbd>↑</kbd> <kbd>↓</kbd> poruszają się po drzewie, <kbd>→</kbd> otwiera gałąź, <kbd>←</kbd> zamyka ją lub wychodzi poziom wyżej, <kbd>Delete</kbd> przenosi wiersz do kosza.</li>
+            <li><strong>Kolejność notatek:</strong> lista nad notatkami może sortować według ostatniej zmiany, najnowszych lub tytułu; przypięte notatki zawsze zostają na górze. Ustawienia → Wygląd mają tryb zwarty dla długich list.</li>
+            <li><strong>Zmiana nazwy lub usunięcie:</strong> wybierz element, potem <strong>Zmień nazwę</strong> lub <strong>Usuń</strong> nad listą notatek.</li>
+            <li><strong>Nowa notatka w folderze:</strong> wybierz folder, potem <strong>+ Nowa</strong>.</li>
+        </ul>
+        <p>
+            <strong>Wszystkie notatki</strong> pokazuje każdą notatkę z każdego notatnika na jednej liście, z nazwą notatnika
+            pod każdym tytułem. Skrzynka jest zawsze i nie można jej zmienić nazwy ani usunąć.
+        </p>
+        <h3>Przenoszenie</h3>
+        <p>
+            Przeciągnij notatkę z listy lub folder z drzewa i upuść na notatniku lub folderze. Albo kliknij prawym przyciskiem
+            i wybierz <strong>Przenieś…</strong>, aby wskazać cel z listy. Folder zabiera ze sobą całą zawartość.
+        </p>
+        <h3>Menu kontekstowe</h3>
+        <p>
+            Kliknij prawym przyciskiem notatnik, folder, etykietę lub notatkę, aby zobaczyć, co możesz zrobić: nowa notatka
+            lub folder, zmiana nazwy, przeniesienie, duplikat, ulubione, przypięcie, usunięcie. <strong>Duplikuj</strong>
+            tworzy kopię obok oryginału, z jego etykietami i własnymi kopiami obrazów.
+        </p>
+        <h3>Ulubione i przypięte</h3>
+        <p>
+            <strong>Ulubiona</strong> (★ nad notatką) sprawia, że notatka jest łatwo dostępna z listy <strong>Ulubione</strong>,
+            gdziekolwiek leży. <strong>Przypnij</strong> trzyma notatkę na górze listy, w której się znajduje. To osobne
+            rzeczy: notatka może być jedną, drugą, obiema lub żadną.
+        </p>
+        <h3>Etykiety</h3>
+        <p>
+            Wpisz etykietę w wierszu pod tytułem i naciśnij <kbd>Enter</kbd>; istniejące etykiety są podpowiadane. Etykieta to
+            jedno słowo: bez spacji i przecinków. Etykiety są w nawigacji z liczbą notatek, które je mają; wybierz jedną, aby
+            zobaczyć te notatki, kliknij prawym przyciskiem, aby zmienić nazwę lub usunąć. Usunięcie etykiety nigdy nie usuwa
+            notatki. Szukaj <code>tag:nazwa</code>, aby połączyć etykietę z innymi słowami.
+        </p>
+        <h3>Luźne końce</h3>
+        <p>
+            <strong>Luźne końce</strong> wymieniają notatki bez etykiety i bez powiązania z inną notatką: szybki sposób, by
+            znaleźć to, co jeszcze trzeba uporządkować. Na każdej liście ⛓ pokazuje, ile powiązań ma notatka.
+        </p>
+        <h3>Ostatnie</h3>
+        <p><strong>Ostatnie</strong> wymienia ostatnio otwierane notatki. Otwarcie notatki nie liczy się jako zmiana.</p>
+        break;
+
+    case "trash":
+        <h2>Kosz</h2>
+        <p>
+            Usuwanie nigdy niczego nie niszczy od razu. Usunięta notatka, folder lub notatnik trafia do <strong>Kosza</strong>
+            i zostaje tam, aż zdecydujesz.
+        </p>
+        <ul>
+            <li><strong>Usunięcie notatki:</strong> <strong>Usuń</strong> po prawej stronie paska narzędzi.</li>
+            <li><strong>Usunięcie folderu lub notatnika:</strong> wybierz go, potem <strong>Usuń</strong> nad listą notatek. Cała zawartość idzie razem z nim.</li>
+            <li><strong>Przywracanie:</strong> otwórz Kosz, wybierz element, kliknij <strong>Przywróć</strong>. Folder lub notatnik wraca ze wszystkim, co w nim było.</li>
+        </ul>
+        <p>
+            Jeśli miejsce, z którego pochodził element, już nie istnieje, zostaje przywrócony na górę swojego notatnika, albo
+            do Skrzynki, gdy notatnika też już nie ma. WorriorVex informuje, gdy tak się dzieje.
+        </p>
+        <h3>Usuwanie na zawsze</h3>
+        <p>
+            <strong>Usuń trwale</strong> i <strong>Opróżnij kosz</strong> usuwają notatki razem z ich wcześniejszymi wersjami
+            i załączonymi plikami. Tego nie można cofnąć, dlatego zawsze pada pytanie.
+        </p>
+        break;
+
+    case "shortcuts":
+        <h2>Skróty klawiszowe</h2>
+        <table>
+            <thead><tr><th scope="col">Naciśnij</th><th scope="col">Aby</th></tr></thead>
+            <tbody>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Zacząć nową notatkę</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>Nowa notatka z szablonu</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>F</kbd></td><td>Znajdź i zamień w notatce</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></td><td>Tryb skupienia: tylko notatka (ponownie, aby wyjść)</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Zapisać teraz</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Szukać</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>\</kbd></td><td>Ukryć lub pokazać panel boczny</td></tr>
+                <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> w polu wyszukiwania</td><td>Przejść po wynikach i otworzyć jeden</td></tr>
+                <tr><td><kbd>Esc</kbd> w polu wyszukiwania</td><td>Opuścić wyszukiwanie</td></tr>
+                <tr><td><kbd>Enter</kbd> w tytule</td><td>Przejść do tekstu</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Zamknąć okno dialogowe lub menu</td></tr>
+                <tr><td><kbd>Enter</kbd> w wierszu etykiet</td><td>Dodać etykietę</td></tr>
+                <tr><td><kbd>Backspace</kbd> w pustym wierszu etykiet</td><td>Usunąć ostatnią etykietę</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Pogrubienie / kursywa / podkreślenie</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td><td>Przekreślenie</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>E</kbd></td><td>Kod w wierszu</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>–<kbd>3</kbd></td><td>Nagłówek 1–3</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> / <kbd>8</kbd> / <kbd>9</kbd></td><td>Lista numerowana / punktowana / zadań</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></td><td>Cytat</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Blok kodu</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> na liście</td><td>Wcięcie / cofnięcie wcięcia</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> w tabeli</td><td>Następna / poprzednia komórka</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + kliknięcie linku</td><td>Otworzyć: stronę w przeglądarce, notatkę w WorriorVex</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>V</kbd> ze skopiowanym obrazem</td><td>Wkleić obraz do notatki</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Z</kbd></td><td>Cofnąć</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Ponowić</td></tr>
+            </tbody>
+        </table>
+        break;
+
+    case "import":
+        <h2>Importowanie</h2>
+        <p>
+            <strong>Import i kopie zapasowe → Importuj</strong> wprowadza notatki z dwóch innych źródeł. <strong>Pakiet
+            WorriorVex</strong> (<code>.worriorvex</code>, utworzony przez Eksport → „Zapisz pakiet”) z innego komputera jest
+            dodawany jako nowe notatniki; powiązania, etykiety i pliki idą razem, a to, co już masz, nie zmienia się.
+            <strong>Folder z plikami Markdown lub tekstowymi</strong> (sejf Obsidian, eksport z Joplin, własne pliki
+            <code>.md</code>) staje się jednym notatnikiem: podfoldery stają się folderami, obrazy są załączane,
+            <code>[[linki wiki]]</code> i linki względne stają się powiązaniami między notatkami, a etykiety z front matter
+            lub zapisane jako <code>#etykieta</code> są zachowywane.
+        </p>
+        <h3>Sprawdzanie załączonych plików</h3>
+        <p>
+            <strong>Sprawdź załączone pliki</strong> porównuje załączniki wymienione w notatkach z plikami na dysku i zgłasza
+            pliki brakujące, zmienione poza WorriorVex oraz takie, do których nic już nie odwołuje (te może dla Ciebie usunąć).
+        </p>
+        <h2>Import z KeepNote</h2>
+        <p>
+            Wybierz <strong>Import i kopie zapasowe</strong> w nawigacji, potem <strong>Wybierz folder notatnika
+            KeepNote…</strong> i wskaż własny folder notatnika: ten, który zawiera <code>notebook.nbk</code>. WorriorVex
+            najpierw odczytuje notatnik i pokazuje, co znalazł: strony, foldery, pliki, obrazy, powiązania i kosz KeepNote.
+            Nic się nie zmienia, dopóki nie wybierzesz <strong>Importuj</strong>.
+        </p>
+        <ul>
+            <li>Notatnik staje się nowym notatnikiem WorriorVex o tej samej nazwie. Foldery pozostają folderami; strony stają się notatkami.</li>
+            <li>Strona zawierająca inne strony staje się folderem o tej samej nazwie, a jej własny tekst pierwszą notatką w tym folderze.</li>
+            <li>Pliki dołączone do strony stają się załącznikami notatki; obrazy ze strony trafiają do tekstu notatki.</li>
+            <li>Powiązania między stronami stają się powiązaniami między notatkami. Linki do stron, które już nie istnieją, zachowują tylko słowa.</li>
+            <li>To, co było w koszu KeepNote, trafia do kosza WorriorVex.</li>
+            <li>Czasy utworzenia i modyfikacji są zachowywane. Ustawienia KeepNote, takie jak ikony i kolory, nie mają tu miejsca i są wymieniane jako pominięte.</li>
+        </ul>
+        <p>
+            Folder KeepNote jest tylko odczytywany; nigdy nie jest zmieniany, więc możesz dalej używać KeepNote lub
+            zaimportować ponownie. Obsługiwane są notatniki w formacie KeepNote w wersji 5 lub 6 (KeepNote 0.7); starszy
+            notatnik otwórz raz w KeepNote, który go zaktualizuje, i zaimportuj ponownie. Raport na końcu mówi dokładnie,
+            co się stało.
+        </p>
+        break;
+
+    case "settings":
+        <h2>Ustawienia</h2>
+        <p><strong>Ustawienia</strong> w nawigacji. Zmiany obowiązują natychmiast.</p>
+        <ul>
+            <li><strong>Język:</strong> angielski, niderlandzki, polski lub niemiecki, albo język systemu.</li>
+            <li><strong>Motyw:</strong> jak w systemie, zawsze jasny lub ciemny, albo jeden z dwóch motywów o wysokim kontraście.</li>
+            <li><strong>Kolor akcentu</strong> zaznaczeń i przycisków; <strong>Czcionka</strong> tekstu notatek (systemowa, szeryfowa, bezszeryfowa lub o stałej szerokości).</li>
+            <li><strong>Listy:</strong> przestronne lub zwarte wiersze oraz czy notatki pojawiają się w drzewie nawigacji.</li>
+            <li><strong>Rozmiar tekstu i wysokość wiersza</strong> tekstu notatek; <strong>sprawdzanie pisowni</strong> włączone lub wyłączone.</li>
+            <li><strong>Zapisuj po przerwie:</strong> jak długo po ostatnim naciśnięciu klawisza notatka jest zapisywana.</li>
+            <li><strong>Pytaj przed przeniesieniem notatki do kosza</strong>, dla ostrożnych.</li>
+            <li><strong>Otwieraj tam, gdzie skończyłem:</strong> start w ostatnio otwartym notatniku lub folderze zamiast w Skrzynce.</li>
+            <li><strong>Sprawdzaj nową wersję przy uruchamianiu:</strong> domyślnie wyłączone; zob. <em>Twoje dane → Prywatność</em>.</li>
+        </ul>
+        <p>Ustawienia są przechowywane w <code>settings.json</code> w folderze danych. Usunięcie tego pliku przywraca wartości domyślne.</p>
+        break;
+
+    case "data":
+        <h2>Twoje dane</h2>
+        <p>Twoje notatki należą do Ciebie. Są w jednym folderze na tym komputerze:</p>
+        <p>
+            <code>@Info.DataDirectory</code>
+            <button type="button" class="wn-button wn-button-small" @onclick="() => Shell.OpenFolder(Info.DataDirectory)">Otwórz folder</button>
+        </p>
+        <table>
+            <thead><tr><th scope="col">W tym folderze</th><th scope="col">Co to jest</th></tr></thead>
+            <tbody>
+                <tr><td><code>worriorvex.db</code></td><td>Wszystkie notatki, notatniki i foldery, w bazie SQLite</td></tr>
+                <tr><td><code>attachments</code></td><td>Obrazy z notatek i załączone do nich pliki</td></tr>
+                <tr><td><code>settings.json</code></td><td>Twoje ustawienia</td></tr>
+                <tr><td><code>backups</code></td><td>Kopie zapasowe, które zrobiłeś, oraz kopie bezpieczeństwa sprzed każdego przywracania</td></tr>
+                <tr><td><code>logs</code></td><td>Dziennik dzienny, przydatny przy zgłaszaniu problemu. Nigdy nie zawiera tego, co napisałeś</td></tr>
+            </tbody>
+        </table>
+        <h3>Tworzenie kopii zapasowej</h3>
+        <p>
+            <strong>Import i kopie zapasowe → Utwórz kopię teraz</strong> zapisuje jeden plik zip z całą bazą danych, każdym
+            załączonym plikiem i opisem zawartości do folderu <code>backups</code>. <strong>Zapisz kopię zapasową w…</strong>
+            umieszcza ją tam, gdzie wskażesz, np. na innym dysku. Kopie można bezpiecznie tworzyć podczas pracy.
+        </p>
+        <h3>Automatyczne kopie zapasowe</h3>
+        <p>
+            Na tej samej stronie możesz kazać WorriorVex tworzyć kopię codziennie lub co tydzień, gdy program jest otwarty.
+            Trafiają do folderu kopii z nazwami zaczynającymi się od <code>auto-</code>, a zachowywanych jest tylko kilka
+            najnowszych (ile — wybierasz sam). Kopie tworzone ręcznie nigdy nie są usuwane.
+        </p>
+        <h3>Przywracanie</h3>
+        <p>
+            Wybierz <strong>Przywróć…</strong> obok kopii lub <strong>Przywróć z pliku…</strong> dla kopii przechowywanej
+            gdzie indziej. WorriorVex najpierw sprawdza plik i odrzuca uszkodzony lub pochodzący z nowszej wersji. Zanim
+            cokolwiek zostanie zastąpione, obecny stan jest zapisywany w nowej kopii, więc przywracanie zawsze można cofnąć,
+            przywracając tę kopię.
+        </p>
+        <h3>Eksportowanie</h3>
+        <p>
+            <strong>Eksportuj do folderu…</strong> zapisuje każdą notatkę jako plik, w strukturze notatników i folderów, jako
+            HTML (samodzielne strony z osadzonymi obrazami), Markdown (z folderem obrazów i plików obok każdej notatki) lub
+            JSON (tekst, etykiety, powiązania, załączniki i historia; wystarczająco, by odbudować notatkę). Powiązania między
+            notatkami wskazują na wyeksportowane pliki. <strong>Zapisz pakiet…</strong> zapisuje wszystko, łącznie z koszem i
+            historią, jako jeden plik <code>.worriorvex</code>: zip, który otworzysz wszędzie. Pojedynczą notatkę eksportujesz
+            z jej menu kontekstowego.
+        </p>
+        <h3>Prywatność</h3>
+        <p>
+            WorriorVex nie łączy się z internetem. Nie ma konta, telemetrii ani analityki. Dwa wyjątki uruchamiasz sam:
+            wybranie linku, który otwiera się w przeglądarce, oraz opcjonalne sprawdzanie nowej wersji (Ustawienia →
+            Aktualizacje, domyślnie wyłączone), które wysyła jedno zapytanie do github.com o numer najnowszej wersji i nic
+            więcej.
+        </p>
+        <h3>Przechowywanie danych gdzie indziej</h3>
+        <p>
+            Uruchom WorriorVex ze zmienną środowiskową <code>WORRIORVEX_DATA_DIR</code> wskazującą inny folder, a użyje tego
+            folderu.
+        </p>
+        break;
+
+    default:
+        <h2>Co dalej</h2>
+        <p>WorriorVex jest młody. W planach:</p>
+        <ul>
+            <li>Android i iOS</li>
+        </ul>
+        <p>
+            Śledź postępy, pobieraj nowe wersje lub zgłoś problem na
+            <ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink>.
+            Więcej od twórców na <ExternalLink Address="AppInfo.Website">www.cloudworrior.com</ExternalLink>.
+        </p>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public string Topic { get; set; } = "start";
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+}

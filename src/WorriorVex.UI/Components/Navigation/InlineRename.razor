@@ -1,5 +1,6 @@
+@inject Translator T
 @* A text box that replaces a name for renaming in place. Enter keeps the new name, Escape or clicking away gives up. *@
-<input @ref="_input" type="text" class="wn-inline-rename" value="@Value" maxlength="@MaxLength" aria-label="New name" autocomplete="off" spellcheck="false"
+<input @ref="_input" type="text" class="wn-inline-rename" value="@Value" maxlength="@MaxLength" aria-label="@T["New name"]" autocomplete="off" spellcheck="false"
        @oninput="e => _value = e.Value?.ToString() ?? string.Empty" @onkeydown="OnKeyDown" @onkeydown:stopPropagation @onblur="CommitAsync"
        @onclick:stopPropagation @ondblclick:stopPropagation />
 

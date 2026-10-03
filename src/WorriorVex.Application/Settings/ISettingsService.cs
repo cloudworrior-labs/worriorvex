@@ -83,6 +83,9 @@ public sealed record AppSettings
     /// <summary>Open where the user left off instead of the Inbox.</summary>
     public bool OpenLastPlace { get; init; } = true;
 
+    /// <summary>Language of the interface: "en", "nl", "pl", "de", or empty to follow the system.</summary>
+    public string Language { get; init; } = string.Empty;
+
     public AccentColor Accent { get; init; } = AccentColor.Blue;
 
     public EditorFont EditorFont { get; init; } = EditorFont.System;

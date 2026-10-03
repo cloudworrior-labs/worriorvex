@@ -1,3 +1,4 @@
+@inject Translator T
 @using WorriorVex.Application.Search
 @implements IDisposable
 @inject INoteService Notes
@@ -7,12 +8,12 @@
 <div class="wn-overlay" @onkeydown="OnKeyDown">
     <div class="wn-dialog wn-dialog-picker" role="dialog" aria-modal="true" aria-labelledby="wn-picker-title">
         <h2 id="wn-picker-title">@Title</h2>
-        <input @ref="_input" type="search" class="wn-input" placeholder="Type to search your notes…" aria-label="Find a note"
+        <input @ref="_input" type="search" class="wn-input" placeholder="@T["Type to search your notes…"]" aria-label="@T["Find a note"]"
                autocomplete="off" spellcheck="false" @oninput="OnInput" />
-        <ul class="wn-picker-list" role="listbox" aria-label="Notes">
+        <ul class="wn-picker-list" role="listbox" aria-label="@T["Notes"]">
             @if (_choices.Count == 0)
             {
-                <li class="wn-picker-empty">@(_query.Length == 0 ? "Recently opened notes appear here." : _busy ? "Searching…" : "No notes found.")</li>
+                <li class="wn-picker-empty">@(_query.Length == 0 ? T["Recently opened notes appear here."] : _busy ? T["Searching…"] : T["No notes found."])</li>
             }
             @for (var i = 0; i < _choices.Count; i++)
             {
@@ -27,7 +28,7 @@
             }
         </ul>
         <div class="wn-dialog-actions">
-            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="wn-button" @onclick="OnCancel">@T["Cancel"]</button>
         </div>
     </div>
 </div>

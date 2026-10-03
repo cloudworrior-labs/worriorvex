@@ -1,3 +1,4 @@
+@inject Translator T
 <div class="wn-overlay" @onkeydown="OnKeyDown">
     <form class="wn-dialog" role="dialog" aria-modal="true" aria-labelledby="wn-prompt-title" @onsubmit="SubmitAsync">
         <h2 id="wn-prompt-title">@Title</h2>
@@ -9,7 +10,7 @@
             <p id="wn-prompt-error" class="wn-dialog-error" role="alert">@Error</p>
         }
         <div class="wn-dialog-actions">
-            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="wn-button" @onclick="OnCancel">@T["Cancel"]</button>
             @* Never disabled: a disabled default button would swallow Enter typed right after the name. *@
             <button type="submit" class="wn-button wn-button-primary">@ConfirmText</button>
         </div>

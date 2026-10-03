@@ -1,39 +1,39 @@
 @using WorriorVex.Application.Export
 @using WorriorVex.Application.Platform
 @inject IExportService Exporter
+@inject Translator T
 @inject IPlatformShell Shell
 @inject ILogger<ExportSection> Logger
 
 <section class="wn-data-section" aria-labelledby="wn-export-heading">
-    <h2 id="wn-export-heading">Export</h2>
+    <h2 id="wn-export-heading">@T["Export"]</h2>
     <p>
-        Take your notes with you in formats other programs read. Nothing in WorriorVex changes.
-        A single note can be exported from its right-click menu.
+        @T["Take your notes with you in formats other programs read. Nothing in WorriorVex changes. A single note can be exported from its right-click menu."]
     </p>
     <div class="wn-export-row">
-        <label for="wn-export-format">Everything, one file per note, as</label>
+        <label for="wn-export-format">@T["Everything, one file per note, as"]</label>
         <select id="wn-export-format" class="wn-select" @bind="_format" disabled="@_busy">
-            <option value="@ExportFormat.Html">HTML (self-contained pages)</option>
-            <option value="@ExportFormat.Markdown">Markdown (with a folder of pictures and files)</option>
-            <option value="@ExportFormat.Json">JSON (text, tags, links, attachments, history)</option>
+            <option value="@ExportFormat.Html">@T["HTML (self-contained pages)"]</option>
+            <option value="@ExportFormat.Markdown">@T["Markdown (with a folder of pictures and files)"]</option>
+            <option value="@ExportFormat.Json">@T["JSON (text, tags, links, attachments, history)"]</option>
         </select>
-        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="ExportAllAsync">Export to a folder…</button>
+        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="ExportAllAsync">@T["Export to a folder…"]</button>
     </div>
     <div class="wn-export-row">
-        <span>Everything as one portable <code>.worriorvex</code> package (zip with manifest, notes, tags, links, history and files)</span>
-        <button type="button" class="wn-button" disabled="@_busy" @onclick="ExportPackageAsync">Save package…</button>
+        <span>@T["Everything as one portable"] <code>.worriorvex</code> @T["package (zip with manifest, notes, tags, links, history and files)"]</span>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="ExportPackageAsync">@T["Save package…"]</button>
     </div>
     @if (_busy)
     {
-        <p class="wn-progress" role="status" aria-live="polite">@(_progress ?? "Exporting…")</p>
+        <p class="wn-progress" role="status" aria-live="polite">@(_progress ?? T["Exporting…"])</p>
     }
     else if (_result is { } result)
     {
         <p role="status">
-            Exported @result.Notes note(s) and @result.Files file(s) to <code>@result.Path</code>.
+            @T["Exported {0} note(s) and {1} file(s) to", result.Notes, result.Files] <code>@result.Path</code>.
             @if (result.Problems.Count > 0)
             {
-                <text> @result.Problems.Count problem(s): @string.Join(" ", result.Problems)</text>
+                <text> @T["{0} problem(s):", result.Problems.Count] @string.Join(" ", result.Problems)</text>
             }
         </p>
     }
@@ -52,7 +52,7 @@
 
     private async Task ExportAllAsync()
     {
-        var folder = await Shell.PickFolderAsync("Choose a folder for the export");
+        var folder = await Shell.PickFolderAsync(T["Choose a folder for the export"]);
         if (folder is null)
         {
             return;
@@ -63,7 +63,7 @@
 
     private async Task ExportPackageAsync()
     {
-        var path = await Shell.PickSaveLocationAsync("Save a package", $"worriorvex-{DateTime.Now:yyyyMMdd}.worriorvex");
+        var path = await Shell.PickSaveLocationAsync(T["Save a package"], $"worriorvex-{DateTime.Now:yyyyMMdd}.worriorvex");
         if (path is null)
         {
             return;
@@ -89,7 +89,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Export failed");
-            _error = "The export stopped with an error. Details are in the log file.";
+            _error = T["The export stopped with an error. Details are in the log file."];
         }
         finally
         {

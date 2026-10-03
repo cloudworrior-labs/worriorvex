@@ -1,11 +1,12 @@
+@inject Translator T
 <div class="wn-empty wn-welcome">
     <img src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="72" height="72" />
-    <h1>Welcome to WorriorVex</h1>
-    <p>A private place for your notes, ideas and knowledge. Everything stays on this computer.</p>
+    <h1>@T["Welcome to WorriorVex"]</h1>
+    <p>@T["A private place for your notes, ideas and knowledge. Everything stays on this computer."]</p>
     <div class="wn-welcome-actions">
-        <button type="button" class="wn-button wn-button-primary" @onclick="OnCreateNotebook">Create my first notebook</button>
-        <button type="button" class="wn-button" @onclick="OnNewNote">Just start a note</button>
-        <button type="button" class="wn-button" @onclick="OnImport">Import a KeepNote notebook</button>
+        <button type="button" class="wn-button wn-button-primary" @onclick="OnCreateNotebook">@T["Create my first notebook"]</button>
+        <button type="button" class="wn-button" @onclick="OnNewNote">@T["Just start a note"]</button>
+        <button type="button" class="wn-button" @onclick="OnImport">@T["Import a KeepNote notebook"]</button>
     </div>
 </div>
 

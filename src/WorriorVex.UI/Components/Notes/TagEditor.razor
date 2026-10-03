@@ -1,17 +1,18 @@
+@inject Translator T
 @using WorriorVex.Application.Tags
 @using WorriorVex.Domain
 @inject ITagService Tags
 @inject ILogger<TagEditor> Logger
 
-<div class="wn-tags" aria-label="Tags">
+<div class="wn-tags" aria-label="@T["Tags"]">
     @foreach (var tag in _tags)
     {
         <span class="wn-tag" @key="tag.Id">
             <span>@tag.Name</span>
-            <button type="button" class="wn-tag-remove" aria-label="Remove tag @tag.Name" title="Remove tag" @onclick="() => RemoveAsync(tag)">×</button>
+            <button type="button" class="wn-tag-remove" aria-label="@T["Remove tag {0}", tag.Name]" title="@T["Remove tag"]" @onclick="() => RemoveAsync(tag)">×</button>
         </span>
     }
-    <input class="wn-tag-input" type="text" list="wn-tag-suggestions" placeholder="@(_tags.Count == 0 ? "Add tag…" : "+")" aria-label="Add a tag"
+    <input class="wn-tag-input" type="text" list="wn-tag-suggestions" placeholder="@(_tags.Count == 0 ? T["Add tag…"] : "+")" aria-label="@T["Add a tag"]"
            maxlength="@Tag.MaxNameLength" autocomplete="off" spellcheck="false" value="@_entry"
            @oninput="e => _entry = e.Value?.ToString() ?? string.Empty" @onkeydown="OnKeyDown" @onblur="AddEntryAsync" />
     <datalist id="wn-tag-suggestions">
@@ -59,7 +60,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Tags could not be loaded");
-            _error = "Tags could not be loaded.";
+            _error = T["Tags could not be loaded."];
         }
     }
 
@@ -114,7 +115,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "A tag could not be added");
-            _error = "The tag could not be added.";
+            _error = T["The tag could not be added."];
         }
     }
 
@@ -130,7 +131,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "A tag could not be removed");
-            _error = "The tag could not be removed.";
+            _error = T["The tag could not be removed."];
         }
     }
 }

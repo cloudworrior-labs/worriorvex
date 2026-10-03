@@ -1,22 +1,23 @@
-<section class="wn-trash-detail" aria-label="Deleted item">
-    <p class="wn-trash-kind">@TrashList.KindLabel(Item.Kind) in the trash</p>
+@inject Translator T
+<section class="wn-trash-detail" aria-label="@T["Deleted item"]">
+    <p class="wn-trash-kind">@T["{0} in the trash", TrashList.KindLabel(T, Item.Kind)]</p>
     <h1>@Item.Name</h1>
     <dl>
-        <dt>Deleted</dt>
+        <dt>@T["Deleted"]</dt>
         <dd>@Item.DeletedAt.ToLocalTime().ToString("f")</dd>
         @if (Item.OriginalLocation.Length > 0)
         {
-            <dt>Was in</dt>
+            <dt>@T["Was in"]</dt>
             <dd>@Item.OriginalLocation</dd>
         }
     </dl>
     @if (Item.Kind != TrashItemKind.Note)
     {
-        <p>Everything that was inside it when it was deleted comes back with it.</p>
+        <p>@T["Everything that was inside it when it was deleted comes back with it."]</p>
     }
     <div class="wn-trash-actions">
-        <button type="button" class="wn-button wn-button-primary" @onclick="() => OnRestore.InvokeAsync(Item)">Restore</button>
-        <button type="button" class="wn-button wn-button-danger" @onclick="() => OnDelete.InvokeAsync(Item)">Delete permanently…</button>
+        <button type="button" class="wn-button wn-button-primary" @onclick="() => OnRestore.InvokeAsync(Item)">@T["Restore"]</button>
+        <button type="button" class="wn-button wn-button-danger" @onclick="() => OnDelete.InvokeAsync(Item)">@T["Delete permanently…"]</button>
     </div>
 </section>
 

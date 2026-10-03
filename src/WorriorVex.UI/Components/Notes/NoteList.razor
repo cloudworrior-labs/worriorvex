@@ -1,4 +1,5 @@
-<section class="wn-notelist" aria-label="Notes">
+@inject Translator T
+<section class="wn-notelist" aria-label="@T["Notes"]">
     <header class="wn-pane-header">
         <h2>@Heading</h2>
         <span class="wn-count">@Notes.Count</span>
@@ -14,8 +15,8 @@
     else if (Notes.Count == 0)
     {
         <div class="wn-empty">
-            <p>Nothing here yet.</p>
-            <button type="button" class="wn-button wn-button-primary" @onclick="OnCreate">@(FirstEver ? "Create your first note" : "New note")</button>
+            <p>@T["Nothing here yet."]</p>
+            <button type="button" class="wn-button wn-button-primary" @onclick="OnCreate">@(FirstEver ? T["Create your first note"] : T["New note"])</button>
         </div>
     }
     else
@@ -37,11 +38,11 @@
                         <span class="wn-noteitem-title">
                             @if (note.IsPinned)
                             {
-                                <span class="wn-noteitem-flag" title="Pinned" aria-label="Pinned">⌖</span>
+                                <span class="wn-noteitem-flag" title="@T["Pinned"]" aria-label="@T["Pinned"]">⌖</span>
                             }
                             @if (note.IsFavorite)
                             {
-                                <span class="wn-noteitem-flag" title="Favorite" aria-label="Favorite">★</span>
+                                <span class="wn-noteitem-flag" title="@T["Favorite"]" aria-label="@T["Favorite"]">★</span>
                             }
                             @note.Title
                         </span>
@@ -50,10 +51,10 @@
                             {
                                 <text>@notebook · </text>
                             }
-                            @(ShowOpened && note.LastOpenedAt is { } opened ? Format("Opened", opened) : Format("Updated", note.UpdatedAt))
+                            @(ShowOpened && note.LastOpenedAt is { } opened ? Format(T["Opened"], opened) : Format(T["Updated"], note.UpdatedAt))
                             @if (note.LinkCount > 0)
                             {
-                                <span class="wn-noteitem-links" title="@(note.LinkCount == 1 ? "1 link to or from this note" : $"{note.LinkCount} links to or from this note")">⛓ @note.LinkCount</span>
+                                <span class="wn-noteitem-links" title="@(note.LinkCount == 1 ? T["1 link to or from this note"] : T["{0} links to or from this note", note.LinkCount])">⛓ @note.LinkCount</span>
                             }
                         </span>
                     </button>

@@ -1,18 +1,19 @@
-<section class="wn-notelist" aria-label="Trash">
+@inject Translator T
+<section class="wn-notelist" aria-label="@T["Trash"]">
     <header class="wn-pane-header">
-        <h2>Trash</h2>
+        <h2>@T["Trash"]</h2>
         <span class="wn-count">@Items.Count</span>
     </header>
     @if (Items.Count == 0)
     {
-        <div class="wn-empty"><p>The trash is empty.</p></div>
+        <div class="wn-empty"><p>@T["The trash is empty."]</p></div>
     }
     else
     {
         <div class="wn-pane-actions">
-            <button type="button" class="wn-button wn-button-small" @onclick="OnEmpty">Empty trash…</button>
+            <button type="button" class="wn-button wn-button-small" @onclick="OnEmpty">@T["Empty trash…"]</button>
         </div>
-        <ul class="wn-notelist-items" aria-label="Deleted items">
+        <ul class="wn-notelist-items" aria-label="@T["Deleted items"]">
             @foreach (var item in Items)
             {
                 var selected = item.Id == SelectedId;
@@ -20,7 +21,7 @@
                     <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
                             @onclick="() => OnSelect.InvokeAsync(item)">
                         <span class="wn-noteitem-title">@item.Name</span>
-                        <span class="wn-noteitem-meta">@KindLabel(item.Kind) · deleted @item.DeletedAt.ToLocalTime().ToString("g")</span>
+                        <span class="wn-noteitem-meta">@KindLabel(T, item.Kind) · @T["deleted"] @item.DeletedAt.ToLocalTime().ToString("g")</span>
                     </button>
                 </li>
             }
@@ -34,10 +35,10 @@
     [Parameter] public EventCallback<TrashItem> OnSelect { get; set; }
     [Parameter] public EventCallback OnEmpty { get; set; }
 
-    internal static string KindLabel(TrashItemKind kind) => kind switch
+    internal static string KindLabel(Translator t, TrashItemKind kind) => kind switch
     {
-        TrashItemKind.Notebook => "Notebook",
-        TrashItemKind.Folder => "Folder",
-        _ => "Note",
+        TrashItemKind.Notebook => t["Notebook"],
+        TrashItemKind.Folder => t["Folder"],
+        _ => t["Note"],
     };
 }

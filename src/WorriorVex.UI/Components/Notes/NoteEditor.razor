@@ -4,34 +4,35 @@
 @using WorriorVex.Application.Platform
 @using WorriorVex.Domain
 @inject IJSRuntime JS
+@inject Translator T
 @inject IAttachmentService Attachments
 @inject IPlatformShell Shell
 @inject ILogger<NoteEditor> Logger
 @inject WorriorVex.Application.Settings.ISettingsService Settings
 
-<section class="wn-editor" aria-label="Editor">
+<section class="wn-editor" aria-label="@T["Editor"]">
     <div class="wn-title-row">
         <input @ref="_titleInput"
                class="wn-title"
                type="text"
                value="@_title"
                maxlength="500"
-               placeholder="Untitled"
-               aria-label="Note title"
+               placeholder="@T["Untitled"]"
+               aria-label="@T["Note title"]"
                spellcheck="@(Settings.Current.SpellCheck ? "true" : "false")"
                @oninput="OnTitleInput"
                @onkeydown="OnTitleKeyDown" />
-        <button type="button" class="wn-tool @(Note.IsFavorite ? "is-active" : null)" title="@(Note.IsFavorite ? "Remove from favorites" : "Add to favorites")"
-                aria-pressed="@(Note.IsFavorite ? "true" : "false")" @onclick="() => OnToggleFavorite.InvokeAsync()">@(Note.IsFavorite ? "★" : "☆") Favorite</button>
-        <button type="button" class="wn-tool @(Note.IsPinned ? "is-active" : null)" title="@(Note.IsPinned ? "Unpin from the top of its list" : "Pin to the top of its list")"
-                aria-pressed="@(Note.IsPinned ? "true" : "false")" @onclick="() => OnTogglePinned.InvokeAsync()">⌖ Pin</button>
-        <button type="button" class="wn-tool" title="Move this note to the trash" @onclick="OnDelete">Delete</button>
+        <button type="button" class="wn-tool @(Note.IsFavorite ? "is-active" : null)" title="@(Note.IsFavorite ? T["Remove from favorites"] : T["Add to favorites"])"
+                aria-pressed="@(Note.IsFavorite ? "true" : "false")" @onclick="() => OnToggleFavorite.InvokeAsync()">@(Note.IsFavorite ? "★" : "☆") @T["Favorite"]</button>
+        <button type="button" class="wn-tool @(Note.IsPinned ? "is-active" : null)" title="@(Note.IsPinned ? T["Unpin from the top of its list"] : T["Pin to the top of its list"])"
+                aria-pressed="@(Note.IsPinned ? "true" : "false")" @onclick="() => OnTogglePinned.InvokeAsync()">⌖ @T["Pin"]</button>
+        <button type="button" class="wn-tool" title="@T["Move this note to the trash"]" @onclick="OnDelete">@T["Delete"]</button>
     </div>
 
     <TagEditor NoteId="Note.Id" OnChanged="OnTagsChanged" />
 
     @* Pressing a mouse button on the toolbar must not take focus (and the selection) away from the text. *@
-    <div class="wn-toolbar" role="toolbar" aria-label="Formatting">
+    <div class="wn-toolbar" role="toolbar" aria-label="@T["Formatting"]">
         @foreach (var group in ToolbarGroups)
         {
             <div class="wn-toolbar-group">
@@ -40,8 +41,8 @@
                     var active = _active.Contains(item.Command);
                     <button type="button"
                             class="wn-tool @(active ? "is-active" : null)"
-                            title="@item.Label"
-                            aria-label="@item.Label"
+                            title="@T[item.Label]"
+                            aria-label="@T[item.Label]"
                             aria-pressed="@(active ? "true" : "false")"
                             @onmousedown:preventDefault
                             @onclick="() => RunAsync(item.Command)">@item.Text</button>
@@ -49,37 +50,37 @@
             </div>
         }
         <div class="wn-toolbar-group">
-            <button type="button" class="wn-tool @(_active.Contains("link") ? "is-active" : null)" title="Link (@Modifier+click a link to open it)"
-                    aria-pressed="@(_active.Contains("link") ? "true" : "false")" @onmousedown:preventDefault @onclick="PromptLinkAsync">Link</button>
+            <button type="button" class="wn-tool @(_active.Contains("link") ? "is-active" : null)" title="@T["Link"] (@Modifier+@T["click a link to open it"])"
+                    aria-pressed="@(_active.Contains("link") ? "true" : "false")" @onmousedown:preventDefault @onclick="PromptLinkAsync">@T["Link"]</button>
             @if (_active.Contains("link"))
             {
-                <button type="button" class="wn-tool" title="Remove link" @onmousedown:preventDefault @onclick="@(() => RunAsync("unlink"))">Unlink</button>
+                <button type="button" class="wn-tool" title="@T["Remove link"]" @onmousedown:preventDefault @onclick="@(() => RunAsync("unlink"))">@T["Unlink"]</button>
             }
-            <button type="button" class="wn-tool" title="Link to another note" @onmousedown:preventDefault @onclick="() => _notePicker = true">Note link</button>
-            <button type="button" class="wn-tool" title="Insert image from a file" @onmousedown:preventDefault @onclick="PickImageAsync">Image</button>
-            <button type="button" class="wn-tool" title="Attach a file to this note" @onmousedown:preventDefault @onclick="AttachFileAsync">Attach</button>
-            <button type="button" class="wn-tool" title="Earlier versions of this note" @onmousedown:preventDefault @onclick="OpenHistoryAsync">History</button>
-            <button type="button" class="wn-tool" title="Insert table" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">Table</button>
+            <button type="button" class="wn-tool" title="@T["Link to another note"]" @onmousedown:preventDefault @onclick="() => _notePicker = true">@T["Note link"]</button>
+            <button type="button" class="wn-tool" title="@T["Insert image from a file"]" @onmousedown:preventDefault @onclick="PickImageAsync">@T["Image"]</button>
+            <button type="button" class="wn-tool" title="@T["Attach a file to this note"]" @onmousedown:preventDefault @onclick="AttachFileAsync">@T["Attach"]</button>
+            <button type="button" class="wn-tool" title="@T["Earlier versions of this note"]" @onmousedown:preventDefault @onclick="OpenHistoryAsync">@T["History"]</button>
+            <button type="button" class="wn-tool" title="@T["Insert table"]" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">@T["Table"]</button>
         </div>
         <div class="wn-toolbar-group">
-            <button type="button" class="wn-tool @(_active.Contains("highlight") ? "is-active" : null)" title="Highlight (marker)" aria-pressed="@(_active.Contains("highlight") ? "true" : "false")"
+            <button type="button" class="wn-tool @(_active.Contains("highlight") ? "is-active" : null)" title="@T["Highlight (marker)"]" aria-pressed="@(_active.Contains("highlight") ? "true" : "false")"
                     @onmousedown:preventDefault @onclick="@(() => RunAsync("highlight"))"><mark>ab</mark></button>
-            <select class="wn-select wn-tool-select @(_active.Contains("callout") ? "is-active" : null)" aria-label="Callout box" title="Callout box: a box that stands out; choose it again to remove it"
+            <select class="wn-select wn-tool-select @(_active.Contains("callout") ? "is-active" : null)" aria-label="@T["Callout box"]" title="@T["Callout box: a box that stands out; choose it again to remove it"]"
                     @key="_calloutKey" value="" @onchange="OnCalloutChosenAsync">
-                <option value="">@(_active.Contains("callout") ? "Callout ✓" : "Callout…")</option>
-                <option value="calloutInfo">Info</option>
-                <option value="calloutTip">Tip</option>
-                <option value="calloutWarning">Warning</option>
-                <option value="calloutDanger">Danger</option>
+                <option value="">@(_active.Contains("callout") ? T["Callout ✓"] : T["Callout…"])</option>
+                <option value="calloutInfo">@T["Info"]</option>
+                <option value="calloutTip">@T["Tip"]</option>
+                <option value="calloutWarning">@T["Warning"]</option>
+                <option value="calloutDanger">@T["Danger"]</option>
             </select>
-            <button type="button" class="wn-tool @(_find ? "is-active" : null)" title="Find and replace (@Modifier+F)" aria-pressed="@(_find ? "true" : "false")"
-                    @onmousedown:preventDefault @onclick="OpenFindAsync">Find</button>
+            <button type="button" class="wn-tool @(_find ? "is-active" : null)" title="@T["Find and replace"] (@Modifier+F)" aria-pressed="@(_find ? "true" : "false")"
+                    @onmousedown:preventDefault @onclick="OpenFindAsync">@T["Find"]</button>
         </div>
         @if (_active.Contains("codeBlock"))
         {
-            <div class="wn-toolbar-group" role="group" aria-label="Code block">
-                <select class="wn-select wn-tool-select" aria-label="Language" title="Language of the code block" value="@_codeLanguage" @onchange="e => SetCodeLanguageAsync((string)e.Value!)">
-                    <option value="">Plain</option>
+            <div class="wn-toolbar-group" role="group" aria-label="@T["Code block"]">
+                <select class="wn-select wn-tool-select" aria-label="@T["Language"]" title="@T["Language of the code block"]" value="@_codeLanguage" @onchange="e => SetCodeLanguageAsync((string)e.Value!)">
+                    <option value="">@T["Plain"]</option>
                     @foreach (var language in CodeLanguages)
                     {
                         <option value="@language.Id">@language.Name</option>
@@ -89,11 +90,11 @@
         }
         @if (_active.Contains("table"))
         {
-            <div class="wn-toolbar-group" role="group" aria-label="Table">
+            <div class="wn-toolbar-group" role="group" aria-label="@T["Table"]">
                 @foreach (var item in TableTools)
                 {
-                    <button type="button" class="wn-tool" title="@item.Label" aria-label="@item.Label"
-                            @onmousedown:preventDefault @onclick="() => RunAsync(item.Command)">@item.Text</button>
+                    <button type="button" class="wn-tool" title="@T[item.Label]" aria-label="@T[item.Label]"
+                            @onmousedown:preventDefault @onclick="() => RunAsync(item.Command)">@T[item.Text]</button>
                 }
             </div>
         }
@@ -101,18 +102,18 @@
 
     @if (_find)
     {
-        <div class="wn-findbar" role="search" aria-label="Find in note">
-            <input @ref="_findInput" type="text" class="wn-input wn-find-input" placeholder="Find" aria-label="Find" value="@_findText" autocomplete="off"
+        <div class="wn-findbar" role="search" aria-label="@T["Find in note"]">
+            <input @ref="_findInput" type="text" class="wn-input wn-find-input" placeholder="@T["Find"]" aria-label="@T["Find"]" value="@_findText" autocomplete="off"
                    @oninput="e => FindAsync(e.Value?.ToString() ?? string.Empty)" @onkeydown="OnFindKeyDown" />
-            <span class="wn-find-count" aria-live="polite">@(_findCount == 0 ? (_findText.Length == 0 ? "" : "No matches") : $"{_findCurrent} of {_findCount}")</span>
-            <button type="button" class="wn-tool" title="Previous match (Shift+Enter)" aria-label="Previous match" @onclick="() => FindNextAsync(true)">↑</button>
-            <button type="button" class="wn-tool" title="Next match (Enter)" aria-label="Next match" @onclick="() => FindNextAsync(false)">↓</button>
-            <label class="wn-find-option"><input type="checkbox" checked="@_findCase" @onchange="e => SetFindCaseAsync((bool)e.Value!)" /> Match case</label>
-            <input type="text" class="wn-input wn-find-input" placeholder="Replace with" aria-label="Replace with" value="@_replaceText" autocomplete="off"
+            <span class="wn-find-count" aria-live="polite">@(_findCount == 0 ? (_findText.Length == 0 ? "" : T["No matches"]) : T["{0} of {1}", _findCurrent, _findCount])</span>
+            <button type="button" class="wn-tool" title="@T["Previous match"] (Shift+Enter)" aria-label="@T["Previous match"]" @onclick="() => FindNextAsync(true)">↑</button>
+            <button type="button" class="wn-tool" title="@T["Next match"] (Enter)" aria-label="@T["Next match"]" @onclick="() => FindNextAsync(false)">↓</button>
+            <label class="wn-find-option"><input type="checkbox" checked="@_findCase" @onchange="e => SetFindCaseAsync((bool)e.Value!)" /> @T["Match case"]</label>
+            <input type="text" class="wn-input wn-find-input" placeholder="@T["Replace with"]" aria-label="@T["Replace with"]" value="@_replaceText" autocomplete="off"
                    @oninput="e => _replaceText = e.Value?.ToString() ?? string.Empty" @onkeydown="OnReplaceKeyDown" />
-            <button type="button" class="wn-tool" title="Replace this match" @onclick="ReplaceAsync" disabled="@(_findCount == 0)">Replace</button>
-            <button type="button" class="wn-tool" title="Replace every match" @onclick="ReplaceAllAsync" disabled="@(_findCount == 0)">All</button>
-            <button type="button" class="wn-tool" title="Close (Esc)" aria-label="Close find" @onclick="CloseFindAsync">✕</button>
+            <button type="button" class="wn-tool" title="@T["Replace this match"]" @onclick="ReplaceAsync" disabled="@(_findCount == 0)">@T["Replace"]</button>
+            <button type="button" class="wn-tool" title="@T["Replace every match"]" @onclick="ReplaceAllAsync" disabled="@(_findCount == 0)">@T["All"]</button>
+            <button type="button" class="wn-tool" title="@T["Close"] (Esc)" aria-label="@T["Close find"]" @onclick="CloseFindAsync">✕</button>
         </div>
     }
 
@@ -134,7 +135,7 @@
 
 @if (_linkPrompt)
 {
-    <PromptDialog Title="Link" Label="Web address" InitialValue="@_linkAddress" ConfirmText="Apply" MaxLength="2000"
+    <PromptDialog Title="@T["Link"]" Label="@T["Web address"]" InitialValue="@_linkAddress" ConfirmText="@T["Apply"]" MaxLength="2000"
                   Error="@_linkError" OnConfirm="ApplyLinkAsync" OnCancel="CloseLinkPrompt" />
 }
 
@@ -428,7 +429,7 @@
         catch (Exception ex) when (ex is not DomainException)
         {
             Logger.LogError(ex, "A pasted or dropped image could not be read");
-            await OnProblem.InvokeAsync("The image could not be added.");
+            await OnProblem.InvokeAsync(T["The image could not be added."]);
             return null;
         }
         finally
@@ -471,7 +472,7 @@
 
     private async Task PickImageAsync()
     {
-        var path = await Shell.PickFileAsync("Insert image", "Images", [.. NoteContentRules.ImageContentTypes.Keys]);
+        var path = await Shell.PickFileAsync(T["Insert image"], T["Images"], [.. NoteContentRules.ImageContentTypes.Keys]);
         if (path is null || _editor is null)
         {
             return;
@@ -489,7 +490,7 @@
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Logger.LogError(ex, "The chosen image could not be read");
-            await OnProblem.InvokeAsync("That file could not be read.");
+            await OnProblem.InvokeAsync(T["That file could not be read."]);
         }
     }
 
@@ -498,7 +499,7 @@
         var fileName = NoteContentRules.ImageFileName(name, contentType);
         if (fileName is null)
         {
-            await OnProblem.InvokeAsync("Only PNG, JPEG, GIF and WebP images can be placed in a note.");
+            await OnProblem.InvokeAsync(T["Only PNG, JPEG, GIF and WebP images can be placed in a note."]);
             return null;
         }
 
@@ -528,7 +529,7 @@
         catch (Exception ex) when (ex is not DomainException)
         {
             Logger.LogError(ex, "A dropped file could not be read");
-            await OnProblem.InvokeAsync("The file could not be attached.");
+            await OnProblem.InvokeAsync(T["The file could not be attached."]);
         }
         finally
         {
@@ -538,7 +539,7 @@
 
     private async Task AttachFileAsync()
     {
-        var path = await Shell.PickFileAsync("Attach a file", "All files", []);
+        var path = await Shell.PickFileAsync(T["Attach a file"], T["All files"], []);
         if (path is null)
         {
             return;
@@ -552,7 +553,7 @@
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Logger.LogError(ex, "The chosen file could not be read");
-            await OnProblem.InvokeAsync("That file could not be read.");
+            await OnProblem.InvokeAsync(T["That file could not be read."]);
         }
     }
 
@@ -604,7 +605,7 @@
         var full = address.Contains("://", StringComparison.Ordinal) ? address : "https://" + address;
         if (!NoteContentRules.IsWebLink(full) || full.Any(char.IsWhiteSpace))
         {
-            _linkError = "Enter a web address, such as https://www.cloudworrior.com";
+            _linkError = T["Enter a web address, such as https://www.cloudworrior.com"];
             return;
         }
 
@@ -651,7 +652,7 @@
     /// Calls a function of the editor module. A failure there must not take the whole page down,
     /// so it is logged and shown as a message instead.
     /// </summary>
-    private async Task<T?> EditorAsync<T>(string function, params object?[] args)
+    private async Task<TResult?> EditorAsync<TResult>(string function, params object?[] args)
     {
         if (_editor is null)
         {
@@ -660,12 +661,12 @@
 
         try
         {
-            return await _editor.InvokeAsync<T>(function, args);
+            return await _editor.InvokeAsync<TResult>(function, args);
         }
         catch (JSException ex)
         {
             Logger.LogError(ex, "The editor could not run {Function}", function);
-            await OnProblem.InvokeAsync("The editor did not respond. Reopen the note and try again.");
+            await OnProblem.InvokeAsync(T["The editor did not respond. Reopen the note and try again."]);
             return default;
         }
     }
@@ -684,7 +685,7 @@
         catch (JSException ex)
         {
             Logger.LogError(ex, "The editor function {Function} failed", function);
-            await OnProblem.InvokeAsync("The editor did not respond to that. If it keeps happening, restart WorriorVex.");
+            await OnProblem.InvokeAsync(T["The editor did not respond to that. If it keeps happening, restart WorriorVex."]);
         }
     }
 

@@ -1,3 +1,4 @@
+@inject Translator T
 @* One level of the tree: the folders and, when wanted, the notes directly inside a notebook or folder. *@
 <ul class="wn-nav-list wn-tree" style="--wn-level: @Level">
     @foreach (var folder in Children[(NotebookId, ParentId)])
@@ -11,7 +12,7 @@
                 @if (hasChildren)
                 {
                     <button type="button" class="wn-twisty" data-twisty aria-expanded="@(expanded ? "true" : "false")"
-                            aria-label="@(expanded ? "Collapse" : "Expand") @folder.Name" title="@(expanded ? "Collapse" : "Expand")" tabindex="-1"
+                            aria-label="@(expanded ? T["Collapse"] : T["Expand"]) @folder.Name" title="@(expanded ? T["Collapse"] : T["Expand"])" tabindex="-1"
                             @onclick="() => OnToggle.InvokeAsync(folder.Id)">@(expanded ? "−" : "+")</button>
                 }
                 else
@@ -34,7 +35,7 @@
                             @ondragenter="() => OnDragEnter.InvokeAsync(folder.Id)" @ondragover:preventDefault
                             @ondrop:preventDefault @ondrop="() => OnDrop.InvokeAsync(selection)">@folder.Name</button>
                 }
-                <button type="button" class="wn-row-add" title="New folder in @folder.Name" aria-label="New folder in @folder.Name" tabindex="-1"
+                <button type="button" class="wn-row-add" title="@T["New folder in {0}", folder.Name]" aria-label="@T["New folder in {0}", folder.Name]" tabindex="-1"
                         @onclick="() => OnAddFolder.InvokeAsync((folder.NotebookId, folder.Id))">+</button>
             </div>
             @if (hasChildren && expanded)
@@ -68,11 +69,11 @@
                             @ondragstart="() => OnNoteDragStart.InvokeAsync(note.Id)" @ondragend="OnDragEnd">
                         @if (note.IsPinned)
                         {
-                            <span class="wn-noteitem-flag" aria-label="Pinned">⌖</span>
+                            <span class="wn-noteitem-flag" aria-label="@T["Pinned"]">⌖</span>
                         }
                         @if (note.IsFavorite)
                         {
-                            <span class="wn-noteitem-flag" aria-label="Favorite">★</span>
+                            <span class="wn-noteitem-flag" aria-label="@T["Favorite"]">★</span>
                         }
                         @note.Title
                     </button>

@@ -1,6 +1,7 @@
+@inject Translator T
 @using WorriorVex.Application.Tags
 
-<nav class="wn-nav" aria-label="Navigation" @ref="Root">
+<nav class="wn-nav" aria-label="@T["Navigation"]" @ref="Root">
     <ul class="wn-nav-list">
         @if (Inbox is not null)
         {
@@ -11,7 +12,7 @@
                 <div class="wn-navrow">
                     @if (inboxHasNotes)
                     {
-                        <button type="button" class="wn-twisty" data-twisty aria-expanded="@(inboxExpanded ? "true" : "false")" aria-label="@(inboxExpanded ? "Collapse" : "Expand") Inbox" tabindex="-1"
+                        <button type="button" class="wn-twisty" data-twisty aria-expanded="@(inboxExpanded ? "true" : "false")" aria-label="@(inboxExpanded ? T["Collapse"] : T["Expand"]) @T["Inbox"]" tabindex="-1"
                                 @onclick="() => Toggle(Inbox.Id)">@(inboxExpanded ? "−" : "+")</button>
                     }
                     else
@@ -22,7 +23,7 @@
                             data-tree-item data-level="0" data-expanded="@(inboxHasNotes ? (inboxExpanded ? "true" : "false") : null)"
                             @onclick="() => OnSelect.InvokeAsync(inbox)"
                             @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((inbox, e))"
-                            @ondragenter="() => _dropTarget = Inbox.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(inbox)">Inbox</button>
+                            @ondragenter="() => _dropTarget = Inbox.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(inbox)">@T["Inbox"]</button>
                 </div>
                 @if (inboxHasNotes && inboxExpanded)
                 {
@@ -37,26 +38,26 @@
         }
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.AllNotes())" aria-current="@Current(new NavSelection.AllNotes())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.AllNotes())">All Notes</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.AllNotes())">@T["All Notes"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Favorites())" aria-current="@Current(new NavSelection.Favorites())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Favorites())">Favorites</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Favorites())">@T["Favorites"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Recent())" aria-current="@Current(new NavSelection.Recent())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Recent())">Recent</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Recent())">@T["Recent"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.LooseEnds())" aria-current="@Current(new NavSelection.LooseEnds())"
-                    title="Notes with no tag and no link to or from another note" @onclick="() => OnSelect.InvokeAsync(new NavSelection.LooseEnds())">Loose ends</button>
+                    title="@T["Notes with no tag and no link to or from another note"]" @onclick="() => OnSelect.InvokeAsync(new NavSelection.LooseEnds())">@T["Loose ends"]</button>
         </li>
     </ul>
 
     @if (SavedSearches.Count > 0)
     {
         <div class="wn-nav-section">
-            <h2 id="wn-saved-heading">Saved searches</h2>
+            <h2 id="wn-saved-heading">@T["Saved searches"]</h2>
         </div>
         <ul class="wn-nav-list" aria-labelledby="wn-saved-heading">
             @for (var i = 0; i < SavedSearches.Count; i++)
@@ -76,13 +77,13 @@
     }
 
     <div class="wn-nav-section">
-        <h2 id="wn-notebooks-heading">Notebooks</h2>
-        <button type="button" class="wn-iconbutton" title="New notebook" aria-label="New notebook" @onclick="OnNewNotebook">+</button>
+        <h2 id="wn-notebooks-heading">@T["Notebooks"]</h2>
+        <button type="button" class="wn-iconbutton" title="@T["New notebook"]" aria-label="@T["New notebook"]" @onclick="OnNewNotebook">+</button>
     </div>
 
     @if (UserNotebooks.Count == 0)
     {
-        <p class="wn-nav-hint">No notebooks yet.</p>
+        <p class="wn-nav-hint">@T["No notebooks yet."]</p>
     }
     else
     {
@@ -97,7 +98,7 @@
                         @if (hasChildren)
                         {
                             <button type="button" class="wn-twisty" data-twisty aria-expanded="@(expanded ? "true" : "false")"
-                                    aria-label="@(expanded ? "Collapse" : "Expand") @notebook.Name" title="@(expanded ? "Collapse" : "Expand")" tabindex="-1"
+                                    aria-label="@(expanded ? T["Collapse"] : T["Expand"]) @notebook.Name" title="@(expanded ? T["Collapse"] : T["Expand"])" tabindex="-1"
                                     @onclick="() => Toggle(notebook.Id)">@(expanded ? "−" : "+")</button>
                         }
                         else
@@ -117,7 +118,7 @@
                                     @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
                                     @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>
                         }
-                        <button type="button" class="wn-row-add" title="New folder in @notebook.Name" aria-label="New folder in @notebook.Name" tabindex="-1"
+                        <button type="button" class="wn-row-add" title="@T["New folder in {0}", notebook.Name]" aria-label="@T["New folder in {0}", notebook.Name]" tabindex="-1"
                                 @onclick="() => OnAddFolder.InvokeAsync((notebook.Id, null))">+</button>
                     </div>
                     @if (hasChildren && expanded)
@@ -137,7 +138,7 @@
     @if (Tags.Count > 0)
     {
         <div class="wn-nav-section">
-            <h2 id="wn-tags-heading">Tags</h2>
+            <h2 id="wn-tags-heading">@T["Tags"]</h2>
         </div>
         <ul class="wn-nav-list" aria-labelledby="wn-tags-heading">
             @foreach (var tag in Tags)
@@ -158,23 +159,23 @@
     <ul class="wn-nav-list wn-nav-bottom">
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Trash())" aria-current="@Current(new NavSelection.Trash())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Trash())">Trash</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Trash())">@T["Trash"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Data())" aria-current="@Current(new NavSelection.Data())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Data())">Import &amp; backup</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Data())">@T["Import & backup"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Settings())" aria-current="@Current(new NavSelection.Settings())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Settings())">Settings</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Settings())">@T["Settings"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Documentation())" aria-current="@Current(new NavSelection.Documentation())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Documentation())">Documentation</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Documentation())">@T["Documentation"]</button>
         </li>
         <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.About())" aria-current="@Current(new NavSelection.About())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.About())">About</button>
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.About())">@T["About"]</button>
         </li>
     </ul>
 </nav>

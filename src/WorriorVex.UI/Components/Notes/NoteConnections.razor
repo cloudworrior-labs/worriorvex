@@ -1,14 +1,15 @@
+@inject Translator T
 @using WorriorVex.Application.Links
 @inject INoteLinkService Links
 @inject ILogger<NoteConnections> Logger
 
 @if (_links.Count + _backlinks.Count + _related.Count > 0)
 {
-    <aside class="wn-connections" aria-label="Connected notes">
+    <aside class="wn-connections" aria-label="@T["Connected notes"]">
         @if (_links.Count > 0)
         {
             <section>
-                <h3>Links to</h3>
+                <h3>@T["Links to"]</h3>
                 <ul>
                     @foreach (var note in _links)
                     {
@@ -20,7 +21,7 @@
         @if (_backlinks.Count > 0)
         {
             <section>
-                <h3>Linked from</h3>
+                <h3>@T["Linked from"]</h3>
                 <ul>
                     @foreach (var note in _backlinks)
                     {
@@ -32,7 +33,7 @@
         @if (_related.Count > 0)
         {
             <section>
-                <h3>Related by tags</h3>
+                <h3>@T["Related by tags"]</h3>
                 <ul>
                     @foreach (var note in _related)
                     {

@@ -1,9 +1,10 @@
+@inject Translator T
 <div class="wn-overlay" @onkeydown="OnKeyDown">
     <div class="wn-dialog" role="alertdialog" aria-modal="true" aria-labelledby="wn-confirm-title" aria-describedby="wn-confirm-message">
         <h2 id="wn-confirm-title">@Title</h2>
         <p id="wn-confirm-message">@Message</p>
         <div class="wn-dialog-actions">
-            <button type="button" class="wn-button" @ref="_cancel" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="wn-button" @ref="_cancel" @onclick="OnCancel">@T["Cancel"]</button>
             <button type="button" class="wn-button @(Danger ? "wn-button-danger" : "wn-button-primary")" disabled="@_busy" @onclick="ConfirmAsync">@ConfirmText</button>
         </div>
     </div>

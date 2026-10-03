@@ -1,46 +1,47 @@
+@inject Translator T
 @using WorriorVex.Application.Search
 
-<section class="wn-notelist" aria-label="Search results">
+<section class="wn-notelist" aria-label="@T["Search results"]">
     <header class="wn-pane-header">
-        <h2>Search</h2>
+        <h2>@T["Search"]</h2>
         <span class="wn-count" aria-live="polite">@(Searching ? "…" : Results.Count.ToString())</span>
     </header>
     <div class="wn-pane-actions wn-search-options">
         @if (ScopeName is not null)
         {
-            <label class="wn-find-option" title="Only notes in @ScopeName"><input type="checkbox" checked="@Scoped" @onchange="e => OnScopedChanged.InvokeAsync((bool)e.Value!)" /> Only in “@ScopeName”</label>
+            <label class="wn-find-option" title="@T["Only notes in {0}", ScopeName]"><input type="checkbox" checked="@Scoped" @onchange="e => OnScopedChanged.InvokeAsync((bool)e.Value!)" /> @T["Only in “{0}”", ScopeName]</label>
         }
         @if (!string.IsNullOrWhiteSpace(Query))
         {
-            <button type="button" class="wn-button wn-button-small" title="Keep this search in the navigation pane" @onclick="OnSave">Save search</button>
+            <button type="button" class="wn-button wn-button-small" title="@T["Keep this search in the navigation pane"]" @onclick="OnSave">@T["Save search"]</button>
         }
     </div>
     @if (Suggestion is not null && !Searching)
     {
-        <p class="wn-suggestion">Did you mean <button type="button" class="wn-linkbutton" @onclick="() => OnSuggestion.InvokeAsync(Suggestion)">@Suggestion</button>?</p>
+        <p class="wn-suggestion">@T["Did you mean"] <button type="button" class="wn-linkbutton" @onclick="() => OnSuggestion.InvokeAsync(Suggestion)">@Suggestion</button>?</p>
     }
     @if (string.IsNullOrWhiteSpace(Query))
     {
         <div class="wn-empty wn-search-help">
-            <p>Type what you are looking for.</p>
+            <p>@T["Type what you are looking for."]</p>
             <dl>
-                <dt><code>budget plan</code></dt><dd>notes with both words</dd>
-                <dt><code>"q3 plan"</code></dt><dd>the exact phrase</dd>
-                <dt><code>tag:project</code></dt><dd>notes with that tag</dd>
-                <dt><code>in:Projects</code></dt><dd>in that notebook or folder</dd>
+                <dt><code>budget plan</code></dt><dd>@T["notes with both words"]</dd>
+                <dt><code>"q3 plan"</code></dt><dd>@T["the exact phrase"]</dd>
+                <dt><code>tag:project</code></dt><dd>@T["notes with that tag"]</dd>
+                <dt><code>in:Projects</code></dt><dd>@T["in that notebook or folder"]</dd>
             </dl>
         </div>
     }
     else if (Results.Count == 0 && !Searching)
     {
         <div class="wn-empty">
-            <p>No notes found.</p>
-            <p>Try a different search.</p>
+            <p>@T["No notes found."]</p>
+            <p>@T["Try a different search."]</p>
         </div>
     }
     else
     {
-        <ul class="wn-notelist-items" aria-label="Notes found">
+        <ul class="wn-notelist-items" aria-label="@T["Notes found"]">
             @for (var i = 0; i < Results.Count; i++)
             {
                 var result = Results[i];
@@ -83,9 +84,9 @@
     [Parameter] public string? Suggestion { get; set; }
     [Parameter] public EventCallback<string> OnSuggestion { get; set; }
 
-    private static string FormatUpdated(DateTimeOffset updatedAt)
+    private string FormatUpdated(DateTimeOffset updatedAt)
     {
         var local = updatedAt.ToLocalTime();
-        return local.Date == DateTimeOffset.Now.Date ? $"updated {local:t}" : $"updated {local:d}";
+        return local.Date == DateTimeOffset.Now.Date ? T["updated {0}", local.ToString("t")] : T["updated {0}", local.ToString("d")];
     }
 }

@@ -1,10 +1,11 @@
+@inject Translator T
 @using WorriorVex.Application.Tree
 
 <div class="wn-overlay" @onkeydown="OnKeyDown">
     <div class="wn-dialog wn-dialog-move" role="dialog" aria-modal="true" aria-labelledby="wn-move-title">
         <h2 id="wn-move-title">@Title</h2>
-        <p class="wn-dialog-hint">Choose where it goes.</p>
-        <div class="wn-move-tree" role="radiogroup" aria-label="Destination">
+        <p class="wn-dialog-hint">@T["Choose where it goes."]</p>
+        <div class="wn-move-tree" role="radiogroup" aria-label="@T["Destination"]">
             @foreach (var notebook in Notebooks)
             {
                 <MoveDestination Label="@notebook.Name" NotebookId="notebook.Id" ParentId="null" Level="0" Chosen="_chosen" OnChoose="Choose" Disabled="IsExcluded(notebook.Id)" />
@@ -19,8 +20,8 @@
             <p class="wn-dialog-error" role="alert">@Error</p>
         }
         <div class="wn-dialog-actions">
-            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
-            <button type="button" class="wn-button wn-button-primary" disabled="@(_chosen is null || _busy)" @onclick="ConfirmAsync">Move here</button>
+            <button type="button" class="wn-button" @onclick="OnCancel">@T["Cancel"]</button>
+            <button type="button" class="wn-button wn-button-primary" disabled="@(_chosen is null || _busy)" @onclick="ConfirmAsync">@T["Move here"]</button>
         </div>
     </div>
 </div>

@@ -19,4 +19,8 @@
     <None Remove="editor\node_modules\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="i18n\*.json" />
+  </ItemGroup>
+
 </Project>

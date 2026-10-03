@@ -1,8 +1,9 @@
+@inject Translator T
 @implements IDisposable
 
 <div class="wn-search" role="search">
-    <input @ref="_input" @key="_generation" type="search" class="wn-search-input" value="@Text" placeholder="Search notes…   @Modifier+K"
-           aria-label="Search notes" autocomplete="off" spellcheck="false"
+    <input @ref="_input" @key="_generation" type="search" class="wn-search-input" value="@Text" placeholder="@T["Search notes…"]   @Modifier+K"
+           aria-label="@T["Search notes"]" autocomplete="off" spellcheck="false"
            @oninput="OnInput" @onkeydown="OnKeyDown" />
 </div>
 

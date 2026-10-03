@@ -1,36 +1,34 @@
 @using WorriorVex.Application.Import
 @using WorriorVex.Application.Platform
 @inject IKeepNoteImporter Importer
+@inject Translator T
 @inject IPackageImporter Packages
 @inject IMarkdownImporter Markdown
 @inject IPlatformShell Shell
 @inject ILogger<ImportSection> Logger
 
 <section class="wn-data-section" aria-labelledby="wn-import-files-heading">
-    <h2 id="wn-import-files-heading">Import</h2>
+    <h2 id="wn-import-files-heading">@T["Import"]</h2>
     <p>
-        <strong>A WorriorVex package</strong> (<code>.worriorvex</code>, from Export → "Everything, as a package" on another
-        computer) brings its notebooks, notes, tags, files and links in as new notebooks; nothing you have is changed.
-        <strong>A folder of Markdown or text files</strong> (an Obsidian vault, a Joplin export, plain <code>.md</code> notes)
-        becomes a notebook: subfolders turn into folders, pictures next to the files are attached, and
-        <code>[[wiki links]]</code> become links between notes.
+        <strong>@T["A WorriorVex package"]</strong> (<code>.worriorvex</code>) @T["from Export → “Save package” on another computer brings its notebooks, notes, tags, files and links in as new notebooks; nothing you have is changed."]
+        <strong>@T["A folder of Markdown or text files"]</strong> @T["(an Obsidian vault, a Joplin export, plain .md notes) becomes a notebook: subfolders turn into folders, pictures next to the files are attached, and [[wiki links]] become links between notes."]
     </p>
     @if (_fileReport is { } fileReport)
     {
         <div class="wn-report" role="status">
-            <h3>Import complete</h3>
+            <h3>@T["Import complete"]</h3>
             <ul class="wn-report-counts">
-                <li><strong>@fileReport.Notebooks</strong> notebooks</li>
-                <li><strong>@fileReport.Folders</strong> folders</li>
-                <li><strong>@fileReport.Notes</strong> notes</li>
-                <li><strong>@fileReport.Attachments</strong> files and pictures</li>
-                <li><strong>@fileReport.Tags</strong> tags</li>
-                <li><strong>@fileReport.Links</strong> links between notes</li>
+                <li><strong>@fileReport.Notebooks</strong> @T["notebooks"]</li>
+                <li><strong>@fileReport.Folders</strong> @T["folders"]</li>
+                <li><strong>@fileReport.Notes</strong> @T["notes"]</li>
+                <li><strong>@fileReport.Attachments</strong> @T["files and pictures"]</li>
+                <li><strong>@fileReport.Tags</strong> @T["tags"]</li>
+                <li><strong>@fileReport.Links</strong> @T["links between notes"]</li>
             </ul>
             @if (fileReport.Problems.Count > 0)
             {
                 <details>
-                    <summary>@fileReport.Problems.Count problem(s) during the import</summary>
+                    <summary>@T["{0} problem(s) during the import", fileReport.Problems.Count]</summary>
                     <ul>
                         @foreach (var problem in fileReport.Problems)
                         {
@@ -39,19 +37,19 @@
                     </ul>
                 </details>
             }
-            <p>Took @fileReport.Duration.TotalSeconds.ToString("0.0") s.</p>
-            <button type="button" class="wn-button" @onclick="() => _fileReport = null">Import something else</button>
+            <p>@T["Took {0} s.", fileReport.Duration.TotalSeconds.ToString("0.0")]</p>
+            <button type="button" class="wn-button" @onclick="() => _fileReport = null">@T["Import something else"]</button>
         </div>
     }
     else if (_busyFiles)
     {
-        <p class="wn-progress" role="status">@(_progress ?? "Importing…")</p>
+        <p class="wn-progress" role="status">@(_progress ?? T["Importing…"])</p>
     }
     else
     {
         <div class="wn-data-actions wn-dialog-actions">
-            <button type="button" class="wn-button wn-button-primary" @onclick="ImportPackageAsync">Import a package…</button>
-            <button type="button" class="wn-button" @onclick="ImportMarkdownAsync">Import a folder of Markdown files…</button>
+            <button type="button" class="wn-button wn-button-primary" @onclick="ImportPackageAsync">@T["Import a package…"]</button>
+            <button type="button" class="wn-button" @onclick="ImportMarkdownAsync">@T["Import a folder of Markdown files…"]</button>
         </div>
     }
     @if (_fileError is not null)
@@ -61,37 +59,36 @@
 </section>
 
 <section class="wn-data-section" aria-labelledby="wn-import-heading">
-    <h2 id="wn-import-heading">Import from KeepNote</h2>
+    <h2 id="wn-import-heading">@T["Import from KeepNote"]</h2>
     <p>
-        Brings a KeepNote notebook in as a new WorriorVex notebook: folders, pages, attached files, pictures,
-        links between pages and the KeepNote trash. The KeepNote folder is only read, never changed.
-        Choose the notebook's own folder, the one that holds <code>notebook.nbk</code>.
+        @T["Brings a KeepNote notebook in as a new WorriorVex notebook: folders, pages, attached files, pictures, links between pages and the KeepNote trash. The KeepNote folder is only read, never changed."]
+        @T["Choose the notebook’s own folder, the one that holds"] <code>notebook.nbk</code>.
     </p>
 
     @if (_report is { } report)
     {
         <div class="wn-report" role="status">
-            <h3>Import complete</h3>
+            <h3>@T["Import complete"]</h3>
             <ul class="wn-report-counts">
-                <li><strong>@report.Notes</strong> notes</li>
-                <li><strong>@report.Folders</strong> folders</li>
-                <li><strong>@report.Attachments</strong> attached files</li>
-                <li><strong>@report.Images</strong> pictures</li>
-                <li><strong>@report.Links</strong> links between notes</li>
-                <li><strong>@report.ItemsInTrash</strong> items in the trash</li>
+                <li><strong>@report.Notes</strong> @T["notes"]</li>
+                <li><strong>@report.Folders</strong> @T["folders"]</li>
+                <li><strong>@report.Attachments</strong> @T["attached files"]</li>
+                <li><strong>@report.Images</strong> @T["pictures"]</li>
+                <li><strong>@report.Links</strong> @T["links between notes"]</li>
+                <li><strong>@report.ItemsInTrash</strong> @T["items in the trash"]</li>
             </ul>
             @if (report.UnresolvedLinks > 0)
             {
-                <p>@report.UnresolvedLinks link(s) pointed at pages that do not exist in the notebook; their words were kept, the links dropped.</p>
+                <p>@T["{0} link(s) pointed at pages that do not exist in the notebook; their words were kept, the links dropped.", report.UnresolvedLinks]</p>
             }
             @if (report.IgnoredAttributes.Count > 0)
             {
-                <p>Ignored KeepNote settings that have no place here: @string.Join(", ", report.IgnoredAttributes.Select(p => $"{p.Key} ({p.Value})")).</p>
+                <p>@T["Ignored KeepNote settings that have no place here:"] @string.Join(", ", report.IgnoredAttributes.Select(p => $"{p.Key} ({p.Value})")).</p>
             }
             @if (report.Problems.Count > 0)
             {
                 <details>
-                    <summary>@report.Problems.Count problem(s) during the import</summary>
+                    <summary>@T["{0} problem(s) during the import", report.Problems.Count]</summary>
                     <ul>
                         @foreach (var problem in report.Problems)
                         {
@@ -102,37 +99,37 @@
             }
             else
             {
-                <p><strong>No notes were lost.</strong></p>
+                <p><strong>@T["No notes were lost."]</strong></p>
             }
-            <p>Took @report.Duration.TotalSeconds.ToString("0.0") s. The notebook "@report.NotebookName" is now in the navigation.</p>
-            <button type="button" class="wn-button" @onclick="Reset">Import another notebook</button>
+            <p>@T["Took {0} s.", report.Duration.TotalSeconds.ToString("0.0")] @T["The notebook “{0}” is now in the navigation.", report.NotebookName]</p>
+            <button type="button" class="wn-button" @onclick="Reset">@T["Import another notebook"]</button>
         </div>
     }
     else if (_scan is { } scan)
     {
         <div class="wn-report">
-            <h3>Ready to import "@scan.NotebookName"</h3>
-            <p class="wn-data-path"><code>@scan.Path</code> · KeepNote format version @scan.FormatVersion</p>
+            <h3>@T["Ready to import “{0}”", scan.NotebookName]</h3>
+            <p class="wn-data-path"><code>@scan.Path</code> · @T["KeepNote format version {0}", scan.FormatVersion]</p>
             <ul class="wn-report-counts">
-                <li><strong>@scan.Pages</strong> pages</li>
-                <li><strong>@scan.Folders</strong> folders</li>
-                <li><strong>@scan.Attachments</strong> attached files</li>
-                <li><strong>@scan.Images</strong> pictures</li>
-                <li><strong>@scan.Links</strong> links</li>
-                <li><strong>@scan.ItemsInTrash</strong> items in the trash</li>
+                <li><strong>@scan.Pages</strong> @T["pages"]</li>
+                <li><strong>@scan.Folders</strong> @T["folders"]</li>
+                <li><strong>@scan.Attachments</strong> @T["attached files"]</li>
+                <li><strong>@scan.Images</strong> @T["pictures"]</li>
+                <li><strong>@scan.Links</strong> @T["links"]</li>
+                <li><strong>@scan.ItemsInTrash</strong> @T["items in the trash"]</li>
             </ul>
             @if (scan.PagesWithChildren > 0)
             {
-                <p>@scan.PagesWithChildren page(s) have pages inside them. Each becomes a folder of the same name, with the page's own text as the first note in it.</p>
+                <p>@T["{0} page(s) have pages inside them. Each becomes a folder of the same name, with the page’s own text as the first note in it.", scan.PagesWithChildren]</p>
             }
             @if (scan.UnsupportedAttributes.Count > 0)
             {
-                <p>KeepNote settings that have no place in WorriorVex and will be ignored: @string.Join(", ", scan.UnsupportedAttributes.Select(p => $"{p.Key} ({p.Value})")).</p>
+                <p>@T["KeepNote settings that have no place in WorriorVex and will be ignored:"] @string.Join(", ", scan.UnsupportedAttributes.Select(p => $"{p.Key} ({p.Value})")).</p>
             }
             @if (scan.Problems.Count > 0)
             {
                 <details open>
-                    <summary>@scan.Problems.Count thing(s) to know before importing</summary>
+                    <summary>@T["{0} thing(s) to know before importing", scan.Problems.Count]</summary>
                     <ul>
                         @foreach (var problem in scan.Problems)
                         {
@@ -143,20 +140,20 @@
             }
             @if (_busy)
             {
-                <p class="wn-progress" role="status" aria-live="polite">@(_progress ?? "Importing…")</p>
+                <p class="wn-progress" role="status" aria-live="polite">@(_progress ?? T["Importing…"])</p>
             }
             else
             {
                 <div class="wn-dialog-actions wn-data-actions">
-                    <button type="button" class="wn-button" @onclick="Reset">Cancel</button>
-                    <button type="button" class="wn-button wn-button-primary" @onclick="ImportAsync">Import</button>
+                    <button type="button" class="wn-button" @onclick="Reset">@T["Cancel"]</button>
+                    <button type="button" class="wn-button wn-button-primary" @onclick="ImportAsync">@T["Import"]</button>
                 </div>
             }
         </div>
     }
     else
     {
-        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="ChooseAsync">@(_busy ? "Reading…" : "Choose a KeepNote notebook folder…")</button>
+        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="ChooseAsync">@(_busy ? T["Reading…"] : T["Choose a KeepNote notebook folder…"])</button>
     }
 
     @if (_error is not null)
@@ -177,7 +174,7 @@
 
     private async Task ChooseAsync()
     {
-        var path = await Shell.PickFolderAsync("Choose the KeepNote notebook folder");
+        var path = await Shell.PickFolderAsync(T["Choose the KeepNote notebook folder"]);
         if (path is null)
         {
             return;
@@ -196,7 +193,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Scanning a KeepNote notebook failed");
-            _error = "The folder could not be read. Details are in the log file.";
+            _error = T["The folder could not be read. Details are in the log file."];
         }
         finally
         {
@@ -230,7 +227,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "KeepNote import failed");
-            _error = "The import stopped with an error. What was imported so far is in a new notebook; you can delete it and try again. Details are in the log file.";
+            _error = T["The import stopped with an error. What was imported so far is in a new notebook; you can delete it and try again. Details are in the log file."];
             await OnImported.InvokeAsync(Guid.Empty);
         }
         finally
@@ -253,7 +250,7 @@
 
     private async Task ImportPackageAsync()
     {
-        var path = await Shell.PickFileAsync("Choose a WorriorVex package", "WorriorVex packages", [".worriorvex", ".zip"]);
+        var path = await Shell.PickFileAsync(T["Choose a WorriorVex package"], T["WorriorVex packages"], [".worriorvex", ".zip"]);
         if (path is not null)
         {
             await RunFileImportAsync(progress => Packages.ImportAsync(path, progress));
@@ -262,7 +259,7 @@
 
     private async Task ImportMarkdownAsync()
     {
-        var path = await Shell.PickFolderAsync("Choose the folder with the Markdown files");
+        var path = await Shell.PickFolderAsync(T["Choose the folder with the Markdown files"]);
         if (path is not null)
         {
             await RunFileImportAsync(progress => Markdown.ImportAsync(path, progress));
@@ -290,7 +287,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Import failed");
-            _fileError = "The import stopped with an error. What was imported so far is in a new notebook; you can delete it and try again. Details are in the log file.";
+            _fileError = T["The import stopped with an error. What was imported so far is in a new notebook; you can delete it and try again. Details are in the log file."];
             await OnImported.InvokeAsync(Guid.Empty);
         }
         finally

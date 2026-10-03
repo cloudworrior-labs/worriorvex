@@ -1,14 +1,14 @@
 @implements IAsyncDisposable
 
-<div class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null) @(_focusMode && !IsHelpPage ? "is-focus" : null) @(Settings.Current.ListDensity == ListDensity.Compact ? "is-compact" : null)">
+<div @key="T.Language" class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null) @(_focusMode && !IsHelpPage ? "is-focus" : null) @(Settings.Current.ListDensity == ListDensity.Compact ? "is-compact" : null)">
     <header class="wn-topbar">
-        <button type="button" class="wn-iconbutton" title="Show or hide the sidebar (@_modifier+\)" aria-label="Show or hide the sidebar" aria-pressed="@(_sidebarHidden ? "true" : "false")" @onclick="() => _sidebarHidden = !_sidebarHidden">☰</button>
+        <button type="button" class="wn-iconbutton" title="@T["Show or hide the sidebar"] (@_modifier+\)" aria-label="@T["Show or hide the sidebar"]" aria-pressed="@(_sidebarHidden ? "true" : "false")" @onclick="() => _sidebarHidden = !_sidebarHidden">☰</button>
         <img class="wn-brand-mark" src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="20" height="20" />
         <span class="wn-brand">WorriorVex</span>
         <SearchBox @ref="_searchBox" Text="@_searchText" OnChanged="SearchAsync" OnMove="MoveSearchMark" OnOpen="OpenMarkedResultAsync" OnClose="CloseSearchAsync" />
-        <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
-        <button type="button" class="wn-button" @onclick="() => _templatePicker = true" title="New note from a template (@_modifier+Shift+N)" aria-label="New note from a template">▾</button>
-        <button type="button" class="wn-iconbutton @(_focusMode ? "is-active" : null)" title="Focus mode: only the note (@_modifier+Shift+F)" aria-label="Focus mode" aria-pressed="@(_focusMode ? "true" : "false")" @onclick="() => _focusMode = !_focusMode">⤢</button>
+        <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="@T["New note"] (@_modifier+N)">+ @T["New"]</button>
+        <button type="button" class="wn-button" @onclick="() => _templatePicker = true" title="@T["New note from a template"] (@_modifier+Shift+N)" aria-label="@T["New note from a template"]">▾</button>
+        <button type="button" class="wn-iconbutton @(_focusMode ? "is-active" : null)" title="@T["Focus mode: only the note"] (@_modifier+Shift+F)" aria-label="@T["Focus mode"]" aria-pressed="@(_focusMode ? "true" : "false")" @onclick="() => _focusMode = !_focusMode">⤢</button>
     </header>
 
     <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" SavedSearches="Settings.Current.SavedSearches" Selection="_selection" Dragging="_dragging is not null"
@@ -20,9 +20,9 @@
              OnRenameNote="RenameNoteAsync" OnDeleteNote="DeleteNoteAsync"
              OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 
-    <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="Width of the navigation pane"
+    <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="@T["Width of the navigation pane"]"
             aria-valuemin="@AppSettings.MinPaneWidth" aria-valuemax="@AppSettings.MaxPaneWidth" aria-valuenow="@Settings.Current.NavigationWidth"
-            title="Drag to resize; arrow keys when focused" style="grid-area: nav; justify-self: end; position: relative; height: 100%;"
+            title="@T["Drag to resize; arrow keys when focused"]" style="grid-area: nav; justify-self: end; position: relative; height: 100%;"
             @onkeydown="e => ResizeByKeyAsync(e, NavWidthVariable)"></button>
 
     @if (IsHelpPage)
@@ -47,26 +47,26 @@
                   OnDragStart="id => _dragging = (id, false)" OnDragEnd="() => _dragging = null">
             @if (CanHoldFolders)
             {
-                <button type="button" class="wn-button wn-button-small" @onclick="PromptNewFolder">New folder</button>
+                <button type="button" class="wn-button wn-button-small" @onclick="PromptNewFolder">@T["New folder"]</button>
             }
             @if (CanChangeContainer)
             {
-                <button type="button" class="wn-button wn-button-small" @onclick="PromptRename">Rename</button>
-                <button type="button" class="wn-button wn-button-small" @onclick="ConfirmDeleteContainer">Delete</button>
+                <button type="button" class="wn-button wn-button-small" @onclick="PromptRename">@T["Rename"]</button>
+                <button type="button" class="wn-button wn-button-small" @onclick="ConfirmDeleteContainer">@T["Delete"]</button>
             }
-            <select class="wn-select wn-list-sort" aria-label="Sort notes" title="Sort notes" value="@Settings.Current.NoteSort" @onchange="e => SetSortAsync(Enum.Parse<NoteSort>((string)e.Value!))">
-                <option value="@NoteSort.Updated">Last changed</option>
-                <option value="@NoteSort.Created">Newest</option>
-                <option value="@NoteSort.Title">Title</option>
+            <select class="wn-select wn-list-sort" aria-label="@T["Sort notes"]" title="@T["Sort notes"]" value="@Settings.Current.NoteSort" @onchange="e => SetSortAsync(Enum.Parse<NoteSort>((string)e.Value!))">
+                <option value="@NoteSort.Updated">@T["Last changed"]</option>
+                <option value="@NoteSort.Created">@T["Newest"]</option>
+                <option value="@NoteSort.Title">@T["Title"]</option>
             </select>
         </NoteList>
     }
 
     @if (!IsHelpPage)
     {
-        <button type="button" class="wn-resizer" @ref="_listResizer" role="separator" aria-orientation="vertical" aria-label="Width of the note list"
+        <button type="button" class="wn-resizer" @ref="_listResizer" role="separator" aria-orientation="vertical" aria-label="@T["Width of the note list"]"
                 aria-valuemin="@AppSettings.MinPaneWidth" aria-valuemax="@AppSettings.MaxPaneWidth" aria-valuenow="@Settings.Current.ListWidth"
-                title="Drag to resize; arrow keys when focused" style="grid-area: list; justify-self: end; position: relative; height: 100%;"
+                title="@T["Drag to resize; arrow keys when focused"]" style="grid-area: list; justify-self: end; position: relative; height: 100%;"
                 @onkeydown="e => ResizeByKeyAsync(e, ListWidthVariable)"></button>
     }
 
@@ -75,30 +75,30 @@
         {
             <div class="wn-banner" role="alert">
                 <span>@_error</span>
-                <button type="button" class="wn-button" @onclick="() => _error = null">Dismiss</button>
+                <button type="button" class="wn-button" @onclick="() => _error = null">@T["Dismiss"]</button>
             </div>
         }
         else if (_notice is not null)
         {
             <div class="wn-banner wn-banner-info" role="status">
                 <span>@_notice</span>
-                <button type="button" class="wn-button" @onclick="() => _notice = null">Dismiss</button>
+                <button type="button" class="wn-button" @onclick="() => _notice = null">@T["Dismiss"]</button>
             </div>
         }
         else if (_update is { } update)
         {
             <div class="wn-banner wn-banner-info" role="status">
-                <span>WorriorVex @update.LatestVersion is available (you have @update.CurrentVersion).</span>
+                <span>@T["WorriorVex {0} is available (you have {1}).", update.LatestVersion, update.CurrentVersion]</span>
                 <span>
-                    <button type="button" class="wn-button" @onclick="() => Shell.OpenWebPage(update.DownloadPage)">Open the downloads page</button>
-                    <button type="button" class="wn-button" @onclick="() => _update = null">Later</button>
+                    <button type="button" class="wn-button" @onclick="() => Shell.OpenWebPage(update.DownloadPage)">@T["Open the downloads page"]</button>
+                    <button type="button" class="wn-button" @onclick="() => _update = null">@T["Later"]</button>
                 </span>
             </div>
         }
 
         @if (_loading)
         {
-            <div class="wn-empty"><p>Loading…</p></div>
+            <div class="wn-empty"><p>@T["Loading…"]</p></div>
         }
         else if (_selection is NavSelection.Documentation)
         {
@@ -120,7 +120,7 @@
         {
             @if (_trashItem is null)
             {
-                <div class="wn-empty"><p>@(_trash.Count == 0 ? "Deleted notes, folders and notebooks wait here until you restore or remove them." : "Select an item to restore it or delete it permanently.")</p></div>
+                <div class="wn-empty"><p>@(_trash.Count == 0 ? T["Deleted notes, folders and notebooks wait here until you restore or remove them."] : T["Select an item to restore it or delete it permanently."])</p></div>
             }
             else
             {
@@ -129,7 +129,7 @@
         }
         else if (_current is null && _selection is NavSelection.Search)
         {
-            <div class="wn-empty"><p>@(_searchResults.Count == 0 ? "Search looks through the titles, text and tags of all your notes." : "Select a note to open it, or press Enter for the first one.")</p></div>
+            <div class="wn-empty"><p>@(_searchResults.Count == 0 ? T["Search looks through the titles, text and tags of all your notes."] : T["Select a note to open it, or press Enter for the first one."])</p></div>
         }
         else if (_current is null && _firstRun)
         {
@@ -138,8 +138,8 @@
         else if (_current is null)
         {
             <div class="wn-empty">
-                <p>No note selected.</p>
-                <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync">New note</button>
+                <p>@T["No note selected."]</p>
+                <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync">@T["New note"]</button>
             </div>
         }
         else
@@ -162,7 +162,7 @@
 
     @if (_move is not null)
     {
-        <MoveDialog @key="_move" Title="@($"Move \"{_move.Name}\"")" Notebooks="_notebooks" Folders="_folders" Excluded="_move.Excluded"
+        <MoveDialog @key="_move" Title="@T["Move “{0}”", _move.Name]" Notebooks="_notebooks" Folders="_folders" Excluded="_move.Excluded"
                     Error="@_dialogError" OnConfirm="ConfirmMoveAsync" OnCancel="CloseDialogs" />
     }
 

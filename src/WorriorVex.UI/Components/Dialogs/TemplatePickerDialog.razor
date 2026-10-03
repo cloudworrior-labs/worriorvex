@@ -1,3 +1,4 @@
+@inject Translator T
 @using WorriorVex.Application.Templates
 @inject ITemplateService Templates
 @inject ILogger<TemplatePickerDialog> Logger
@@ -5,18 +6,18 @@
 @* "New from template": pick one of the notes in the Templates notebook. *@
 <div class="wn-overlay" @onclick="OnCancel" @onkeydown="OnKeyDown">
     <div class="wn-dialog wn-dialog-picker" role="dialog" aria-modal="true" aria-labelledby="wn-template-title" @onclick:stopPropagation>
-        <h2 id="wn-template-title">New note from a template</h2>
+        <h2 id="wn-template-title">@T["New note from a template"]</h2>
         @if (_templates is null)
         {
-            <p class="wn-muted">Loading…</p>
+            <p class="wn-muted">@T["Loading…"]</p>
         }
         else if (_templates.Count == 0)
         {
-            <p class="wn-muted">There are no templates. Add notes to the "Templates" notebook and they appear here.</p>
+            <p class="wn-muted">@T["There are no templates. Add notes to the “Templates” notebook and they appear here."]</p>
         }
         else
         {
-            <ul class="wn-picker-list" role="listbox" aria-label="Templates">
+            <ul class="wn-picker-list" role="listbox" aria-label="@T["Templates"]">
                 @foreach (var template in _templates)
                 {
                     var marked = template.Id == _marked;
@@ -26,14 +27,14 @@
                     </li>
                 }
             </ul>
-            <p class="wn-muted wn-dialog-hint">Templates are ordinary notes in the "Templates" notebook; edit them or add your own there. Write <code>{{date}}</code> where today's date should go.</p>
+            <p class="wn-muted wn-dialog-hint">@T["Templates are ordinary notes in the “Templates” notebook; edit them or add your own there."] @T["Write"] <code>{{date}}</code> @T["where today’s date should go."]</p>
         }
         @if (_error is not null)
         {
             <p class="wn-error" role="alert">@_error</p>
         }
         <div class="wn-dialog-actions">
-            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="wn-button" @onclick="OnCancel">@T["Cancel"]</button>
         </div>
     </div>
 </div>
@@ -57,7 +58,7 @@
         {
             Logger.LogError(ex, "The templates could not be loaded");
             _templates = [];
-            _error = "The templates could not be loaded.";
+            _error = T["The templates could not be loaded."];
         }
     }
 

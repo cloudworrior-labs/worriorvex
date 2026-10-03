@@ -37,6 +37,7 @@ internal static class Program
             logging.AddProvider(new FileLoggerProvider(paths.LogsDirectory));
         });
         builder.Services.AddWorriorVexInfrastructure(paths.DataDirectory);
+        builder.Services.AddWorriorVexUI();
         builder.Services.AddSingleton(startup);
         builder.Services.AddSingleton(new AppInfo(DisplayVersion(), paths.DataDirectory));
         builder.Services.AddSingleton<PlatformShell>();

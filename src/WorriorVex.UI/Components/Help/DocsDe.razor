@@ -1,0 +1,422 @@
+@using WorriorVex.Application.Platform
+@inject AppInfo Info
+@inject IPlatformShell Shell
+
+@* Deutsche Dokumentation. Die Themen entsprechen DocsEn. *@
+@switch (Topic)
+{
+    case "start":
+        <h2>Erste Schritte</h2>
+        <p>
+            WorriorVex ist ein Notizbuch, das auf Ihrem Computer lebt. Alles, was Sie schreiben, wird hier gespeichert,
+            auf diesem Gerät. Es arbeitet ohne Internet und braucht kein Konto.
+        </p>
+        <ol>
+            <li>Drücken Sie <kbd>@Modifier</kbd> + <kbd>N</kbd> oder wählen Sie <strong>+ Neu</strong>, um eine Notiz zu beginnen.</li>
+            <li>Tippen Sie einen Titel, drücken Sie <kbd>Enter</kbd> und schreiben Sie.</li>
+            <li>Das ist alles. Die Notiz wird für Sie gespeichert und ist da, wenn Sie zurückkommen.</li>
+        </ol>
+        <p>
+            Neue Notizen landen im <strong>Eingang</strong>, außer Sie befinden sich in einem Notizbuch oder Ordner.
+            Erst festhalten, später entscheiden, wohin es gehört.
+        </p>
+        <h3>Das Fenster</h3>
+        <ul>
+            <li><strong>Links:</strong> wo alles liegt. Ziehen Sie den rechten Rand, um es breiter zu machen; <kbd>@Modifier</kbd> + <kbd>\</kbd> blendet es aus oder ein. Eingang, Alle Notizen, Ihre Notizbücher mit ihren Ordnern, der Papierkorb.</li>
+            <li><strong>Mitte:</strong> die Notizen am gewählten Ort, die zuletzt geänderten zuerst. Auch dieser Rand lässt sich ziehen.</li>
+            <li><strong>Rechts:</strong> die Notiz, an der Sie arbeiten.</li>
+            <li><strong>Unten:</strong> ob Ihre Arbeit gespeichert ist.</li>
+        </ul>
+        break;
+
+    case "writing":
+        <h2>Notizen schreiben</h2>
+        <p>
+            Die Werkzeugleiste über dem Text bietet fett, kursiv, unterstrichen, durchgestrichen, Code in der Zeile,
+            drei Überschriftenebenen, Aufzählungen, nummerierte Listen und Checklisten, Zitate, Codeblöcke und eine
+            Trennlinie. Die meisten haben ein Tastenkürzel, siehe <em>Tastenkürzel</em>.
+        </p>
+        <h3>Links</h3>
+        <p>
+            Markieren Sie Wörter und wählen Sie <strong>Link</strong>, dann tippen Sie die Webadresse. Ohne Markierung
+            wird die Adresse selbst als Link eingefügt. Um einen Link zu ändern, setzen Sie den Cursor hinein und wählen
+            erneut <strong>Link</strong>; <strong>Link entfernen</strong> löscht ihn. Halten Sie <kbd>@Modifier</kbd>
+            gedrückt und klicken Sie auf einen Link, um ihn im Browser zu öffnen.
+        </p>
+        <h3>Verknüpfungen zwischen Notizen</h3>
+        <p>
+            Wählen Sie <strong>Notiz-Link</strong>, suchen Sie die gemeinte Notiz und wählen Sie sie. Ist Text markiert,
+            wird dieser zum Link; sonst wird der Titel der anderen Notiz eingefügt. Halten Sie <kbd>@Modifier</kbd> und
+            klicken Sie auf einen solchen Link, um zu dieser Notiz zu springen. Tippen Sie <code>[[</code>, um die
+            Auswahl direkt zu öffnen.
+        </p>
+        <p>
+            Unter dem Text zeigt <strong>Verknüpft nach</strong> die Notizen, auf die diese verweist,
+            <strong>Verknüpft von</strong> die Notizen, die hierher verweisen (Rückverweise), und <strong>Verwandt über
+            Schlagwörter</strong> Notizen mit gemeinsamen Schlagwörtern. Sie bleiben beim Schreiben aktuell; nichts muss
+            von Hand gepflegt werden. Die Wörter eines Links ändern sich nicht, wenn die andere Notiz umbenannt wird.
+        </p>
+        <h3>Bilder</h3>
+        <p>
+            Wählen Sie <strong>Bild</strong>, um ein Bild vom Computer zu holen, fügen Sie eines aus der Zwischenablage ein
+            oder ziehen Sie eine Bilddatei auf die Notiz. PNG, JPEG, GIF und WebP werden angenommen. Das Bild wird in den
+            Datenordner von WorriorVex kopiert, damit die Notiz weiter funktioniert, wenn die Originaldatei verschoben oder
+            gelöscht wird.
+        </p>
+        <p>
+            Bilder aus dem Internet werden nicht angezeigt: Text, der von einer Webseite eingefügt wird, behält seine Wörter
+            und verliert seine Bilder. Das ist Absicht, damit das Öffnen einer Notiz nie einen anderen Computer kontaktiert.
+        </p>
+        <p>Zeigen Sie auf ein Bild und ziehen Sie das kleine Quadrat unten rechts, um es zu verkleinern oder zu vergrößern.</p>
+        <h3>Angehängte Dateien</h3>
+        <p>
+            <strong>Anhängen</strong> fügt der Notiz eine beliebige Datei hinzu, ebenso das Ablegen einer Nicht-Bilddatei auf
+            dem Text. Anhänge stehen unter der Notiz mit <strong>Öffnen</strong> (im Programm, das Ihr System für diese Art
+            Datei nutzt), <strong>Speichern unter…</strong> (eine Kopie, wohin Sie wollen), <strong>Umbenennen…</strong> und
+            <strong>Entfernen…</strong>. Die Datei wird beim Anhängen in den Datenordner von WorriorVex kopiert; das
+            Original bleibt unberührt.
+        </p>
+        <p>
+            Bilder im Text sind ebenfalls Anhänge. Eines, das nicht mehr im Text vorkommt, wird markiert, und eine
+            Schaltfläche bietet an, alle solchen Reste auf einmal zu entfernen.
+        </p>
+        <h3>Tabellen</h3>
+        <p>
+            <strong>Tabelle</strong> fügt eine Tabelle mit drei Spalten und Kopfzeile ein. Steht der Cursor in einer Tabelle,
+            erscheinen Schaltflächen zum Hinzufügen und Löschen von Zeilen und Spalten, zum Ein- und Ausschalten der
+            Kopfzeile, zum Verbinden markierter Zellen oder Teilen einer Zelle und zum Löschen der Tabelle. <kbd>Tab</kbd>
+            springt zur nächsten Zelle und fügt am Ende eine Zeile an. Ziehen Sie die Linie zwischen zwei Spalten, um ihre
+            Breite zu ändern.
+        </p>
+        <h3>Textmarker, Hinweiskästen und Code</h3>
+        <p>
+            Die Schaltfläche <mark>ab</mark> hebt die markierten Wörter wie mit einem Textmarker hervor.
+            <strong>Kasten…</strong> setzt den aktuellen Absatz in einen farbigen Kasten (Info, Tipp, Warnung oder Gefahr);
+            erneut wählen nimmt den Kasten weg. Ein Codeblock bekommt eine Liste <strong>Sprache</strong>, solange der Cursor
+            darin steht; wählen Sie eine, und der Code wird eingefärbt.
+        </p>
+        <h3>Suchen und ersetzen</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>F</kbd> (oder <strong>Suchen</strong> in der Werkzeugleiste) öffnet eine Leiste über
+            dem Text. Treffer werden beim Tippen markiert; <kbd>Enter</kbd> springt zum nächsten, <kbd>Shift</kbd> +
+            <kbd>Enter</kbd> zum vorherigen. <strong>Ersetzen</strong> ändert den aktuellen Treffer, <strong>Alle</strong>
+            jeden Treffer. <kbd>Esc</kbd> schließt die Leiste.
+        </p>
+        <h3>Vorlagen</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> oder das <strong>▾</strong> neben <strong>+ Neu</strong>
+            erstellt eine Notiz aus einer Vorlage. Vorlagen sind gewöhnliche Notizen in einem Notizbuch namens
+            <strong>Templates</strong>, das beim ersten Gebrauch mit drei Beispielen angelegt wird (Besprechungsnotizen, eine
+            Tagesnotiz, ein Projekt). Bearbeiten Sie sie oder fügen Sie eigene hinzu; schreiben Sie <code>{{date}}</code>,
+            wo das heutige Datum erscheinen soll.
+        </p>
+        <h3>Tipp-Kürzel</h3>
+        <p>Tippen Sie am Zeilenanfang eines davon, gefolgt von einem Leerzeichen:</p>
+        <table>
+            <thead><tr><th scope="col">Tippen</th><th scope="col">Ergibt</th></tr></thead>
+            <tbody>
+                <tr><td><code>#</code>, <code>##</code>, <code>###</code></td><td>Eine Überschrift</td></tr>
+                <tr><td><code>-</code> oder <code>*</code></td><td>Eine Aufzählung</td></tr>
+                <tr><td><code>1.</code></td><td>Eine nummerierte Liste</td></tr>
+                <tr><td><code>[ ]</code></td><td>Eine Checkliste</td></tr>
+                <tr><td><code>&gt;</code></td><td>Ein Zitat</td></tr>
+                <tr><td><code>```</code></td><td>Einen Codeblock</td></tr>
+                <tr><td><code>[[</code> (überall)</td><td>Eine Verknüpfung zu einer anderen Notiz: eine Auswahl öffnet sich</td></tr>
+            </tbody>
+        </table>
+        <h3>Speichern</h3>
+        <p>
+            Notizen speichern sich selbst, kurz nachdem Sie aufhören zu tippen. Die Leiste unten zeigt
+            <strong>Gespeichert</strong>, <strong>Ungespeicherte Änderungen</strong> oder <strong>Speichern</strong>.
+            Drücken Sie <kbd>@Modifier</kbd> + <kbd>S</kbd>, um sofort zu speichern.
+        </p>
+        <p>
+            Schlägt das Speichern fehl, sagt die Leiste es und bietet <strong>Erneut versuchen</strong> an. Ihr Text bleibt im
+            Fenster, und WorriorVex lässt Sie erst zu einer anderen Notiz wechseln, wenn er sicher gespeichert ist.
+        </p>
+        <h3>Frühere Versionen</h3>
+        <p>
+            Während Sie schreiben, bewahrt WorriorVex etwa alle zehn Minuten still die Fassung vor einer Änderung auf.
+            <strong>Verlauf</strong> in der Werkzeugleiste listet sie; wählen Sie eine, um sie zu lesen, und <strong>Diese
+            Version wiederherstellen</strong>, um sie zurückzuholen. Der aktuelle Stand bleibt dabei ebenfalls als Version
+            erhalten, Wiederherstellen verliert also nie etwas.
+        </p>
+        break;
+
+    case "searching":
+        <h2>Suchen</h2>
+        <p>
+            Das Suchfeld oben durchsucht Titel, Text und Schlagwörter aller Notizen. Drücken Sie <kbd>@Modifier</kbd> +
+            <kbd>K</kbd>, um hinzuspringen und zu tippen; Ergebnisse erscheinen beim Tippen, die besten zuerst, mit
+            markierten Treffern. Ein Treffer im Titel zählt mehr als einer im Text.
+        </p>
+        <p>
+            Beginnen Sie eine Suche aus einem Notizbuch oder Ordner, haken Sie <strong>Nur in „…“</strong> über den
+            Ergebnissen an, um nur dort zu suchen. <strong>Suche speichern</strong> behält die Suche im Navigationsbereich
+            unter <strong>Gespeicherte Suchen</strong> (Rechtsklick zum Umbenennen oder Entfernen). Findet ein Wort nichts,
+            aber ein ähnliches Wort kommt in Ihren Notizen vor, bieten die Ergebnisse <em>Meinten Sie …?</em> an.
+        </p>
+        <ul>
+            <li>Jedes getippte Wort muss vorkommen. Ein Wort findet auch längere Wörter, die damit beginnen: <code>archi</code> findet <em>Architektur</em>.</li>
+            <li>Akzente und Groß-/Kleinschreibung spielen keine Rolle: <code>resume</code> findet <em>Résumé</em>.</li>
+            <li>Setzen Sie eine genaue Wortfolge in Anführungszeichen: <code>"Quartalsplan"</code>.</li>
+            <li><code>tag:projekt</code> findet Notizen mit diesem Schlagwort.</li>
+            <li><code>in:Projekte</code> beschränkt die Ergebnisse auf ein Notizbuch oder einen Ordner dieses Namens; Namen mit Leerzeichen in Anführungszeichen setzen.</li>
+        </ul>
+        <p>
+            Mit den Pfeiltasten gehen Sie durch die Ergebnisse, <kbd>Enter</kbd> öffnet eines, oder klicken Sie es an.
+            <kbd>Esc</kbd> verlässt die Suche und bringt Sie dorthin zurück, wo Sie waren. Notizen im Papierkorb werden nicht durchsucht.
+        </p>
+        break;
+
+    case "organising":
+        <h2>Notizbücher und Ordner</h2>
+        <p>
+            Ein <strong>Notizbuch</strong> ist ein Behälter auf oberster Ebene, etwa <em>Projekte</em> oder
+            <em>Privat</em>. In einem Notizbuch können Sie <strong>Ordner</strong> anlegen, und Ordner in Ordnern.
+        </p>
+        <ul>
+            <li><strong>Neues Notizbuch:</strong> das <strong>+</strong> neben <em>Notizbücher</em>.</li>
+            <li><strong>Neuer Ordner:</strong> zeigen Sie in der Navigation auf ein Notizbuch oder einen Ordner und drücken Sie das <strong>+</strong> am Ende der Zeile; oder wählen Sie es aus und dann <strong>Neuer Ordner</strong> über der Notizliste. Ordner lassen sich beliebig tief verschachteln.</li>
+            <li><strong>Ein- und ausklappen:</strong> das kleine Kästchen <strong>−</strong> / <strong>+</strong> links in einer Zeile. Notizen erscheinen als Blätter unter ihrem Ordner (in Einstellungen → Darstellung abschaltbar, wenn Sie nur Ordner wollen).</li>
+            <li><strong>Umbenennen:</strong> Doppelklick auf ein Notizbuch, einen Ordner oder eine Notiz, oder <kbd>F2</kbd> darauf; <kbd>Enter</kbd> übernimmt den neuen Namen, <kbd>Esc</kbd> bricht ab.</li>
+            <li><strong>Tastatur:</strong> <kbd>↑</kbd> <kbd>↓</kbd> bewegen sich durch den Baum, <kbd>→</kbd> öffnet einen Zweig, <kbd>←</kbd> schließt ihn oder geht eine Ebene hoch, <kbd>Entf</kbd> verschiebt die Zeile in den Papierkorb.</li>
+            <li><strong>Reihenfolge der Notizen:</strong> die Liste über den Notizen kann nach letzter Änderung, nach neuesten oder nach Titel sortieren; angeheftete Notizen bleiben immer oben. Einstellungen → Darstellung bietet einen kompakten Modus für lange Listen.</li>
+            <li><strong>Umbenennen oder löschen:</strong> auswählen, dann <strong>Umbenennen</strong> oder <strong>Löschen</strong> über der Notizliste.</li>
+            <li><strong>Neue Notiz in einem Ordner:</strong> den Ordner wählen, dann <strong>+ Neu</strong>.</li>
+        </ul>
+        <p>
+            <strong>Alle Notizen</strong> zeigt jede Notiz aus jedem Notizbuch in einer Liste, mit dem Namen des Notizbuchs
+            unter jedem Titel. Der Eingang ist immer da und kann weder umbenannt noch gelöscht werden.
+        </p>
+        <h3>Verschieben</h3>
+        <p>
+            Ziehen Sie eine Notiz aus der Liste oder einen Ordner aus dem Baum und legen Sie sie auf einem Notizbuch oder
+            Ordner ab. Oder klicken Sie mit rechts und wählen <strong>Verschieben…</strong>, um das Ziel aus einer Liste zu
+            wählen. Ein Ordner nimmt alles darin mit.
+        </p>
+        <h3>Kontextmenüs</h3>
+        <p>
+            Rechtsklick auf ein Notizbuch, einen Ordner, ein Schlagwort oder eine Notiz zeigt, was Sie damit tun können:
+            neue Notiz oder Ordner, umbenennen, verschieben, duplizieren, Favorit, anheften, löschen.
+            <strong>Duplizieren</strong> erstellt eine Kopie neben dem Original, mit seinen Schlagwörtern und eigenen
+            Kopien seiner Bilder.
+        </p>
+        <h3>Favoriten und Anheften</h3>
+        <p>
+            <strong>Favorit</strong> (★ über der Notiz) macht eine Notiz über die Liste <strong>Favoriten</strong> leicht
+            erreichbar, wo immer sie abgelegt ist. <strong>Anheften</strong> hält eine Notiz oben in ihrer Liste. Beides ist
+            unabhängig: eine Notiz kann das eine, das andere, beides oder keines sein.
+        </p>
+        <h3>Schlagwörter</h3>
+        <p>
+            Tippen Sie ein Schlagwort in die Zeile unter dem Titel und drücken Sie <kbd>Enter</kbd>; vorhandene Schlagwörter
+            werden vorgeschlagen. Ein Schlagwort ist ein Wort: keine Leerzeichen oder Kommas. Schlagwörter erscheinen in der
+            Navigation mit der Zahl der Notizen, die sie tragen; wählen Sie eines, um diese Notizen zu sehen, Rechtsklick
+            zum Umbenennen oder Löschen. Ein Schlagwort zu löschen löscht nie eine Notiz. Suchen Sie nach
+            <code>tag:name</code>, um ein Schlagwort mit anderen Wörtern zu kombinieren.
+        </p>
+        <h3>Lose Enden</h3>
+        <p>
+            <strong>Lose Enden</strong> listet die Notizen ohne Schlagwort und ohne Verknüpfung zu oder von einer anderen
+            Notiz: ein schneller Weg zu finden, was noch abgelegt werden muss. In jeder Liste zeigt ⛓, wie viele
+            Verknüpfungen eine Notiz hat.
+        </p>
+        <h3>Zuletzt</h3>
+        <p><strong>Zuletzt</strong> listet die Notizen, die Sie zuletzt geöffnet haben. Öffnen gilt nicht als Ändern.</p>
+        break;
+
+    case "trash":
+        <h2>Der Papierkorb</h2>
+        <p>
+            Löschen zerstört nie sofort etwas. Eine gelöschte Notiz, ein Ordner oder ein Notizbuch wandert in den
+            <strong>Papierkorb</strong> und bleibt dort, bis Sie entscheiden.
+        </p>
+        <ul>
+            <li><strong>Eine Notiz löschen:</strong> <strong>Löschen</strong> rechts in der Werkzeugleiste.</li>
+            <li><strong>Einen Ordner oder ein Notizbuch löschen:</strong> auswählen, dann <strong>Löschen</strong> über der Notizliste. Alles darin geht mit.</li>
+            <li><strong>Wiederherstellen:</strong> den Papierkorb öffnen, das Element wählen, <strong>Wiederherstellen</strong> wählen. Ein Ordner oder Notizbuch kommt mit allem zurück, was darin war.</li>
+        </ul>
+        <p>
+            Existiert der Ort, aus dem ein Element kam, nicht mehr, wird es oben in seinem Notizbuch wiederhergestellt, oder
+            im Eingang, wenn auch das Notizbuch fehlt. WorriorVex sagt es Ihnen, wenn das passiert.
+        </p>
+        <h3>Endgültig entfernen</h3>
+        <p>
+            <strong>Endgültig löschen</strong> und <strong>Papierkorb leeren</strong> entfernen Notizen samt ihren früheren
+            Versionen und angehängten Dateien. Das lässt sich nicht rückgängig machen, deshalb werden Sie immer vorher gefragt.
+        </p>
+        break;
+
+    case "shortcuts":
+        <h2>Tastenkürzel</h2>
+        <table>
+            <thead><tr><th scope="col">Drücken</th><th scope="col">Um</th></tr></thead>
+            <tbody>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Eine neue Notiz zu beginnen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>Neue Notiz aus einer Vorlage</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>F</kbd></td><td>In der Notiz suchen und ersetzen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></td><td>Fokusmodus: nur die Notiz (erneut zum Verlassen)</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Jetzt speichern</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Suchen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>\</kbd></td><td>Seitenleiste ein- oder ausblenden</td></tr>
+                <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> im Suchfeld</td><td>Durch die Ergebnisse gehen und eines öffnen</td></tr>
+                <tr><td><kbd>Esc</kbd> im Suchfeld</td><td>Die Suche verlassen</td></tr>
+                <tr><td><kbd>Enter</kbd> im Titel</td><td>In den Text wechseln</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Einen Dialog oder ein Menü schließen</td></tr>
+                <tr><td><kbd>Enter</kbd> in der Schlagwortzeile</td><td>Das Schlagwort hinzufügen</td></tr>
+                <tr><td><kbd>Rücktaste</kbd> in der leeren Schlagwortzeile</td><td>Das letzte Schlagwort entfernen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Fett / kursiv / unterstrichen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td><td>Durchgestrichen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>E</kbd></td><td>Code in der Zeile</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>–<kbd>3</kbd></td><td>Überschrift 1–3</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> / <kbd>8</kbd> / <kbd>9</kbd></td><td>Nummerierte Liste / Aufzählung / Checkliste</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></td><td>Zitat</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Codeblock</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in einer Liste</td><td>Einrücken / ausrücken</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in einer Tabelle</td><td>Nächste / vorherige Zelle</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + Klick auf einen Link</td><td>Öffnen: eine Webseite im Browser, eine Notiz in WorriorVex</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>V</kbd> mit kopiertem Bild</td><td>Das Bild in die Notiz einfügen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Z</kbd></td><td>Rückgängig</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Wiederholen</td></tr>
+            </tbody>
+        </table>
+        break;
+
+    case "import":
+        <h2>Importieren</h2>
+        <p>
+            <strong>Import &amp; Sicherung → Importieren</strong> holt Notizen aus zwei weiteren Quellen. Ein
+            <strong>WorriorVex-Paket</strong> (<code>.worriorvex</code>, erstellt mit Export → „Paket speichern“) von einem
+            anderen Computer wird als neue Notizbücher hinzugefügt; Verknüpfungen, Schlagwörter und Dateien kommen mit, und
+            was Sie schon haben, bleibt unverändert. Ein <strong>Ordner mit Markdown- oder Textdateien</strong> (ein
+            Obsidian-Vault, ein Joplin-Export, eigene <code>.md</code>-Dateien) wird zu einem Notizbuch: Unterordner werden
+            Ordner, Bilder werden angehängt, <code>[[Wiki-Links]]</code> und relative Links werden Verknüpfungen zwischen
+            Notizen, und Schlagwörter im Front Matter oder als <code>#tag</code> bleiben erhalten.
+        </p>
+        <h3>Angehängte Dateien prüfen</h3>
+        <p>
+            <strong>Angehängte Dateien prüfen</strong> vergleicht die in Ihren Notizen aufgeführten Anhänge mit den Dateien
+            auf der Festplatte und meldet fehlende Dateien, außerhalb von WorriorVex geänderte Dateien und Dateien, auf die
+            nichts mehr verweist (die es für Sie löschen kann).
+        </p>
+        <h2>Aus KeepNote importieren</h2>
+        <p>
+            Wählen Sie <strong>Import &amp; Sicherung</strong> in der Navigation, dann <strong>KeepNote-Notizbuchordner
+            wählen…</strong> und den eigenen Ordner des Notizbuchs: den mit <code>notebook.nbk</code>. WorriorVex liest das
+            Notizbuch zuerst und zeigt, was es gefunden hat: Seiten, Ordner, Dateien, Bilder, Verknüpfungen und den
+            KeepNote-Papierkorb. Nichts wird geändert, bis Sie <strong>Importieren</strong> wählen.
+        </p>
+        <ul>
+            <li>Das Notizbuch wird ein neues WorriorVex-Notizbuch mit demselben Namen. Ordner bleiben Ordner; Seiten werden Notizen.</li>
+            <li>Eine Seite mit Unterseiten wird ein gleichnamiger Ordner, mit dem eigenen Text der Seite als erster Notiz darin.</li>
+            <li>An eine Seite angehängte Dateien werden Anhänge der Notiz; Bilder der Seite kommen in den Text der Notiz.</li>
+            <li>Verknüpfungen zwischen Seiten werden Verknüpfungen zwischen Notizen. Links auf nicht mehr vorhandene Seiten behalten nur ihre Wörter.</li>
+            <li>Was im Papierkorb von KeepNote lag, kommt in den Papierkorb von WorriorVex.</li>
+            <li>Erstell- und Änderungszeiten bleiben erhalten. KeepNote-Einstellungen wie Symbole und Farben haben hier keinen Platz und werden als ignoriert aufgeführt.</li>
+        </ul>
+        <p>
+            Der KeepNote-Ordner wird nur gelesen und nie geändert, Sie können KeepNote also weiter nutzen oder erneut
+            importieren. Notizbücher im KeepNote-Format Version 5 oder 6 (KeepNote 0.7) werden unterstützt; ein älteres
+            Notizbuch öffnen Sie einmal in KeepNote, das es aktualisiert, und importieren erneut. Der Bericht am Ende sagt
+            genau, was geschehen ist.
+        </p>
+        break;
+
+    case "settings":
+        <h2>Einstellungen</h2>
+        <p><strong>Einstellungen</strong> in der Navigation. Änderungen gelten sofort.</p>
+        <ul>
+            <li><strong>Sprache:</strong> Englisch, Niederländisch, Polnisch oder Deutsch, oder die Systemsprache.</li>
+            <li><strong>Design:</strong> dem System folgen, immer hell oder dunkel, oder eines von zwei kontrastreichen Designs.</li>
+            <li><strong>Akzentfarbe</strong> für Auswahl und Schaltflächen; <strong>Schrift</strong> für den Notiztext (System, mit Serifen, serifenlos oder Festbreite).</li>
+            <li><strong>Listen:</strong> bequeme oder kompakte Zeilen, und ob Notizen im Navigationsbaum erscheinen.</li>
+            <li><strong>Textgröße und Zeilenhöhe</strong> des Notiztexts; <strong>Rechtschreibprüfung</strong> an oder aus.</li>
+            <li><strong>Speichern nach einer Pause von:</strong> wie lange nach dem letzten Tastendruck eine Notiz gespeichert wird.</li>
+            <li><strong>Nachfragen, bevor eine Notiz in den Papierkorb verschoben wird</strong>, für die Vorsichtigen.</li>
+            <li><strong>Dort öffnen, wo ich aufgehört habe:</strong> im zuletzt geöffneten Notizbuch oder Ordner starten statt im Eingang.</li>
+            <li><strong>Beim Start auf eine neue Version prüfen:</strong> standardmäßig aus; siehe <em>Ihre Daten → Datenschutz</em>.</li>
+        </ul>
+        <p>Die Einstellungen liegen in <code>settings.json</code> in Ihrem Datenordner. Diese Datei zu löschen stellt die Vorgaben wieder her.</p>
+        break;
+
+    case "data":
+        <h2>Ihre Daten</h2>
+        <p>Ihre Notizen gehören Ihnen. Sie liegen in einem Ordner auf diesem Computer:</p>
+        <p>
+            <code>@Info.DataDirectory</code>
+            <button type="button" class="wn-button wn-button-small" @onclick="() => Shell.OpenFolder(Info.DataDirectory)">Ordner öffnen</button>
+        </p>
+        <table>
+            <thead><tr><th scope="col">In diesem Ordner</th><th scope="col">Was es ist</th></tr></thead>
+            <tbody>
+                <tr><td><code>worriorvex.db</code></td><td>Alle Notizen, Notizbücher und Ordner, in einer SQLite-Datenbank</td></tr>
+                <tr><td><code>attachments</code></td><td>Die Bilder in Ihren Notizen und die angehängten Dateien</td></tr>
+                <tr><td><code>settings.json</code></td><td>Ihre Einstellungen</td></tr>
+                <tr><td><code>backups</code></td><td>Sicherungen, die Sie erstellt haben, und die Sicherheitskopien vor jeder Wiederherstellung</td></tr>
+                <tr><td><code>logs</code></td><td>Ein tägliches Protokoll, nützlich beim Melden eines Problems. Es enthält nie, was Sie geschrieben haben</td></tr>
+            </tbody>
+        </table>
+        <h3>Sichern</h3>
+        <p>
+            <strong>Import &amp; Sicherung → Jetzt sichern</strong> schreibt eine Zip-Datei mit der ganzen Datenbank, allen
+            angehängten Dateien und einer Beschreibung des Inhalts in den Ordner <code>backups</code>. <strong>Eine Sicherung
+            speichern unter…</strong> legt sie ab, wo Sie wollen, etwa auf einem anderen Laufwerk. Sicherungen können
+            gefahrlos während der Arbeit erstellt werden.
+        </p>
+        <h3>Automatische Sicherungen</h3>
+        <p>
+            Auf derselben Seite kann WorriorVex jeden Tag oder jede Woche eine Sicherung erstellen, solange es geöffnet ist.
+            Diese landen im Sicherungsordner mit Namen, die mit <code>auto-</code> beginnen, und nur die neuesten (Sie wählen
+            wie viele) werden behalten. Sicherungen, die Sie selbst erstellen, werden nie gelöscht.
+        </p>
+        <h3>Wiederherstellen</h3>
+        <p>
+            Wählen Sie <strong>Wiederherstellen…</strong> neben einer Sicherung oder <strong>Aus einer Datei
+            wiederherstellen…</strong> für eine anderswo aufbewahrte. WorriorVex prüft die Datei zuerst und lehnt eine
+            beschädigte oder aus einer neueren Version stammende ab. Bevor etwas ersetzt wird, wird der aktuelle Stand in
+            eine neue Sicherung geschrieben, sodass eine Wiederherstellung immer rückgängig gemacht werden kann, indem man
+            diese wiederherstellt.
+        </p>
+        <h3>Exportieren</h3>
+        <p>
+            <strong>In einen Ordner exportieren…</strong> schreibt jede Notiz als Datei, in der Struktur der Notizbücher und
+            Ordner, als HTML (eigenständige Seiten mit eingebetteten Bildern), Markdown (mit einem Ordner für Bilder und
+            Dateien neben jeder Notiz) oder JSON (Text, Schlagwörter, Verknüpfungen, Anhänge und Verlauf; genug, um eine
+            Notiz wiederaufzubauen). Verknüpfungen zwischen Notizen zeigen auf die exportierten Dateien. <strong>Paket
+            speichern…</strong> schreibt alles, einschließlich Papierkorb und Verlauf, als eine <code>.worriorvex</code>-Datei:
+            ein Zip, das Sie überall öffnen können. Eine einzelne Notiz exportieren Sie über ihr Kontextmenü.
+        </p>
+        <h3>Datenschutz</h3>
+        <p>
+            WorriorVex verbindet sich nicht mit dem Internet. Es gibt kein Konto, keine Telemetrie und keine Analyse. Die
+            zwei Ausnahmen lösen Sie selbst aus: einen Link wählen, der im Browser öffnet, und die optionale Prüfung auf eine
+            neue Version (Einstellungen → Updates, standardmäßig aus), die eine Anfrage an github.com nach der neuesten
+            Versionsnummer sendet und sonst nichts.
+        </p>
+        <h3>Die Daten anderswo aufbewahren</h3>
+        <p>
+            Starten Sie WorriorVex mit der Umgebungsvariablen <code>WORRIORVEX_DATA_DIR</code>, die auf einen anderen Ordner
+            zeigt, und es verwendet diesen Ordner.
+        </p>
+        break;
+
+    default:
+        <h2>Was kommt</h2>
+        <p>WorriorVex ist jung. Noch geplant:</p>
+        <ul>
+            <li>Android und iOS</li>
+        </ul>
+        <p>
+            Verfolgen Sie den Fortschritt, laden Sie neue Versionen herunter oder melden Sie ein Problem unter
+            <ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink>.
+            Mehr von den Machern unter <ExternalLink Address="AppInfo.Website">www.cloudworrior.com</ExternalLink>.
+        </p>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public string Topic { get; set; } = "start";
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+}

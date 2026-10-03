@@ -1,91 +1,102 @@
 @using WorriorVex.Application.Settings
 @inject ISettingsService Settings
+@inject Translator T
 @inject ILogger<SettingsPage> Logger
 
 <section class="wn-page wn-settings" aria-labelledby="wn-settings-title">
-    <h1 id="wn-settings-title">Settings</h1>
-    <p>Changes apply at once and are kept in <code>settings.json</code> in your data folder.</p>
+    <h1 id="wn-settings-title">@T["Settings"]</h1>
+    <p>@T["Changes apply at once and are kept in"] <code>settings.json</code> @T["in your data folder."]</p>
 
-    <h2>Appearance</h2>
+    <h2>@T["Language"]</h2>
     <div class="wn-setting">
-        <label for="wn-theme">Theme</label>
+        <label for="wn-language">@T["Language of the interface"]</label>
+        <select id="wn-language" class="wn-select" value="@_draft.Language" @onchange="e => SaveAsync(_draft with { Language = e.Value!.ToString()! })">
+            <option value="">@T["Follow the system"]</option>
+            @foreach (var language in Translator.Languages)
+            {
+                <option value="@language.Code">@language.Name</option>
+            }
+        </select>
+    </div>
+
+    <h2>@T["Appearance"]</h2>
+    <div class="wn-setting">
+        <label for="wn-theme">@T["Theme"]</label>
         <select id="wn-theme" class="wn-select" value="@_draft.Theme" @onchange="e => SaveAsync(_draft with { Theme = Enum.Parse<ThemeSetting>(e.Value!.ToString()!) })">
-            <option value="@ThemeSetting.System">Follow the system</option>
-            <option value="@ThemeSetting.Light">Light</option>
-            <option value="@ThemeSetting.Dark">Dark</option>
-            <option value="@ThemeSetting.HighContrast">High contrast</option>
-            <option value="@ThemeSetting.HighContrastDark">High contrast, dark</option>
+            <option value="@ThemeSetting.System">@T["Follow the system"]</option>
+            <option value="@ThemeSetting.Light">@T["Light"]</option>
+            <option value="@ThemeSetting.Dark">@T["Dark"]</option>
+            <option value="@ThemeSetting.HighContrast">@T["High contrast"]</option>
+            <option value="@ThemeSetting.HighContrastDark">@T["High contrast, dark"]</option>
         </select>
     </div>
     <div class="wn-setting">
-        <label for="wn-accent">Accent colour</label>
+        <label for="wn-accent">@T["Accent colour"]</label>
         <select id="wn-accent" class="wn-select" value="@_draft.Accent" @onchange="e => SaveAsync(_draft with { Accent = Enum.Parse<AccentColor>(e.Value!.ToString()!) })">
             @foreach (var accent in Enum.GetValues<AccentColor>())
             {
-                <option value="@accent">@accent</option>
+                <option value="@accent">@T[accent.ToString()]</option>
             }
         </select>
     </div>
 
     <div class="wn-setting">
-        <label for="wn-density">Lists</label>
+        <label for="wn-density">@T["Lists"]</label>
         <select id="wn-density" class="wn-select" value="@_draft.ListDensity" @onchange="e => SaveAsync(_draft with { ListDensity = Enum.Parse<ListDensity>(e.Value!.ToString()!) })">
-            <option value="@ListDensity.Comfortable">Comfortable</option>
-            <option value="@ListDensity.Compact">Compact</option>
+            <option value="@ListDensity.Comfortable">@T["Comfortable"]</option>
+            <option value="@ListDensity.Compact">@T["Compact"]</option>
         </select>
     </div>
     <div class="wn-setting">
-        <label><input type="checkbox" checked="@_draft.ShowNotesInTree" @onchange="e => SaveAsync(_draft with { ShowNotesInTree = (bool)e.Value! })" /> Show notes in the navigation tree, under their notebooks and folders</label>
+        <label><input type="checkbox" checked="@_draft.ShowNotesInTree" @onchange="e => SaveAsync(_draft with { ShowNotesInTree = (bool)e.Value! })" /> @T["Show notes in the navigation tree, under their notebooks and folders"]</label>
     </div>
 
-    <h2>Editor</h2>
+    <h2>@T["Editor"]</h2>
     <div class="wn-setting">
-        <label for="wn-font">Font</label>
+        <label for="wn-font">@T["Font"]</label>
         <select id="wn-font" class="wn-select" value="@_draft.EditorFont" @onchange="e => SaveAsync(_draft with { EditorFont = Enum.Parse<EditorFont>(e.Value!.ToString()!) })">
-            <option value="@EditorFont.System">System</option>
-            <option value="@EditorFont.Serif">Serif</option>
-            <option value="@EditorFont.Sans">Sans-serif</option>
-            <option value="@EditorFont.Mono">Monospace</option>
+            <option value="@EditorFont.System">@T["System"]</option>
+            <option value="@EditorFont.Serif">@T["Serif"]</option>
+            <option value="@EditorFont.Sans">@T["Sans-serif"]</option>
+            <option value="@EditorFont.Mono">@T["Monospace"]</option>
         </select>
     </div>
     <div class="wn-setting">
-        <label for="wn-font-size">Text size</label>
+        <label for="wn-font-size">@T["Text size"]</label>
         <input id="wn-font-size" type="range" min="@AppSettings.MinFontSize" max="@AppSettings.MaxFontSize" step="1" value="@_draft.EditorFontSize"
                @oninput="e => SaveAsync(_draft with { EditorFontSize = int.Parse(e.Value!.ToString()!) })" />
         <span class="wn-setting-value">@_draft.EditorFontSize px</span>
     </div>
     <div class="wn-setting">
-        <label for="wn-line-height">Line height</label>
+        <label for="wn-line-height">@T["Line height"]</label>
         <input id="wn-line-height" type="range" min="1.2" max="2.2" step="0.1" value="@_draft.EditorLineHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                @oninput="e => SaveAsync(_draft with { EditorLineHeight = double.Parse(e.Value!.ToString()!, System.Globalization.CultureInfo.InvariantCulture) })" />
         <span class="wn-setting-value">@_draft.EditorLineHeight.ToString("0.0")</span>
     </div>
     <div class="wn-setting">
-        <label><input type="checkbox" checked="@_draft.SpellCheck" @onchange="e => SaveAsync(_draft with { SpellCheck = (bool)e.Value! })" /> Check spelling while typing</label>
+        <label><input type="checkbox" checked="@_draft.SpellCheck" @onchange="e => SaveAsync(_draft with { SpellCheck = (bool)e.Value! })" /> @T["Check spelling while typing"]</label>
     </div>
     <div class="wn-setting">
-        <label for="wn-autosave">Save after a pause of</label>
+        <label for="wn-autosave">@T["Save after a pause of"]</label>
         <input id="wn-autosave" type="range" min="@AppSettings.MinAutosaveMilliseconds" max="@AppSettings.MaxAutosaveMilliseconds" step="100" value="@_draft.AutosaveDelayMilliseconds"
                @oninput="e => SaveAsync(_draft with { AutosaveDelayMilliseconds = int.Parse(e.Value!.ToString()!) })" />
         <span class="wn-setting-value">@((_draft.AutosaveDelayMilliseconds / 1000.0).ToString("0.0")) s</span>
     </div>
 
-    <h2>Behaviour</h2>
+    <h2>@T["Behaviour"]</h2>
     <div class="wn-setting">
-        <label><input type="checkbox" checked="@_draft.ConfirmDeletion" @onchange="e => SaveAsync(_draft with { ConfirmDeletion = (bool)e.Value! })" /> Ask before moving a note to the trash</label>
+        <label><input type="checkbox" checked="@_draft.ConfirmDeletion" @onchange="e => SaveAsync(_draft with { ConfirmDeletion = (bool)e.Value! })" /> @T["Ask before moving a note to the trash"]</label>
     </div>
     <div class="wn-setting">
-        <label><input type="checkbox" checked="@_draft.OpenLastPlace" @onchange="e => SaveAsync(_draft with { OpenLastPlace = (bool)e.Value! })" /> Open where I left off (otherwise the Inbox)</label>
+        <label><input type="checkbox" checked="@_draft.OpenLastPlace" @onchange="e => SaveAsync(_draft with { OpenLastPlace = (bool)e.Value! })" /> @T["Open where I left off (otherwise the Inbox)"]</label>
     </div>
 
-    <h2>Updates</h2>
+    <h2>@T["Updates"]</h2>
     <div class="wn-setting">
-        <label><input type="checkbox" checked="@_draft.CheckForUpdates" @onchange="e => SaveAsync(_draft with { CheckForUpdates = (bool)e.Value! })" /> Check for a new version when WorriorVex starts</label>
+        <label><input type="checkbox" checked="@_draft.CheckForUpdates" @onchange="e => SaveAsync(_draft with { CheckForUpdates = (bool)e.Value! })" /> @T["Check for a new version when WorriorVex starts"]</label>
     </div>
     <p class="wn-dialog-hint">
-        This is the only thing that contacts the internet: one request to github.com asking which version is the
-        newest. Nothing about you or your notes is sent. With it off, WorriorVex never goes online; you can still
-        check from the About page.
+        @T["This is the only thing that contacts the internet: one request to github.com asking which version is the newest. Nothing about you or your notes is sent. With it off, WorriorVex never goes online; you can still check from the About page."]
     </p>
 
     @if (_error is not null)
@@ -111,7 +122,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Settings could not be saved");
-            _error = "The settings could not be saved to disk. They apply until WorriorVex is closed.";
+            _error = T["The settings could not be saved to disk. They apply until WorriorVex is closed."];
         }
     }
 }

@@ -94,3 +94,15 @@ unexpected errors are logged. Note titles and contents are never logged.
 | `WorriorVex.IntegrationTests` | real SQLite files: migrations, note lifecycle, survival across a restart |
 
 UI tests are not automated yet; the critical flows in the plan (section 40) are run by hand for now.
+
+## Languages
+
+The interface is written in English and translated through `WorriorVex.UI/Localization/Translator`.
+The English text is the key: components write `@T["Save search"]` (or `T["{0} notes", n]` with
+placeholders) and the language files `WorriorVex.UI/i18n/{nl,de,pl}.json` map each English string to
+its translation; a missing entry falls back to English. The language comes from Settings → Language
+(empty means the system language captured at startup) and switching it re-renders the workspace at
+once, also changing the culture used for dates and numbers. The documentation page has one component
+per language (`DocsEn`, `DocsNl`, `DocsDe`, `DocsPl`) with the same topics. `TranslationTests` keep the
+three files in step and check placeholders. To add a language: add a `(code, name)` to
+`Translator.Languages`, an `i18n/<code>.json`, and a `Docs<Code>` component.

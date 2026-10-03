@@ -1,0 +1,425 @@
+@using WorriorVex.Application.Platform
+@inject AppInfo Info
+@inject IPlatformShell Shell
+
+@* Nederlandse documentatie. Houd de onderwerpen gelijk met DocsEn. *@
+@switch (Topic)
+{
+    case "start":
+        <h2>Aan de slag</h2>
+        <p>
+            WorriorVex is een notitieboek dat op je computer leeft. Alles wat je schrijft wordt hier opgeslagen,
+            op deze machine. Het werkt zonder internet en heeft geen account nodig.
+        </p>
+        <ol>
+            <li>Druk op <kbd>@Modifier</kbd> + <kbd>N</kbd>, of kies <strong>+ Nieuw</strong>, om een notitie te beginnen.</li>
+            <li>Typ een titel, druk op <kbd>Enter</kbd> en schrijf.</li>
+            <li>Dat is alles. De notitie wordt voor je opgeslagen en staat er weer als je terugkomt.</li>
+        </ol>
+        <p>
+            Nieuwe notities gaan naar het <strong>Postvak IN</strong>, tenzij je in een notitieboek of map zit.
+            Eerst vastleggen; later beslissen waar het hoort.
+        </p>
+        <h3>Het venster</h3>
+        <ul>
+            <li><strong>Links:</strong> waar alles staat. Sleep de rechterrand om het breder te maken; <kbd>@Modifier</kbd> + <kbd>\</kbd> verbergt of toont het. Postvak IN, Alle notities, je notitieboeken met hun mappen, de prullenbak.</li>
+            <li><strong>Midden:</strong> de notities op de plek die je hebt gekozen, de laatst gewijzigde eerst. Ook deze rand kun je slepen.</li>
+            <li><strong>Rechts:</strong> de notitie waaraan je werkt.</li>
+            <li><strong>Onderaan:</strong> of je werk is opgeslagen.</li>
+        </ul>
+        break;
+
+    case "writing":
+        <h2>Notities schrijven</h2>
+        <p>
+            De werkbalk boven de tekst geeft je vet, cursief, onderstrepen, doorhalen, code in de regel, drie
+            kopniveaus, opsommings-, genummerde en takenlijsten, citaten, codeblokken en een scheidingslijn.
+            De meeste hebben een sneltoets; zie <em>Sneltoetsen</em>.
+        </p>
+        <h3>Koppelingen</h3>
+        <p>
+            Selecteer woorden en kies <strong>Koppeling</strong>, typ dan het webadres. Zonder selectie wordt het adres
+            zelf als koppeling ingevoegd. Om een koppeling te wijzigen zet je de cursor erin en kies je opnieuw
+            <strong>Koppeling</strong>; <strong>Koppeling verwijderen</strong> haalt haar weg.
+            Houd <kbd>@Modifier</kbd> ingedrukt en klik op een koppeling om haar in je browser te openen.
+        </p>
+        <h3>Koppelingen tussen notities</h3>
+        <p>
+            Kies <strong>Notitiekoppeling</strong>, zoek de bedoelde notitie en kies haar. Met geselecteerde tekst wordt
+            die tekst de koppeling; anders wordt de titel van de andere notitie ingevoegd. Houd <kbd>@Modifier</kbd>
+            ingedrukt en klik op zo’n koppeling om naar die notitie te springen. Typ <code>[[</code> om de kiezer
+            direct te openen.
+        </p>
+        <p>
+            Onder de tekst toont <strong>Koppelt naar</strong> de notities waarnaar deze verwijst,
+            <strong>Gekoppeld vanuit</strong> de notities die hierheen verwijzen (terugkoppelingen) en
+            <strong>Verwant via labels</strong> notities die labels met deze delen. Ze blijven vanzelf bij; je hoeft niets
+            bij te houden. De woorden van een koppeling veranderen niet als de andere notitie wordt hernoemd.
+        </p>
+        <h3>Afbeeldingen</h3>
+        <p>
+            Kies <strong>Afbeelding</strong> om een afbeelding van je computer te kiezen, plak er een uit het klembord
+            of sleep een afbeeldingsbestand op de notitie. PNG, JPEG, GIF en WebP worden aanvaard. De afbeelding wordt
+            naar de eigen gegevensmap van WorriorVex gekopieerd, zodat de notitie blijft werken als het oorspronkelijke
+            bestand wordt verplaatst of verwijderd.
+        </p>
+        <p>
+            Afbeeldingen die op internet staan worden niet getoond: tekst die je van een webpagina plakt behoudt de
+            woorden en verliest de afbeeldingen. Dat is met opzet, zodat het openen van een notitie nooit contact
+            maakt met een andere computer.
+        </p>
+        <p>Wijs een afbeelding aan en sleep het vierkantje rechtsonder om haar kleiner of groter te maken.</p>
+        <h3>Bijgevoegde bestanden</h3>
+        <p>
+            <strong>Bijvoegen</strong> voegt elk bestand aan de notitie toe, net als het slepen van een bestand dat geen
+            afbeelding is op de tekst. Bijlagen staan onder de notitie met <strong>Openen</strong> (in het programma dat
+            je systeem voor dat soort bestand gebruikt), <strong>Opslaan als…</strong> (een kopie waar je wilt),
+            <strong>Hernoemen…</strong> en <strong>Verwijderen…</strong>. Het bestand wordt bij het bijvoegen naar de
+            gegevensmap van WorriorVex gekopieerd; het origineel wordt nooit aangeraakt.
+        </p>
+        <p>
+            Afbeeldingen die je in de tekst hebt gezet zijn ook bijlagen. Een afbeelding die niet meer in de tekst
+            voorkomt wordt gemarkeerd, en een knop biedt aan al die restanten in één keer te verwijderen.
+        </p>
+        <h3>Tabellen</h3>
+        <p>
+            <strong>Tabel</strong> voegt een tabel van drie kolommen met kopregel in. Zolang de cursor in een tabel
+            staat, verschijnen knoppen om rijen en kolommen toe te voegen of te verwijderen, de kopregel aan of uit te
+            zetten, geselecteerde cellen samen te voegen of te splitsen en de tabel te verwijderen. <kbd>Tab</kbd> gaat
+            naar de volgende cel en voegt aan het einde een rij toe. Sleep de lijn tussen twee kolommen om hun breedte
+            te wijzigen.
+        </p>
+        <h3>Markeerstift, kaders en code</h3>
+        <p>
+            De knop <mark>ab</mark> markeert de geselecteerde woorden als met een markeerstift. <strong>Kader…</strong>
+            zet de huidige alinea in een gekleurd vak (Info, Tip, Waarschuwing of Gevaar); kies het opnieuw om het vak weg
+            te halen. Een codeblok krijgt een lijst <strong>Taal</strong> zolang de cursor erin staat; kies er een en de
+            code wordt gekleurd.
+        </p>
+        <h3>Zoeken en vervangen</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>F</kbd> (of <strong>Zoeken</strong> op de werkbalk) opent een balk boven de tekst.
+            Overeenkomsten worden gemarkeerd terwijl je typt; <kbd>Enter</kbd> gaat naar de volgende, <kbd>Shift</kbd> +
+            <kbd>Enter</kbd> naar de vorige. <strong>Vervangen</strong> wijzigt de huidige overeenkomst, <strong>Alles</strong>
+            elke overeenkomst. <kbd>Esc</kbd> sluit de balk.
+        </p>
+        <h3>Sjablonen</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd>, of de <strong>▾</strong> naast <strong>+ Nieuw</strong>,
+            maakt een notitie uit een sjabloon. Sjablonen zijn gewone notities in een notitieboek met de naam
+            <strong>Templates</strong>, dat bij het eerste gebruik met drie voorbeelden wordt aangemaakt (vergadernotities,
+            een dagnotitie, een project). Bewerk ze of voeg je eigen sjablonen toe; schrijf <code>{{date}}</code> waar de
+            datum van vandaag moet komen.
+        </p>
+        <h3>Typ-sneltoetsen</h3>
+        <p>Typ aan het begin van een regel een van deze, gevolgd door een spatie:</p>
+        <table>
+            <thead><tr><th scope="col">Typ</th><th scope="col">Je krijgt</th></tr></thead>
+            <tbody>
+                <tr><td><code>#</code>, <code>##</code>, <code>###</code></td><td>Een kop</td></tr>
+                <tr><td><code>-</code> of <code>*</code></td><td>Een opsommingslijst</td></tr>
+                <tr><td><code>1.</code></td><td>Een genummerde lijst</td></tr>
+                <tr><td><code>[ ]</code></td><td>Een takenlijst</td></tr>
+                <tr><td><code>&gt;</code></td><td>Een citaat</td></tr>
+                <tr><td><code>```</code></td><td>Een codeblok</td></tr>
+                <tr><td><code>[[</code> (overal)</td><td>Een koppeling naar een andere notitie: er opent een kiezer</td></tr>
+            </tbody>
+        </table>
+        <h3>Opslaan</h3>
+        <p>
+            Notities slaan zichzelf op, kort nadat je stopt met typen. De balk onderaan toont <strong>Opgeslagen</strong>,
+            <strong>Niet-opgeslagen wijzigingen</strong> of <strong>Opslaan</strong>. Druk op <kbd>@Modifier</kbd> +
+            <kbd>S</kbd> om meteen op te slaan.
+        </p>
+        <p>
+            Mislukt het opslaan, dan zegt de balk dat en biedt ze <strong>Opnieuw proberen</strong> aan. Je tekst blijft in
+            het venster en WorriorVex laat je niet naar een andere notitie gaan voordat ze veilig is opgeslagen.
+        </p>
+        <h3>Eerdere versies</h3>
+        <p>
+            Terwijl je schrijft bewaart WorriorVex ongeveer elke tien minuten stilletjes de versie van vóór een wijziging.
+            <strong>Geschiedenis</strong> op de werkbalk toont ze; kies er een om haar te lezen en <strong>Deze versie
+            terugzetten</strong> om haar terug te halen. Wat de notitie op dat moment zegt wordt ook als versie bewaard,
+            dus terugzetten verliest nooit iets.
+        </p>
+        break;
+
+    case "searching":
+        <h2>Zoeken</h2>
+        <p>
+            Het zoekvak bovenaan doorzoekt de titels, tekst en labels van al je notities. Druk op <kbd>@Modifier</kbd> +
+            <kbd>K</kbd> om ernaartoe te springen en te typen; resultaten verschijnen terwijl je typt, de beste eerst, met
+            de overeenkomende woorden gemarkeerd. Een treffer in de titel telt zwaarder dan een in de tekst.
+        </p>
+        <p>
+            Begin je een zoekopdracht vanuit een notitieboek of map, vink dan <strong>Alleen in “…”</strong> boven de
+            resultaten aan om alleen daar te zoeken. <strong>Zoekopdracht opslaan</strong> bewaart de zoekopdracht in het
+            navigatiepaneel onder <strong>Opgeslagen zoekopdrachten</strong> (rechtsklik om te hernoemen of te
+            verwijderen). Vindt een woord niets maar lijkt een woord in je notities erop, dan bieden de resultaten
+            <em>Bedoelde je …?</em> aan.
+        </p>
+        <ul>
+            <li>Elk woord dat je typt moet voorkomen. Een woord vindt ook langere woorden die ermee beginnen: <code>archi</code> vindt <em>architectuur</em>.</li>
+            <li>Accenten en hoofdletters doen er niet toe: <code>resume</code> vindt <em>Résumé</em>.</li>
+            <li>Zet een exacte zin tussen aanhalingstekens: <code>"kwartaalplan"</code>.</li>
+            <li><code>tag:project</code> vindt notities met dat label.</li>
+            <li><code>in:Projecten</code> beperkt de resultaten tot een notitieboek of map met die naam; gebruik aanhalingstekens voor namen met spaties.</li>
+        </ul>
+        <p>
+            Gebruik de pijltjestoetsen om door de resultaten te gaan en <kbd>Enter</kbd> om er een te openen, of klik erop.
+            <kbd>Esc</kbd> verlaat het zoeken en brengt je terug waar je was. Notities in de prullenbak worden niet doorzocht.
+        </p>
+        break;
+
+    case "organising":
+        <h2>Notitieboeken en mappen</h2>
+        <p>
+            Een <strong>notitieboek</strong> is een container op het hoogste niveau, zoals <em>Projecten</em> of
+            <em>Persoonlijk</em>. In een notitieboek kun je <strong>mappen</strong> maken, en mappen in mappen.
+        </p>
+        <ul>
+            <li><strong>Nieuw notitieboek:</strong> de <strong>+</strong> naast <em>Notitieboeken</em>.</li>
+            <li><strong>Nieuwe map:</strong> wijs een notitieboek of map in de navigatie aan en druk op de <strong>+</strong> aan het einde van de rij; of selecteer het en kies <strong>Nieuwe map</strong> boven de notitielijst. Mappen nesten zo diep als je wilt.</li>
+            <li><strong>In- en uitklappen:</strong> het kleine vakje <strong>−</strong> / <strong>+</strong> links van een rij. Notities verschijnen als bladeren onder hun map (zet dit uit in Instellingen → Weergave als je alleen mappen wilt).</li>
+            <li><strong>Hernoemen:</strong> dubbelklik op een notitieboek, map of notitie, of druk er <kbd>F2</kbd> op; <kbd>Enter</kbd> bewaart de nieuwe naam, <kbd>Esc</kbd> geeft het op.</li>
+            <li><strong>Toetsenbord:</strong> <kbd>↑</kbd> <kbd>↓</kbd> lopen door de boom, <kbd>→</kbd> opent een tak, <kbd>←</kbd> sluit haar of gaat een niveau omhoog, <kbd>Delete</kbd> verplaatst de rij naar de prullenbak.</li>
+            <li><strong>Volgorde van notities:</strong> de lijst boven de notities kan ze tonen op laatste wijziging, nieuwste of titel; vastgezette notities blijven altijd bovenaan. Instellingen → Weergave heeft een compacte stand voor lange lijsten.</li>
+            <li><strong>Hernoemen of verwijderen:</strong> selecteer het, dan <strong>Hernoemen</strong> of <strong>Verwijderen</strong> boven de notitielijst.</li>
+            <li><strong>Nieuwe notitie in een map:</strong> selecteer de map, dan <strong>+ Nieuw</strong>.</li>
+        </ul>
+        <p>
+            <strong>Alle notities</strong> toont elke notitie uit elk notitieboek in één lijst, met de naam van het
+            notitieboek onder elke titel. Het Postvak IN is er altijd en kan niet worden hernoemd of verwijderd.
+        </p>
+        <h3>Dingen verplaatsen</h3>
+        <p>
+            Sleep een notitie uit de lijst, of een map uit de boom, en laat haar op een notitieboek of map vallen. Of
+            rechtsklik en kies <strong>Verplaatsen…</strong> om de bestemming uit een lijst te kiezen. Een map neemt alles
+            erin mee.
+        </p>
+        <h3>Rechtsklikmenu’s</h3>
+        <p>
+            Rechtsklik op een notitieboek, map, label of notitie voor wat je ermee kunt doen: nieuwe notitie of map,
+            hernoemen, verplaatsen, dupliceren, favoriet, vastzetten, verwijderen. <strong>Dupliceren</strong> maakt een
+            kopie naast het origineel, met de labels en eigen kopieën van de afbeeldingen.
+        </p>
+        <h3>Favorieten en vastzetten</h3>
+        <p>
+            <strong>Favoriet</strong> (★ boven de notitie) maakt een notitie makkelijk bereikbaar via de lijst
+            <strong>Favorieten</strong>, waar ze ook staat. <strong>Vastzetten</strong> houdt een notitie bovenaan de lijst
+            waarin ze staat. Ze staan los van elkaar: een notitie kan het een, het ander, beide of geen van beide zijn.
+        </p>
+        <h3>Labels</h3>
+        <p>
+            Typ een label in de rij onder de titel en druk op <kbd>Enter</kbd>; bestaande labels worden voorgesteld. Een
+            label is één woord: geen spaties of komma’s. Labels staan in de navigatie met het aantal notities dat ze
+            draagt; kies er een om die notities te zien, rechtsklik om te hernoemen of te verwijderen. Een label
+            verwijderen verwijdert nooit een notitie. Zoek op <code>tag:naam</code> om een label met andere woorden te
+            combineren.
+        </p>
+        <h3>Losse eindjes</h3>
+        <p>
+            <strong>Losse eindjes</strong> toont de notities zonder label en zonder koppeling van of naar een andere
+            notitie: een snelle manier om te vinden wat nog moet worden opgeborgen. In elke lijst toont ⛓ hoeveel
+            koppelingen een notitie heeft.
+        </p>
+        <h3>Recent</h3>
+        <p><strong>Recent</strong> toont de notities die je het laatst hebt geopend. Een notitie openen telt niet als wijzigen.</p>
+        break;
+
+    case "trash":
+        <h2>De prullenbak</h2>
+        <p>
+            Verwijderen vernietigt nooit meteen iets. Een verwijderde notitie, map of notitieboek gaat naar de
+            <strong>Prullenbak</strong> en blijft daar tot jij beslist.
+        </p>
+        <ul>
+            <li><strong>Een notitie verwijderen:</strong> <strong>Verwijderen</strong> rechts op de werkbalk.</li>
+            <li><strong>Een map of notitieboek verwijderen:</strong> selecteer het, dan <strong>Verwijderen</strong> boven de notitielijst. Alles erin gaat mee.</li>
+            <li><strong>Terugzetten:</strong> open de prullenbak, selecteer het item en kies <strong>Terugzetten</strong>. Een map of notitieboek komt terug met alles wat erin zat.</li>
+        </ul>
+        <p>
+            Bestaat de plek waar een item vandaan kwam niet meer, dan wordt het bovenin zijn notitieboek teruggezet, of in
+            het Postvak IN als ook het notitieboek weg is. WorriorVex vertelt het je als dat gebeurt.
+        </p>
+        <h3>Voorgoed verwijderen</h3>
+        <p>
+            <strong>Definitief verwijderen</strong> en <strong>Prullenbak leegmaken</strong> verwijderen notities samen met
+            hun eerdere versies en bijgevoegde bestanden. Dit kan niet ongedaan worden gemaakt, dus er wordt altijd eerst
+            gevraagd.
+        </p>
+        break;
+
+    case "shortcuts":
+        <h2>Sneltoetsen</h2>
+        <table>
+            <thead><tr><th scope="col">Druk op</th><th scope="col">Om</th></tr></thead>
+            <tbody>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Een nieuwe notitie te beginnen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>Nieuwe notitie uit een sjabloon</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>F</kbd></td><td>Zoeken en vervangen in de notitie</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></td><td>Focusmodus: alleen de notitie (nogmaals om te verlaten)</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Nu opslaan</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Zoeken</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>\</kbd></td><td>Zijbalk verbergen of tonen</td></tr>
+                <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> in het zoekvak</td><td>Door de resultaten gaan en er een openen</td></tr>
+                <tr><td><kbd>Esc</kbd> in het zoekvak</td><td>Het zoeken verlaten</td></tr>
+                <tr><td><kbd>Enter</kbd> in de titel</td><td>Naar de tekst gaan</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Een dialoog of menu sluiten</td></tr>
+                <tr><td><kbd>Enter</kbd> in de labelrij</td><td>Het label toevoegen</td></tr>
+                <tr><td><kbd>Backspace</kbd> in de lege labelrij</td><td>Het laatste label verwijderen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Vet / cursief / onderstrepen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td><td>Doorhalen</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>E</kbd></td><td>Code in de regel</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>–<kbd>3</kbd></td><td>Kop 1–3</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> / <kbd>8</kbd> / <kbd>9</kbd></td><td>Genummerde / opsommings- / takenlijst</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></td><td>Citaat</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Codeblok</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in een lijst</td><td>Inspringen / uitspringen</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in een tabel</td><td>Volgende / vorige cel</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + klik op een koppeling</td><td>Openen: een webpagina in je browser, een notitie in WorriorVex</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>V</kbd> met een gekopieerde afbeelding</td><td>De afbeelding in de notitie plakken</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Z</kbd></td><td>Ongedaan maken</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Opnieuw</td></tr>
+            </tbody>
+        </table>
+        break;
+
+    case "import":
+        <h2>Importeren</h2>
+        <p>
+            <strong>Importeren &amp; back-up → Importeren</strong> haalt notities uit twee andere bronnen binnen. Een
+            <strong>WorriorVex-pakket</strong> (<code>.worriorvex</code>, gemaakt met Exporteren → “Pakket opslaan”) van
+            een andere computer wordt als nieuwe notitieboeken toegevoegd; koppelingen, labels en bestanden komen mee en
+            wat je al hebt verandert niet. Een <strong>map met Markdown- of tekstbestanden</strong> (een Obsidian-kluis,
+            een Joplin-export, je eigen <code>.md</code>-bestanden) wordt één notitieboek: submappen worden mappen,
+            afbeeldingen worden bijgevoegd, <code>[[wikilinks]]</code> en relatieve koppelingen worden koppelingen tussen
+            notities, en labels in front matter of geschreven als <code>#label</code> blijven bewaard.
+        </p>
+        <h3>Bijgevoegde bestanden controleren</h3>
+        <p>
+            <strong>Bijgevoegde bestanden controleren</strong> vergelijkt de bijlagen die je notities noemen met de
+            bestanden op schijf en meldt bestanden die ontbreken, bestanden die buiten WorriorVex zijn gewijzigd en
+            bestanden waar niets meer naar verwijst (die het voor je kan verwijderen).
+        </p>
+        <h2>Importeren uit KeepNote</h2>
+        <p>
+            Kies <strong>Importeren &amp; back-up</strong> in de navigatie, dan <strong>Kies een
+            KeepNote-notitieboekmap…</strong> en wijs de eigen map van het notitieboek aan: de map met
+            <code>notebook.nbk</code>. WorriorVex leest het notitieboek eerst en toont wat het vond: pagina’s, mappen,
+            bestanden, afbeeldingen, koppelingen en de KeepNote-prullenbak. Er verandert niets tot je
+            <strong>Importeren</strong> kiest.
+        </p>
+        <ul>
+            <li>Het notitieboek wordt een nieuw WorriorVex-notitieboek met dezelfde naam. Mappen blijven mappen; pagina’s worden notities.</li>
+            <li>Een pagina met pagina’s erin wordt een map met dezelfde naam, met de eigen tekst van de pagina als eerste notitie in die map.</li>
+            <li>Bestanden bij een pagina worden bijlagen van de notitie; afbeeldingen in de pagina komen in de tekst van de notitie.</li>
+            <li>Koppelingen tussen pagina’s worden koppelingen tussen notities. Koppelingen naar pagina’s die niet meer bestaan behouden alleen hun woorden.</li>
+            <li>Wat in de prullenbak van KeepNote zat gaat naar de prullenbak van WorriorVex.</li>
+            <li>Aanmaak- en wijzigingstijden blijven bewaard. KeepNote-instellingen zoals pictogrammen en kleuren hebben hier geen plaats en worden als genegeerd vermeld.</li>
+        </ul>
+        <p>
+            De KeepNote-map wordt alleen gelezen; ze wordt nooit gewijzigd, dus je kunt KeepNote blijven gebruiken of
+            opnieuw importeren. Notitieboeken in KeepNote-formaatversie 5 of 6 (KeepNote 0.7) worden ondersteund; open een
+            ouder notitieboek één keer in KeepNote, dat het bijwerkt, en importeer opnieuw. Het rapport aan het einde
+            zegt precies wat er is gebeurd.
+        </p>
+        break;
+
+    case "settings":
+        <h2>Instellingen</h2>
+        <p><strong>Instellingen</strong> in de navigatie. Wijzigingen gelden meteen.</p>
+        <ul>
+            <li><strong>Taal:</strong> Engels, Nederlands, Pools of Duits, of de taal van het systeem.</li>
+            <li><strong>Thema:</strong> het systeem volgen, altijd licht of donker, of een van twee thema’s met hoog contrast.</li>
+            <li><strong>Accentkleur</strong> voor selecties en knoppen; <strong>Lettertype</strong> voor de notitietekst (systeem, met schreef, schreefloos of vaste breedte).</li>
+            <li><strong>Lijsten:</strong> ruime of compacte rijen, en of notities in de navigatieboom verschijnen.</li>
+            <li><strong>Tekstgrootte en regelhoogte</strong> van de notitietekst; <strong>spellingcontrole</strong> aan of uit.</li>
+            <li><strong>Opslaan na een pauze van:</strong> hoe lang na je laatste toetsaanslag een notitie wordt opgeslagen.</li>
+            <li><strong>Vragen voordat een notitie naar de prullenbak gaat</strong>, voor de voorzichtigen.</li>
+            <li><strong>Openen waar ik gebleven was:</strong> starten in het notitieboek of de map die open stond, in plaats van het Postvak IN.</li>
+            <li><strong>Bij het starten op een nieuwe versie controleren:</strong> standaard uit; zie <em>Je gegevens → Privacy</em>.</li>
+        </ul>
+        <p>De instellingen staan in <code>settings.json</code> in je gegevensmap. Dat bestand verwijderen brengt de standaardwaarden terug.</p>
+        break;
+
+    case "data":
+        <h2>Je gegevens</h2>
+        <p>Je notities zijn van jou. Ze staan in één map op deze computer:</p>
+        <p>
+            <code>@Info.DataDirectory</code>
+            <button type="button" class="wn-button wn-button-small" @onclick="() => Shell.OpenFolder(Info.DataDirectory)">Map openen</button>
+        </p>
+        <table>
+            <thead><tr><th scope="col">In die map</th><th scope="col">Wat het is</th></tr></thead>
+            <tbody>
+                <tr><td><code>worriorvex.db</code></td><td>Alle notities, notitieboeken en mappen, in een SQLite-database</td></tr>
+                <tr><td><code>attachments</code></td><td>De afbeeldingen in je notities en de bestanden die eraan zijn toegevoegd</td></tr>
+                <tr><td><code>settings.json</code></td><td>Je instellingen</td></tr>
+                <tr><td><code>backups</code></td><td>Back-ups die je maakte, en de veiligheidsback-ups van vóór elk herstel</td></tr>
+                <tr><td><code>logs</code></td><td>Een dagelijks logboek, handig bij het melden van een probleem. Het bevat nooit wat je schreef</td></tr>
+            </tbody>
+        </table>
+        <h3>Back-up maken</h3>
+        <p>
+            <strong>Importeren &amp; back-up → Nu back-up maken</strong> schrijft één zip-bestand met je hele database, elk
+            bijgevoegd bestand en een beschrijving van de inhoud in de map <code>backups</code>. <strong>Een back-up
+            opslaan in…</strong> zet hem waar jij kiest, bijvoorbeeld op een andere schijf. Je kunt veilig een back-up maken
+            terwijl je werkt.
+        </p>
+        <h3>Automatische back-ups</h3>
+        <p>
+            Op dezelfde pagina kun je WorriorVex elke dag of elke week een back-up laten maken terwijl het open is. Die
+            gaan naar de back-upmap met namen die beginnen met <code>auto-</code>, en alleen de nieuwste (jij kiest
+            hoeveel) worden bewaard. Back-ups die je zelf maakt worden nooit verwijderd.
+        </p>
+        <h3>Terugzetten</h3>
+        <p>
+            Kies <strong>Terugzetten…</strong> naast een back-up, of <strong>Terugzetten uit een bestand…</strong> voor een
+            back-up die elders staat. WorriorVex controleert het bestand eerst en weigert een beschadigd bestand of een
+            bestand van een nieuwere versie. Voordat iets wordt vervangen, wordt wat je nu hebt naar een nieuwe back-up
+            geschreven, zodat een herstel altijd ongedaan kan worden gemaakt door die terug te zetten.
+        </p>
+        <h3>Exporteren</h3>
+        <p>
+            <strong>Naar een map exporteren…</strong> schrijft elke notitie als bestand, in de structuur van notitieboeken
+            en mappen, als HTML (op zichzelf staande pagina’s met ingesloten afbeeldingen), Markdown (met naast elke
+            notitie een map met afbeeldingen en bestanden) of JSON (tekst, labels, koppelingen, bijlagen en geschiedenis;
+            genoeg om een notitie te herbouwen). Koppelingen tussen notities wijzen naar de geëxporteerde bestanden.
+            <strong>Pakket opslaan…</strong> schrijft alles, inclusief prullenbak en geschiedenis, als één
+            <code>.worriorvex</code>-bestand: een zip die je overal kunt openen. Eén notitie exporteer je via het
+            rechtsklikmenu.
+        </p>
+        <h3>Privacy</h3>
+        <p>
+            WorriorVex maakt geen verbinding met internet. Er is geen account, geen telemetrie en geen analytics. De twee
+            uitzonderingen start jij zelf: een koppeling kiezen, die in je browser opent, en de optionele controle op een
+            nieuwe versie (Instellingen → Updates, standaard uit), die één verzoek naar github.com stuurt om het nieuwste
+            versienummer te vragen en verder niets.
+        </p>
+        <h3>De gegevens ergens anders bewaren</h3>
+        <p>
+            Start WorriorVex met de omgevingsvariabele <code>WORRIORVEX_DATA_DIR</code> ingesteld op een andere map en het
+            gebruikt die map.
+        </p>
+        break;
+
+    default:
+        <h2>Wat eraan komt</h2>
+        <p>WorriorVex is jong. Nog gepland:</p>
+        <ul>
+            <li>Android en iOS</li>
+        </ul>
+        <p>
+            Volg de voortgang, download nieuwe versies of meld een probleem op
+            <ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink>.
+            Meer van de makers op <ExternalLink Address="AppInfo.Website">www.cloudworrior.com</ExternalLink>.
+        </p>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public string Topic { get; set; } = "start";
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+}

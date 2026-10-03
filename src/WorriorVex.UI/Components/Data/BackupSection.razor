@@ -1,6 +1,7 @@
 @using WorriorVex.Application.Backup
 @using WorriorVex.Application.Platform
 @inject IBackupService Backups
+@inject Translator T
 @inject IPlatformShell Shell
 @inject AppInfo Info
 @inject WorriorVex.Application.Settings.ISettingsService Settings
@@ -9,16 +10,15 @@
 @inject ILogger<BackupSection> Logger
 
 <section class="wn-data-section" aria-labelledby="wn-backup-heading">
-    <h2 id="wn-backup-heading">Backup</h2>
+    <h2 id="wn-backup-heading">@T["Backup"]</h2>
     <p>
-        A backup is one zip file holding your whole database, every attached file and a description of what is
-        inside. Backups are safe to take while you work. Keep them somewhere other than this computer too.
+        @T["A backup is one zip file holding your whole database, every attached file and a description of what is inside. Backups are safe to take while you work. Keep them somewhere other than this computer too."]
     </p>
     <div class="wn-data-actions wn-dialog-actions">
-        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="() => BackupAsync(null)">Back up now</button>
-        <button type="button" class="wn-button" disabled="@_busy" @onclick="BackupToAsync">Save a backup to…</button>
-        <button type="button" class="wn-button" disabled="@_busy" @onclick="RestoreFromFileAsync">Restore from a file…</button>
-        <button type="button" class="wn-button" @onclick="() => Shell.OpenFolder(BackupsFolder)">Open backups folder</button>
+        <button type="button" class="wn-button wn-button-primary" disabled="@_busy" @onclick="() => BackupAsync(null)">@T["Back up now"]</button>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="BackupToAsync">@T["Save a backup to…"]</button>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="RestoreFromFileAsync">@T["Restore from a file…"]</button>
+        <button type="button" class="wn-button" @onclick="() => Shell.OpenFolder(BackupsFolder)">@T["Open backups folder"]</button>
     </div>
     @if (_busy)
     {
@@ -33,30 +33,29 @@
         <p class="wn-dialog-error" role="alert">@_error</p>
     }
 
-    <h3>Automatic backups</h3>
+    <h3>@T["Automatic backups"]</h3>
     <p>
-        While WorriorVex is open it can take a backup for you, into the backups folder, and keep only the newest few.
-        Backups you take yourself are never deleted.
+        @T["While WorriorVex is open it can take a backup for you, into the backups folder, and keep only the newest few. Backups you take yourself are never deleted."]
     </p>
     <div class="wn-setting">
-        <label for="wn-auto-backup">Take a backup</label>
+        <label for="wn-auto-backup">@T["Take a backup"]</label>
         <select id="wn-auto-backup" class="wn-select" value="@Settings.Current.AutoBackup" @onchange="e => SaveScheduleAsync(Enum.Parse<BackupSchedule>(e.Value!.ToString()!), Settings.Current.AutoBackupKeep)">
-            <option value="@BackupSchedule.Off">Never</option>
-            <option value="@BackupSchedule.Daily">Every day</option>
-            <option value="@BackupSchedule.Weekly">Every week</option>
+            <option value="@BackupSchedule.Off">@T["Never"]</option>
+            <option value="@BackupSchedule.Daily">@T["Every day"]</option>
+            <option value="@BackupSchedule.Weekly">@T["Every week"]</option>
         </select>
-        <label for="wn-auto-keep">keep the last</label>
+        <label for="wn-auto-keep">@T["keep the last"]</label>
         <input id="wn-auto-keep" type="number" class="wn-input wn-input-short" min="1" max="100" value="@Settings.Current.AutoBackupKeep"
                @onchange="e => SaveScheduleAsync(Settings.Current.AutoBackup, int.TryParse(e.Value?.ToString(), out var n) ? n : Settings.Current.AutoBackupKeep)" />
         @if (Settings.Current.LastAutoBackupAt is { } last)
         {
-            <span class="wn-setting-value">Last automatic backup @last.ToLocalTime().ToString("g")</span>
+            <span class="wn-setting-value">@T["Last automatic backup {0}", last.ToLocalTime().ToString("g")]</span>
         }
     </div>
 
     @if (_backups.Count > 0)
     {
-        <h3>Backups in the backups folder</h3>
+        <h3>@T["Backups in the backups folder"]</h3>
         <ul class="wn-backups">
             @foreach (var backup in _backups)
             {
@@ -65,7 +64,7 @@
                     <span class="wn-attachment-meta">
                         @if (backup.Manifest is { } manifest)
                         {
-                            <text>@manifest.CreatedAt.ToLocalTime().ToString("g") · @manifest.Notes notes · @manifest.Attachments files · @FormatSize(backup.Size)</text>
+                            <text>@manifest.CreatedAt.ToLocalTime().ToString("g") · @T["{0} notes", manifest.Notes] · @T["{0} files", manifest.Attachments] · @FormatSize(backup.Size)</text>
                         }
                         else
                         {
@@ -73,7 +72,7 @@
                         }
                     </span>
                     <span class="wn-attachment-actions">
-                        <button type="button" class="wn-button wn-button-small" disabled="@(!backup.CanRestore || _busy)" @onclick="() => _restoring = backup">Restore…</button>
+                        <button type="button" class="wn-button wn-button-small" disabled="@(!backup.CanRestore || _busy)" @onclick="() => _restoring = backup">@T["Restore…"]</button>
                     </span>
                 </li>
             }
@@ -83,9 +82,9 @@
 
 @if (_restoring is { } restoring)
 {
-    <ConfirmDialog Title="Restore this backup?"
-                   Message="@($"Everything in WorriorVex is replaced by the backup from {restoring.Manifest!.CreatedAt.ToLocalTime():f} ({restoring.Manifest.Notes} notes). What you have now is saved to a new backup first, so you can go back.")"
-                   ConfirmText="Restore" Danger="true" OnConfirm="RestoreAsync" OnCancel="() => _restoring = null" />
+    <ConfirmDialog Title="@T["Restore this backup?"]"
+                   Message="@T["Everything in WorriorVex is replaced by the backup from {0} ({1} notes). What you have now is saved to a new backup first, so you can go back.", restoring.Manifest!.CreatedAt.ToLocalTime().ToString("f"), restoring.Manifest.Notes]"
+                   ConfirmText="@T["Restore"]" Danger="true" OnConfirm="RestoreAsync" OnCancel="() => _restoring = null" />
 }
 
 @code {
@@ -117,7 +116,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "The backup schedule could not be saved");
-            _error = "The setting could not be saved.";
+            _error = T["The setting could not be saved."];
         }
     }
 
@@ -135,7 +134,7 @@
 
     private async Task BackupToAsync()
     {
-        var path = await Shell.PickSaveLocationAsync("Save a backup", $"worriorvex-backup-{DateTime.Now:yyyyMMdd-HHmmss}.zip");
+        var path = await Shell.PickSaveLocationAsync(T["Save a backup"], $"worriorvex-backup-{DateTime.Now:yyyyMMdd-HHmmss}.zip");
         if (path is not null)
         {
             await BackupAsync(path);
@@ -146,18 +145,18 @@
     {
         _busy = true;
         _error = null;
-        _status = "Writing the backup…";
+        _status = T["Writing the backup…"];
         try
         {
             var written = await Backups.CreateBackupAsync(destination);
-            _status = $"Backup written: {written}";
+            _status = T["Backup written: {0}", written];
             await RefreshAsync();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Backup failed");
             _status = null;
-            _error = "The backup could not be written. Nothing was changed. Details are in the log file.";
+            _error = T["The backup could not be written. Nothing was changed. Details are in the log file."];
         }
         finally
         {
@@ -167,7 +166,7 @@
 
     private async Task RestoreFromFileAsync()
     {
-        var path = await Shell.PickFileAsync("Choose a WorriorVex backup", "Backups", [".zip"]);
+        var path = await Shell.PickFileAsync(T["Choose a WorriorVex backup"], T["Backups"], [".zip"]);
         if (path is null)
         {
             return;
@@ -176,7 +175,7 @@
         var info = await Backups.InspectAsync(path);
         if (!info.CanRestore)
         {
-            _error = "That file cannot be restored: " + string.Join(" ", info.Problems);
+            _error = T["That file cannot be restored: {0}", string.Join(" ", info.Problems)];
             return;
         }
 
@@ -199,11 +198,11 @@
 
         _busy = true;
         _error = null;
-        _status = "Restoring…";
+        _status = T["Restoring…"];
         try
         {
             var safety = await Backups.RestoreAsync(backup.Path);
-            _status = $"Restored {Path.GetFileName(backup.Path)}. What you had before is saved as {Path.GetFileName(safety)}.";
+            _status = T["Restored {0}. What you had before is saved as {1}.", Path.GetFileName(backup.Path), Path.GetFileName(safety)];
             await RefreshAsync();
             await OnRestored.InvokeAsync();
         }
@@ -216,7 +215,7 @@
         {
             Logger.LogError(ex, "Restore failed");
             _status = null;
-            _error = "The restore did not complete. Details are in the log file; the safety backup in the backups folder holds your data from before.";
+            _error = T["The restore did not complete. Details are in the log file; the safety backup in the backups folder holds your data from before."];
             await OnRestored.InvokeAsync();
         }
         finally

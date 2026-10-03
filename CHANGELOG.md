@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The interface and the built-in documentation are available in English, Dutch, Polish and German
+  (Settings → Language; follows the system language by default).
 - Notes appear as leaves of the navigation tree under their notebook and folder (Settings → Appearance to turn off).
 - Rename notebooks, folders and notes in place: double-click or F2.
 - Keyboard navigation of the tree: arrows, Home/End, Delete.

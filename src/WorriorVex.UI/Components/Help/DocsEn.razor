@@ -1,0 +1,417 @@
+@using WorriorVex.Application.Platform
+@inject AppInfo Info
+@inject IPlatformShell Shell
+
+@* English documentation. The other languages are DocsNl, DocsDe and DocsPl; keep the topics in step. *@
+@switch (Topic)
+{
+    case "start":
+        <h2>Getting started</h2>
+        <p>
+            WorriorVex is a notebook that lives on your computer. Everything you write is saved
+            here, on this machine. It works with the internet switched off and needs no account.
+        </p>
+        <ol>
+            <li>Press <kbd>@Modifier</kbd> + <kbd>N</kbd>, or choose <strong>+ New</strong>, to start a note.</li>
+            <li>Type a title, press <kbd>Enter</kbd>, and write.</li>
+            <li>That is all. The note is saved for you, and it is there when you come back.</li>
+        </ol>
+        <p>
+            New notes go to the <strong>Inbox</strong> unless you are inside a notebook or folder.
+            Capture first; decide where it belongs later.
+        </p>
+        <h3>The window</h3>
+        <ul>
+            <li><strong>Left:</strong> where things are. Drag its right edge to make it wider; <kbd>@Modifier</kbd> + <kbd>\</kbd> hides or shows it. Inbox, All Notes, your notebooks and their folders, the Trash.</li>
+            <li><strong>Middle:</strong> the notes in the place you selected, most recently changed first. Its edge can be dragged too.</li>
+            <li><strong>Right:</strong> the note you are working on.</li>
+            <li><strong>Bottom:</strong> whether your work is saved.</li>
+        </ul>
+        break;
+
+    case "writing":
+        <h2>Writing notes</h2>
+        <p>
+            The toolbar above the text gives you bold, italic, underline, strikethrough, inline code,
+            three levels of heading, bulleted, numbered and check lists, quotes, code blocks and a
+            dividing line. Most have a keyboard shortcut, listed under <em>Keyboard shortcuts</em>.
+        </p>
+        <h3>Links</h3>
+        <p>
+            Select some words and choose <strong>Link</strong>, then type the web address. With nothing
+            selected, the address itself is inserted as the link. To change a link, put the cursor in it
+            and choose <strong>Link</strong> again; <strong>Unlink</strong> removes it.
+            Hold <kbd>@Modifier</kbd> and click a link to open it in your browser.
+        </p>
+        <h3>Links between notes</h3>
+        <p>
+            Choose <strong>Note link</strong>, find the note you mean and pick it. With text selected, that
+            text becomes the link; otherwise the other note's title is inserted. Hold <kbd>@Modifier</kbd> and
+            click such a link to jump to that note.
+        </p>
+        <p>
+            Under the text, <strong>Links to</strong> lists the notes this one links to, <strong>Linked from</strong>
+            the notes that link here (backlinks), and <strong>Related by tags</strong> notes that share tags with
+            this one. They are kept up to date as you write; nothing needs to be maintained by hand.
+            The words of a link do not change when the other note is renamed.
+        </p>
+        <h3>Images</h3>
+        <p>
+            Choose <strong>Image</strong> to pick a picture from your computer, paste one from the
+            clipboard, or drag an image file onto the note. PNG, JPEG, GIF and WebP are accepted.
+            The picture is copied into WorriorVex's own data folder, so the note keeps working if the
+            original file is moved or deleted.
+        </p>
+        <p>
+            Pictures that live on the internet are not shown: text pasted from a web page keeps its
+            words and loses its pictures. This is deliberate, so that opening a note never contacts
+            another computer.
+        </p>
+        <p>Point at an image and drag the small square at its bottom-right corner to make it smaller or larger.</p>
+        <h3>Attached files</h3>
+        <p>
+            <strong>Attach</strong> adds any file to the note, as does dropping a file that is not a picture onto
+            the text. Attachments are listed under the note with <strong>Open</strong> (in the program your
+            system uses for that kind of file), <strong>Save as…</strong> (a copy wherever you choose),
+            <strong>Rename…</strong> and <strong>Remove…</strong>. The file is copied into WorriorVex's data
+            folder when attached; the original is never touched.
+        </p>
+        <p>
+            Pictures you placed in the text are attachments too. One that no longer appears in the text is
+            marked "not in the text", and a button offers to remove all such leftovers at once.
+        </p>
+        <h3>Tables</h3>
+        <p>
+            <strong>Table</strong> inserts a table of three columns with a header row. While the cursor
+            is in a table, buttons appear to add or delete rows and columns, to switch the header row
+            on or off, to merge selected cells or split one, and to delete the table. <kbd>Tab</kbd> moves to
+            the next cell and adds a row at the end. Drag the line between two columns to change their widths.
+        </p>
+        <h3>Marker, callouts and code</h3>
+        <p>
+            The <mark>ab</mark> button marks the selected words as with a highlighter. <strong>Callout…</strong>
+            puts the current paragraph in a coloured box (Info, Tip, Warning or Danger); choose it again to
+            take the box away. A code block gets a <strong>Language</strong> list while the cursor is in it;
+            pick one and the code is coloured.
+        </p>
+        <h3>Find and replace</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>F</kbd> (or <strong>Find</strong> on the toolbar) opens a bar above the
+            text. Matches are marked as you type; <kbd>Enter</kbd> goes to the next, <kbd>Shift</kbd> + <kbd>Enter</kbd>
+            to the previous. <strong>Replace</strong> changes the current match, <strong>All</strong> every match.
+            <kbd>Esc</kbd> closes the bar.
+        </p>
+        <h3>Templates</h3>
+        <p>
+            <kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd>, or the <strong>▾</strong> next to <strong>+ New</strong>,
+            makes a note from a template. Templates are ordinary notes in a notebook called <strong>Templates</strong>,
+            created with three starters (meeting notes, a daily note, a project) the first time you use it. Edit
+            them or add your own; write <code>{{date}}</code> where today's date should appear.
+        </p>
+        <h3>Typing shortcuts</h3>
+        <p>At the start of a line, type one of these followed by a space:</p>
+        <table>
+            <thead><tr><th scope="col">Type</th><th scope="col">To get</th></tr></thead>
+            <tbody>
+                <tr><td><code>#</code>, <code>##</code>, <code>###</code></td><td>A heading</td></tr>
+                <tr><td><code>-</code> or <code>*</code></td><td>A bulleted list</td></tr>
+                <tr><td><code>1.</code></td><td>A numbered list</td></tr>
+                <tr><td><code>[ ]</code></td><td>A check list</td></tr>
+                <tr><td><code>&gt;</code></td><td>A quote</td></tr>
+                <tr><td><code>```</code></td><td>A code block</td></tr>
+                <tr><td><code>[[</code> (anywhere)</td><td>A link to another note: a picker opens</td></tr>
+            </tbody>
+        </table>
+        <h3>Saving</h3>
+        <p>
+            Notes save themselves a moment after you stop typing. The bar at the bottom shows
+            <strong>Saved</strong>, <strong>Unsaved changes</strong> or <strong>Saving</strong>.
+            Press <kbd>@Modifier</kbd> + <kbd>S</kbd> to save at once.
+        </p>
+        <p>
+            If a save fails, the bar says so and offers <strong>Retry</strong>. Your text stays in the
+            window, and WorriorVex will not let you move to another note until it is safely stored.
+        </p>
+        <h3>Earlier versions</h3>
+        <p>
+            While you edit, WorriorVex quietly keeps the version from before a change about every ten
+            minutes. <strong>History</strong> in the toolbar lists them; select one to read it and
+            <strong>Restore this version</strong> to bring it back. What the note says at that moment is kept
+            as a version too, so restoring never loses anything.
+        </p>
+        break;
+
+    case "searching":
+        <h2>Searching</h2>
+        <p>
+            The search box at the top looks through the titles, text and tags of all your notes.
+            Press <kbd>@Modifier</kbd> + <kbd>K</kbd> to jump to it and start typing; results appear as
+            you type, best matches first, with the matching words marked. A match in the title counts
+            more than one in the text.
+        </p>
+        <p>
+            When you start a search from a notebook or folder, tick <strong>Only in “…”</strong> above the
+            results to look there alone. <strong>Save search</strong> keeps the search in the navigation pane
+            under <strong>Saved searches</strong> (right-click one to rename or remove it). If a word finds
+            nothing but a word in your notes is close to it, the results offer <em>Did you mean …?</em>
+        </p>
+        <ul>
+            <li>Every word you type must occur. A word also matches longer words that start with it: <code>archi</code> finds <em>architecture</em>.</li>
+            <li>Accents and case do not matter: <code>resume</code> finds <em>Résumé</em>.</li>
+            <li>Put an exact phrase in quotes: <code>"quarterly plan"</code>.</li>
+            <li><code>tag:project</code> finds notes carrying that tag.</li>
+            <li><code>in:Projects</code> limits the results to a notebook or folder of that name; use quotes for names with spaces.</li>
+        </ul>
+        <p>
+            Use the arrow keys to move through the results and <kbd>Enter</kbd> to open one, or click it.
+            <kbd>Esc</kbd> leaves the search and takes you back to where you were. Notes in the Trash are not searched.
+        </p>
+        break;
+
+    case "organising":
+        <h2>Notebooks and folders</h2>
+        <p>
+            A <strong>notebook</strong> is a top-level container, such as <em>Projects</em> or
+            <em>Personal</em>. Inside a notebook you can make <strong>folders</strong>, and folders inside folders.
+        </p>
+        <ul>
+            <li><strong>New notebook:</strong> the <strong>+</strong> beside <em>Notebooks</em>.</li>
+            <li><strong>New folder:</strong> point at a notebook or folder in the navigation and press the <strong>+</strong> at the end of its row; or select it and choose <strong>New folder</strong> above the note list. Folders nest as deep as you like.</li>
+            <li><strong>Collapse and expand:</strong> the small <strong>−</strong> / <strong>+</strong> box at the left of a row. Notes appear as leaves under their folder (switch this off in Settings → Appearance if you prefer folders only).</li>
+            <li><strong>Rename:</strong> double-click a notebook, folder or note, or press <kbd>F2</kbd> on it; <kbd>Enter</kbd> keeps the new name, <kbd>Esc</kbd> gives up.</li>
+            <li><strong>Keyboard:</strong> <kbd>↑</kbd> <kbd>↓</kbd> move through the tree, <kbd>→</kbd> opens a branch, <kbd>←</kbd> closes it or steps out, <kbd>Delete</kbd> moves the row to the trash.</li>
+            <li><strong>Order of notes:</strong> the list above the notes can show them by last change, by newest or by title; pinned notes always stay on top. Settings → Appearance has a compact mode for long lists.</li>
+            <li><strong>Rename or delete:</strong> select it, then <strong>Rename</strong> or <strong>Delete</strong> above the note list.</li>
+            <li><strong>New note in a folder:</strong> select the folder, then <strong>+ New</strong>.</li>
+        </ul>
+        <p>
+            <strong>All Notes</strong> shows every note from every notebook in one list, with the notebook's name under each title.
+            The Inbox is always there and cannot be renamed or deleted.
+        </p>
+        <h3>Moving things</h3>
+        <p>
+            Drag a note from the list, or a folder from the tree, and drop it on a notebook or folder.
+            Or right-click it and choose <strong>Move…</strong> to pick the destination from a list.
+            A folder takes everything inside it along.
+        </p>
+        <h3>Right-click menus</h3>
+        <p>
+            Right-click a notebook, folder, tag or note for what you can do with it: new note or folder,
+            rename, move, duplicate, favourite, pin, delete. <strong>Duplicate</strong> makes a copy beside
+            the original, with its tags and its own copies of its pictures.
+        </p>
+        <h3>Favourites and pins</h3>
+        <p>
+            <strong>Favorite</strong> (★ above the note) makes a note easy to reach from the
+            <strong>Favorites</strong> list, wherever it is filed. <strong>Pin</strong> keeps a note at the
+            top of the list it lives in. They are separate: a note can be either, both or neither.
+        </p>
+        <h3>Tags</h3>
+        <p>
+            Type a tag in the row under the title and press <kbd>Enter</kbd>; existing tags are suggested.
+            A tag is one word: no spaces or commas. Tags appear in the navigation with the number of notes
+            carrying them; select one to see those notes, right-click it to rename or delete it. Deleting a
+            tag never deletes a note. Search for <code>tag:name</code> to combine a tag with other words.
+        </p>
+        <h3>Loose ends</h3>
+        <p>
+            <strong>Loose ends</strong> lists the notes that have no tag and no link to or from another note:
+            a quick way to find what still needs filing. In every list, ⛓ shows how many links a note has.
+        </p>
+        <h3>Recent</h3>
+        <p><strong>Recent</strong> lists the notes you opened most recently. Opening a note does not count as changing it.</p>
+        break;
+
+    case "trash":
+        <h2>The Trash</h2>
+        <p>
+            Deleting never destroys anything straight away. A deleted note, folder or notebook moves
+            to the <strong>Trash</strong> and stays there until you decide.
+        </p>
+        <ul>
+            <li><strong>Delete a note:</strong> <strong>Delete</strong> at the right of the toolbar.</li>
+            <li><strong>Delete a folder or notebook:</strong> select it, then <strong>Delete</strong> above the note list. Everything inside goes with it.</li>
+            <li><strong>Restore:</strong> open the Trash, select the item, choose <strong>Restore</strong>. A folder or notebook comes back with everything that was in it.</li>
+        </ul>
+        <p>
+            If the place an item came from no longer exists, it is restored to the top of its
+            notebook, or to the Inbox when the notebook is gone too. WorriorVex tells you when it does this.
+        </p>
+        <h3>Removing for good</h3>
+        <p>
+            <strong>Delete permanently</strong> and <strong>Empty trash</strong> remove notes together with
+            their earlier versions and attached files. This cannot be undone, so you are always asked first.
+        </p>
+        break;
+
+    case "shortcuts":
+        <h2>Keyboard shortcuts</h2>
+        <table>
+            <thead><tr><th scope="col">Press</th><th scope="col">To</th></tr></thead>
+            <tbody>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Start a new note</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>New note from a template</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>F</kbd></td><td>Find and replace in the note</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></td><td>Focus mode: only the note (again to leave)</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Save now</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Search</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>\</kbd></td><td>Hide or show the sidebar</td></tr>
+                <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> in the search box</td><td>Move through the results and open one</td></tr>
+                <tr><td><kbd>Esc</kbd> in the search box</td><td>Leave the search</td></tr>
+                <tr><td><kbd>Enter</kbd> in the title</td><td>Move to the text</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Close a dialog or menu</td></tr>
+                <tr><td><kbd>Enter</kbd> in the tag row</td><td>Add the tag</td></tr>
+                <tr><td><kbd>Backspace</kbd> in the empty tag row</td><td>Remove the last tag</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>Bold / italic / underline</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td><td>Strikethrough</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>E</kbd></td><td>Inline code</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>–<kbd>3</kbd></td><td>Heading 1–3</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> / <kbd>8</kbd> / <kbd>9</kbd></td><td>Numbered / bulleted / check list</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></td><td>Quote</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Code block</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in a list</td><td>Indent / outdent</td></tr>
+                <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> in a table</td><td>Next / previous cell</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + click on a link</td><td>Open it: a web page in your browser, a note in WorriorVex</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>V</kbd> with a picture copied</td><td>Paste the picture into the note</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Z</kbd></td><td>Undo</td></tr>
+                <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo</td></tr>
+            </tbody>
+        </table>
+        break;
+
+    case "import":
+        <h2>Importing</h2>
+        <p>
+            <strong>Import &amp; backup → Import</strong> brings notes in from two other places.
+            A <strong>WorriorVex package</strong> (<code>.worriorvex</code>, made with Export → "Everything, as a
+            package") from another computer is added as new notebooks; links, tags and files come along,
+            and nothing you already have is changed. A <strong>folder of Markdown or text files</strong>
+            (an Obsidian vault, a Joplin export, your own <code>.md</code> files) becomes one notebook:
+            subfolders turn into folders, pictures are attached, <code>[[wiki links]]</code> and relative
+            links become links between notes, and tags in front matter or written as <code>#tag</code> are kept.
+        </p>
+        <h3>Checking attached files</h3>
+        <p>
+            <strong>Check attached files</strong> compares the attachments your notes list with the files on
+            disk and reports files that are missing, files that changed outside WorriorVex, and files nothing
+            refers to any more (which it can delete for you).
+        </p>
+        <h2>Importing from KeepNote</h2>
+        <p>
+            Choose <strong>Import &amp; backup</strong> in the navigation, then <strong>Choose a KeepNote notebook
+            folder…</strong> and pick the notebook's own folder: the one that contains <code>notebook.nbk</code>.
+            WorriorVex first reads the notebook and shows what it found: pages, folders, files, pictures, links and
+            the KeepNote trash. Nothing is changed until you choose <strong>Import</strong>.
+        </p>
+        <ul>
+            <li>The notebook becomes a new WorriorVex notebook with the same name. Folders stay folders; pages become notes.</li>
+            <li>A page that has pages inside it becomes a folder of the same name, with the page's own text as the first note in that folder.</li>
+            <li>Files attached to a page become attachments of the note; pictures in the page are placed in the note's text.</li>
+            <li>Links between pages become links between notes. Links to pages that no longer exist keep their words only.</li>
+            <li>What was in KeepNote's Trash goes into the WorriorVex Trash.</li>
+            <li>Created and modified times are kept. KeepNote settings such as icons and colours have no place here and are listed as ignored.</li>
+        </ul>
+        <p>
+            The KeepNote folder is only read; it is never changed, so you can keep using KeepNote or import again.
+            Notebooks in KeepNote format version 5 or 6 (KeepNote 0.7) are supported; for an older notebook, open it
+            once in KeepNote, which upgrades it, and import again. The report at the end says exactly what happened.
+        </p>
+        break;
+
+    case "settings":
+        <h2>Settings</h2>
+        <p>
+            <strong>Settings</strong> in the navigation. Changes apply at once.
+        </p>
+        <ul>
+            <li><strong>Theme:</strong> follow the system, always light or dark, or one of two high-contrast themes.</li>
+            <li><strong>Accent colour</strong> for selections and buttons; <strong>Font</strong> for the note text (system, serif, sans-serif or monospace).</li>
+            <li><strong>Lists:</strong> comfortable or compact rows, and whether notes appear in the navigation tree.</li>
+            <li><strong>Text size and line height</strong> of the note text; <strong>spell checking</strong> on or off.</li>
+            <li><strong>Save after a pause of:</strong> how long after your last keystroke a note is saved.</li>
+            <li><strong>Ask before moving a note to the trash</strong>, for the cautious.</li>
+            <li><strong>Open where I left off:</strong> start in the notebook or folder you had open, instead of the Inbox.</li>
+            <li><strong>Check for a new version when WorriorVex starts:</strong> off by default; see <em>Your data → Privacy</em>.</li>
+        </ul>
+        <p>The settings are kept in <code>settings.json</code> in your data folder. Deleting that file brings the defaults back.</p>
+        break;
+
+    case "data":
+        <h2>Your data</h2>
+        <p>Your notes are yours. They are kept in one folder on this computer:</p>
+        <p>
+            <code>@Info.DataDirectory</code>
+            <button type="button" class="wn-button wn-button-small" @onclick="() => Shell.OpenFolder(Info.DataDirectory)">Open folder</button>
+        </p>
+        <table>
+            <thead><tr><th scope="col">In that folder</th><th scope="col">What it is</th></tr></thead>
+            <tbody>
+                <tr><td><code>worriorvex.db</code></td><td>All notes, notebooks and folders, in a SQLite database</td></tr>
+                <tr><td><code>attachments</code></td><td>The pictures in your notes and the files attached to them</td></tr>
+                <tr><td><code>settings.json</code></td><td>Your settings</td></tr>
+                <tr><td><code>backups</code></td><td>Backups you made, and the safety backups taken before each restore</td></tr>
+                <tr><td><code>logs</code></td><td>A daily log, useful when reporting a problem. It never contains what you wrote</td></tr>
+            </tbody>
+        </table>
+        <h3>Backing up</h3>
+        <p>
+            <strong>Import &amp; backup → Back up now</strong> writes one zip file with your whole database, every
+            attached file and a description of what is inside, into the <code>backups</code> folder. <strong>Save a
+            backup to…</strong> puts it where you choose, for example on another disk. Backups are safe to take
+            while you work.
+        </p>
+        <h3>Automatic backups</h3>
+        <p>
+            On the same page you can have WorriorVex take a backup every day or every week while it is open.
+            These go to the backups folder with names starting <code>auto-</code>, and only the newest few
+            (you choose how many) are kept. Backups you take yourself are never deleted.
+        </p>
+        <h3>Restoring</h3>
+        <p>
+            Choose <strong>Restore…</strong> beside a backup, or <strong>Restore from a file…</strong> for one kept
+            elsewhere. WorriorVex checks the file first and refuses one that is damaged or from a newer version.
+            Before anything is replaced, what you have now is written to a new backup, so a restore can always be
+            undone by restoring that one.
+        </p>
+        <h3>Exporting</h3>
+        <p>
+            <strong>Export to a folder…</strong> writes every note as a file, in the notebook and folder structure,
+            as HTML (self-contained pages with pictures embedded), Markdown (with a folder of pictures and files
+            beside each note) or JSON (text, tags, links, attachments and history; enough to rebuild a note).
+            Links between notes point at the exported files. <strong>Save package…</strong> writes everything,
+            including the trash and history, as one <code>.worriorvex</code> file: a zip you can open anywhere.
+            A single note is exported from its right-click menu.
+        </p>
+        <h3>Privacy</h3>
+        <p>
+            WorriorVex does not connect to the internet. There is no account, no telemetry and no
+            analytics. The two exceptions are both yours to trigger: choosing a link, which opens in your
+            browser, and the optional check for a new version (Settings → Updates, off by default), which
+            sends one request to github.com asking for the newest version number and nothing else.
+        </p>
+        <h3>Keeping the data somewhere else</h3>
+        <p>
+            Start WorriorVex with the environment variable <code>WORRIORVEX_DATA_DIR</code> set to
+            another folder and it uses that folder instead.
+        </p>
+        break;
+
+    default:
+        <h2>What is coming</h2>
+        <p>WorriorVex is young. Still planned:</p>
+        <ul>
+            <li>Android and iOS</li>
+        </ul>
+        <p>
+            Follow progress, download new versions or report a problem at
+            <ExternalLink Address="AppInfo.Repository">github.com/cloudworrior-labs/worriorvex</ExternalLink>.
+            More from the makers at <ExternalLink Address="AppInfo.Website">www.cloudworrior.com</ExternalLink>.
+        </p>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public string Topic { get; set; } = "start";
+
+    private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
+}

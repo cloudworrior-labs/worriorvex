@@ -1,3 +1,4 @@
+@inject Translator T
 @using WorriorVex.Application.Attachments
 @using WorriorVex.Application.Common
 @using WorriorVex.Application.Content
@@ -9,11 +10,11 @@
 
 @if (_items.Count > 0)
 {
-    <section class="wn-attachments" aria-label="Attachments">
-        <h3>Attachments <span class="wn-count">@_items.Count</span>
+    <section class="wn-attachments" aria-label="@T["Attachments"]">
+        <h3>@T["Attachments"] <span class="wn-count">@_items.Count</span>
             @if (_unusedImages > 0)
             {
-                <button type="button" class="wn-button wn-button-small" title="Remove pictures that no longer appear in the text" @onclick="ConfirmRemoveUnused">Remove @_unusedImages unused picture(s)</button>
+                <button type="button" class="wn-button wn-button-small" title="@T["Remove pictures that no longer appear in the text"]" @onclick="ConfirmRemoveUnused">@T["Remove {0} unused picture(s)", _unusedImages]</button>
             }
         </h3>
         <ul>
@@ -24,10 +25,10 @@
                     <span class="wn-attachment-name" title="@item.FileName">@item.FileName</span>
                     <span class="wn-attachment-meta">@FormatSize(item.Size)@(IsImage(item) ? inText ? " · in the text" : " · not in the text" : "")</span>
                     <span class="wn-attachment-actions">
-                        <button type="button" class="wn-button wn-button-small" @onclick="() => OpenAsync(item)">Open</button>
-                        <button type="button" class="wn-button wn-button-small" @onclick="() => SaveCopyAsync(item)">Save as…</button>
-                        <button type="button" class="wn-button wn-button-small" @onclick="() => _renaming = item">Rename…</button>
-                        <button type="button" class="wn-button wn-button-small" @onclick="() => _removing = item">Remove…</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => OpenAsync(item)">@T["Open"]</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => SaveCopyAsync(item)">@T["Save as…"]</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => _renaming = item">@T["Rename…"]</button>
+                        <button type="button" class="wn-button wn-button-small" @onclick="() => _removing = item">@T["Remove…"]</button>
                     </span>
                 </li>
             }
@@ -37,21 +38,21 @@
 
 @if (_renaming is { } renaming)
 {
-    <PromptDialog @key="renaming.Id" Title="Rename attachment" Label="File name" InitialValue="@renaming.FileName" ConfirmText="Rename"
+    <PromptDialog @key="renaming.Id" Title="@T["Rename attachment"]" Label="@T["File name"]" InitialValue="@renaming.FileName" ConfirmText="@T["Rename"]"
                   MaxLength="Attachment.MaxFileNameLength" Error="@_dialogError" OnConfirm="RenameAsync" OnCancel="CloseDialogs" />
 }
 
 @if (_removing is { } removing)
 {
-    <ConfirmDialog @key="removing.Id" Title="@($"Remove \"{removing.FileName}\"?")"
-                   Message="@(IsImage(removing) && IsInText(removing) ? "The picture is still in the text; it would show as missing. The file is removed for good." : "The file is removed for good. The note itself stays.")"
-                   ConfirmText="Remove" Danger="true" OnConfirm="RemoveAsync" OnCancel="CloseDialogs" />
+    <ConfirmDialog @key="removing.Id" Title="@T["Remove “{0}”?", removing.FileName]"
+                   Message="@(IsImage(removing) && IsInText(removing) ? T["The picture is still in the text; it would show as missing. The file is removed for good."] : T["The file is removed for good. The note itself stays."])"
+                   ConfirmText="@T["Remove"]" Danger="true" OnConfirm="RemoveAsync" OnCancel="CloseDialogs" />
 }
 
 @if (_removingUnused)
 {
-    <ConfirmDialog Title="Remove unused pictures?" Message="@($"{_unusedImages} picture(s) attached to this note no longer appear in its text. Their files are removed for good.")"
-                   ConfirmText="Remove" Danger="true" OnConfirm="RemoveUnusedAsync" OnCancel="CloseDialogs" />
+    <ConfirmDialog Title="@T["Remove unused pictures?"]" Message="@T["{0} picture(s) attached to this note no longer appear in its text. Their files are removed for good.", _unusedImages]"
+                   ConfirmText="@T["Remove"]" Danger="true" OnConfirm="RemoveUnusedAsync" OnCancel="CloseDialogs" />
 }
 
 @code {
@@ -99,7 +100,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Attachments could not be listed");
-            await OnProblem.InvokeAsync("The attachments could not be listed.");
+            await OnProblem.InvokeAsync(T["The attachments could not be listed."]);
         }
     }
 
@@ -126,13 +127,13 @@
         }
         catch (Exception ex) when (ex is FileNotFoundException or EntityNotFoundException)
         {
-            await OnProblem.InvokeAsync($"The file for \"{item.FileName}\" is missing.");
+            await OnProblem.InvokeAsync(T["The file for “{0}” is missing.", item.FileName]);
         }
     }
 
     private async Task SaveCopyAsync(AttachmentInfo item)
     {
-        var destination = await Shell.PickSaveLocationAsync("Save a copy", item.FileName);
+        var destination = await Shell.PickSaveLocationAsync(T["Save a copy"], item.FileName);
         if (destination is null)
         {
             return;
@@ -145,7 +146,7 @@
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or FileNotFoundException or EntityNotFoundException)
         {
             Logger.LogError(ex, "Saving a copy of an attachment failed");
-            await OnProblem.InvokeAsync($"\"{item.FileName}\" could not be saved there.");
+            await OnProblem.InvokeAsync(T["“{0}” could not be saved there.", item.FileName]);
         }
     }
 
@@ -170,7 +171,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Renaming an attachment failed");
-            _dialogError = "The attachment could not be renamed.";
+            _dialogError = T["The attachment could not be renamed."];
         }
     }
 
@@ -191,7 +192,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Removing an attachment failed");
-            await OnProblem.InvokeAsync($"\"{item.FileName}\" could not be removed.");
+            await OnProblem.InvokeAsync(T["“{0}” could not be removed.", item.FileName]);
         }
     }
 
@@ -211,7 +212,7 @@
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Removing an unused picture failed");
-                await OnProblem.InvokeAsync($"\"{item.FileName}\" could not be removed.");
+                await OnProblem.InvokeAsync(T["“{0}” could not be removed.", item.FileName]);
             }
         }
 

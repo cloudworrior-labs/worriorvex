@@ -1,34 +1,34 @@
 @using WorriorVex.Application.Attachments
 @inject IAttachmentIntegrity Integrity
+@inject Translator T
 @inject ILogger<AttachmentCheckSection> Logger
 
 <section class="wn-data-section" aria-labelledby="wn-check-heading">
-    <h2 id="wn-check-heading">Check attached files</h2>
+    <h2 id="wn-check-heading">@T["Check attached files"]</h2>
     <p>
-        Compares the list of attached files with the files on disk: files that are missing, files that changed since
-        they were attached, and files nobody refers to any more. Nothing is changed unless you ask.
+        @T["Compares the list of attached files with the files on disk: files that are missing, files that changed since they were attached, and files nobody refers to any more. Nothing is changed unless you ask."]
     </p>
     @if (_busy)
     {
-        <p class="wn-progress" role="status">@(_progress ?? "Checking…")</p>
+        <p class="wn-progress" role="status">@(_progress ?? T["Checking…"])</p>
     }
     else if (_result is { } result)
     {
         <div class="wn-report" role="status">
             <ul class="wn-report-counts">
-                <li><strong>@result.Checked</strong> files present</li>
-                <li><strong>@result.Missing.Count</strong> missing</li>
-                <li><strong>@result.Damaged.Count</strong> changed on disk</li>
-                <li><strong>@result.Orphans.Count</strong> unused (@FormatSize(result.OrphanBytes))</li>
+                <li><strong>@result.Checked</strong> @T["files present"]</li>
+                <li><strong>@result.Missing.Count</strong> @T["missing"]</li>
+                <li><strong>@result.Damaged.Count</strong> @T["changed on disk"]</li>
+                <li><strong>@result.Orphans.Count</strong> @T["unused"] (@FormatSize(result.OrphanBytes))</li>
             </ul>
             @if (result.Missing.Count > 0)
             {
                 <details open>
-                    <summary>Missing files</summary>
+                    <summary>@T["Missing files"]</summary>
                     <ul>
                         @foreach (var (note, file) in result.Missing)
                         {
-                            <li>"@file" in "@note" — the attachment is listed but its file is gone. Restore it from a backup, or remove the attachment from the note.</li>
+                            <li>@T["“{0}” in “{1}” — the attachment is listed but its file is gone. Restore it from a backup, or remove the attachment from the note.", file, note]</li>
                         }
                     </ul>
                 </details>
@@ -36,11 +36,11 @@
             @if (result.Damaged.Count > 0)
             {
                 <details open>
-                    <summary>Files changed outside WorriorVex</summary>
+                    <summary>@T["Files changed outside WorriorVex"]</summary>
                     <ul>
                         @foreach (var (note, file) in result.Damaged)
                         {
-                            <li>"@file" in "@note" — its contents no longer match what was attached.</li>
+                            <li>@T["“{0}” in “{1}” — its contents no longer match what was attached.", file, note]</li>
                         }
                     </ul>
                 </details>
@@ -48,23 +48,22 @@
             @if (result.Orphans.Count > 0)
             {
                 <p>
-                    @result.Orphans.Count file(s) in the attachments folder belong to no note (left behind by an interrupted
-                    import or an old restore). They can be deleted.
-                    <button type="button" class="wn-button wn-button-small" @onclick="DeleteOrphansAsync">Delete unused files</button>
+                    @T["{0} file(s) in the attachments folder belong to no note (left behind by an interrupted import or an old restore). They can be deleted.", result.Orphans.Count]
+                    <button type="button" class="wn-button wn-button-small" @onclick="DeleteOrphansAsync">@T["Delete unused files"]</button>
                 </p>
             }
             else if (result.Missing.Count == 0 && result.Damaged.Count == 0)
             {
-                <p><strong>Everything is in order.</strong></p>
+                <p><strong>@T["Everything is in order."]</strong></p>
             }
             @if (_deleted is { } deleted)
             {
-                <p role="status">@deleted unused file(s) deleted.</p>
+                <p role="status">@T["{0} unused file(s) deleted.", deleted]</p>
             }
         </div>
     }
     <div class="wn-data-actions wn-dialog-actions">
-        <button type="button" class="wn-button" disabled="@_busy" @onclick="CheckAsync">@(_result is null ? "Check now" : "Check again")</button>
+        <button type="button" class="wn-button" disabled="@_busy" @onclick="CheckAsync">@(_result is null ? T["Check now"] : T["Check again"])</button>
     </div>
     @if (_error is not null)
     {
@@ -96,7 +95,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "The attachment check failed");
-            _error = "The check could not be completed. Details are in the log file.";
+            _error = T["The check could not be completed. Details are in the log file."];
         }
         finally
         {
@@ -120,7 +119,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Unused attachment files could not be deleted");
-            _error = "The files could not be deleted. Details are in the log file.";
+            _error = T["The files could not be deleted. Details are in the log file."];
         }
     }
 

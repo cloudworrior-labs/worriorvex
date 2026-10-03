@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorriorVex.Infrastructure\WorriorVex.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\WorriorVex.UI\WorriorVex.UI.csproj" />
   </ItemGroup>
 
 </Project>
