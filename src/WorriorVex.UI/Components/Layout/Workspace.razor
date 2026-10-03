@@ -1,7 +1,8 @@
 @implements IAsyncDisposable
 
-<div class="wn-app">
+<div class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null)">
     <header class="wn-topbar">
+        <button type="button" class="wn-iconbutton" title="Show or hide the sidebar (@_modifier+\)" aria-label="Show or hide the sidebar" aria-pressed="@(_sidebarHidden ? "true" : "false")" @onclick="() => _sidebarHidden = !_sidebarHidden">☰</button>
         <img class="wn-brand-mark" src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="20" height="20" />
         <span class="wn-brand">WorriorVex</span>
         <SearchBox @ref="_searchBox" Text="@_searchText" OnChanged="SearchAsync" OnMove="MoveSearchMark" OnOpen="OpenMarkedResultAsync" OnClose="CloseSearchAsync" />
@@ -70,6 +71,10 @@
         else if (_selection is NavSelection.Data)
         {
             <DataPage OnImported="AfterImportAsync" OnRestored="AfterRestoreAsync" BeforeRestore="SaveBeforeLeavingAsync" />
+        }
+        else if (_selection is NavSelection.Settings)
+        {
+            <SettingsPage />
         }
         else if (_selection is NavSelection.About)
         {

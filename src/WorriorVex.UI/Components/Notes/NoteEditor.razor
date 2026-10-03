@@ -7,6 +7,7 @@
 @inject IAttachmentService Attachments
 @inject IPlatformShell Shell
 @inject ILogger<NoteEditor> Logger
+@inject WorriorVex.Application.Settings.ISettingsService Settings
 
 <section class="wn-editor" aria-label="Editor">
     <div class="wn-title-row">
@@ -17,7 +18,7 @@
                maxlength="500"
                placeholder="Untitled"
                aria-label="Note title"
-               spellcheck="true"
+               spellcheck="@(Settings.Current.SpellCheck ? "true" : "false")"
                @oninput="OnTitleInput"
                @onkeydown="OnTitleKeyDown" />
         <button type="button" class="wn-tool @(Note.IsFavorite ? "is-active" : null)" title="@(Note.IsFavorite ? "Remove from favorites" : "Add to favorites")"
@@ -99,7 +100,7 @@
     [
         [new("bold", "B", "Bold"), new("italic", "I", "Italic"), new("underline", "U", "Underline"), new("strike", "S", "Strikethrough"), new("code", "<>", "Inline code")],
         [new("heading1", "H1", "Heading 1"), new("heading2", "H2", "Heading 2"), new("heading3", "H3", "Heading 3")],
-        [new("bulletList", "• List", "Bulleted list"), new("orderedList", "1. List", "Numbered list"), new("taskList", "☑ List", "Checklist")],
+        [new("bulletList", "•", "Bulleted list"), new("orderedList", "1.", "Numbered list"), new("taskList", "☑", "Checklist")],
         [new("blockquote", "“ ”", "Block quote"), new("codeBlock", "{ }", "Code block"), new("horizontalRule", "—", "Horizontal rule")],
     ];
 
@@ -204,6 +205,8 @@
             _module = await JS.InvokeAsync<IJSObjectReference>("import", UiAssets.Editor);
             _editor = await _module.InvokeAsync<IJSObjectReference>("create", _surface, _self, _content);
             _contentNeedsPush = false;
+            Settings.Changed += OnSettingsChanged;
+            await EditorAsync("setSpellCheck", Settings.Current.SpellCheck);
         }
         else if (_contentNeedsPush && _editor is not null)
         {
@@ -488,8 +491,15 @@
         }
     }
 
+    private void OnSettingsChanged(WorriorVex.Application.Settings.AppSettings settings) => _ = InvokeAsync(async () =>
+    {
+        await EditorAsync("setSpellCheck", settings.SpellCheck);
+        StateHasChanged();
+    });
+
     public async ValueTask DisposeAsync()
     {
+        Settings.Changed -= OnSettingsChanged;
         try
         {
             if (_editor is not null)

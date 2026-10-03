@@ -5,6 +5,7 @@ using WorriorVex.Application.Export;
 using WorriorVex.Application.Notes;
 using WorriorVex.Application.Platform;
 using WorriorVex.Application.Search;
+using WorriorVex.Application.Settings;
 using WorriorVex.Application.Tags;
 using WorriorVex.Application.Trash;
 using WorriorVex.Application.Tree;
@@ -35,6 +36,8 @@ public partial class Workspace
     private NoteSummary? _export;
     private (Guid Id, bool IsFolder)? _dragging;
     private int _connectionsVersion;
+    private bool _sidebarHidden;
+    private bool _confirmedDeletion;
     private NavSelection _selection = new NavSelection.AllNotes();
     private NoteDetail? _current;
     private TrashItem? _trashItem;
@@ -67,6 +70,7 @@ public partial class Workspace
     [Inject] private INoteSearchService Search { get; set; } = default!;
     [Inject] private ITagService TagService { get; set; } = default!;
     [Inject] private IExportService Exporter { get; set; } = default!;
+    [Inject] private ISettingsService Settings { get; set; } = default!;
     [Inject] private IPlatformShell Shell { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
@@ -98,7 +102,7 @@ public partial class Workspace
         _ => null,
     };
 
-    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About or NavSelection.Data;
+    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings;
 
     /// <summary>Nothing has been written yet: the Inbox is the only notebook and it is empty.</summary>
     private bool _firstRun;
@@ -118,11 +122,13 @@ public partial class Workspace
     {
         Autosaver.StateChanged += OnSaveStateChanged;
         Autosaver.NoteSaved += OnNoteSaved;
+        Settings.Changed += OnSettingsChanged;
+        Autosaver.Delay = TimeSpan.FromMilliseconds(Settings.Current.AutosaveDelayMilliseconds);
 
         try
         {
             await LoadStructureAsync();
-            _selection = Inbox is { } inbox ? new NavSelection.Notebook(inbox.Id) : new NavSelection.AllNotes();
+            _selection = StartingPlace();
             await LoadListAsync(openFirst: true);
             _firstRun = _notebooks.Count == 1 && _notes.Count == 0 && (await Trash.ListAsync()).Count == 0;
         }
@@ -144,6 +150,7 @@ public partial class Workspace
             _self = DotNetObjectReference.Create(this);
             _shortcutsModule = await JS.InvokeAsync<IJSObjectReference>("import", UiAssets.Shortcuts);
             _shortcuts = await _shortcutsModule.InvokeAsync<IJSObjectReference>("register", _self);
+            await ApplyAppearanceAsync(Settings.Current);
         }
 
         if (_focusNewNote && _editor is not null)
@@ -172,6 +179,7 @@ public partial class Workspace
                     await _searchBox.FocusAsync();
                 }
             }),
+            "toggleSidebar" => InvokeAsync(() => _sidebarHidden = !_sidebarHidden),
             "save" => InvokeAsync(SaveNowAsync),
             _ => Task.CompletedTask,
         };
@@ -208,7 +216,7 @@ public partial class Workspace
                 _notes = [];
                 _current = null;
                 return;
-            case NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Search:
+            case NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings or NavSelection.Search:
                 _notes = [];
                 _current = null;
                 return;
@@ -253,7 +261,74 @@ public partial class Workspace
             _selection = selection;
             _notice = null;
             await LoadListAsync(openFirst: true);
+            await RememberPlaceAsync();
         });
+    }
+
+    // ---- Settings ------------------------------------------------------------------------------
+
+    /// <summary>Where to open: the Inbox, or where the user was last if that is wanted and still exists.</summary>
+    private NavSelection StartingPlace()
+    {
+        var settings = Settings.Current;
+        if (settings.OpenLastPlace && settings.LastNotebookId is { } notebookId && _notebooks.Any(n => n.Id == notebookId))
+        {
+            if (settings.LastFolderId is { } folderId && _folders.Any(f => f.Id == folderId && f.NotebookId == notebookId))
+            {
+                return new NavSelection.Folder(notebookId, folderId);
+            }
+
+            return new NavSelection.Notebook(notebookId);
+        }
+
+        return Inbox is { } inbox ? new NavSelection.Notebook(inbox.Id) : new NavSelection.AllNotes();
+    }
+
+    private async Task RememberPlaceAsync()
+    {
+        var (notebookId, folderId) = _selection switch
+        {
+            NavSelection.Folder folder => (folder.NotebookId, (Guid?)folder.FolderId),
+            NavSelection.Notebook notebook => (notebook.NotebookId, null),
+            _ => (Guid.Empty, null),
+        };
+        if (notebookId == Guid.Empty || (Settings.Current.LastNotebookId == notebookId && Settings.Current.LastFolderId == folderId))
+        {
+            return;
+        }
+
+        try
+        {
+            await Settings.SaveAsync(Settings.Current with { LastNotebookId = notebookId, LastFolderId = folderId });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "The last place could not be remembered");
+        }
+    }
+
+    private void OnSettingsChanged(AppSettings settings) => _ = InvokeAsync(async () =>
+    {
+        Autosaver.Delay = TimeSpan.FromMilliseconds(settings.AutosaveDelayMilliseconds);
+        await ApplyAppearanceAsync(settings);
+        StateHasChanged();
+    });
+
+    private async Task ApplyAppearanceAsync(AppSettings settings)
+    {
+        if (_shortcutsModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _shortcutsModule.InvokeVoidAsync("applyAppearance", settings.Theme.ToString().ToLowerInvariant(), settings.EditorFontSize, settings.EditorLineHeight);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "The appearance settings could not be applied");
+        }
     }
 
     private async Task NewNoteAsync()
@@ -274,7 +349,7 @@ public partial class Workspace
                 case NavSelection.Notebook notebook:
                     note = await Notes.CreateAsync(notebook.NotebookId);
                     break;
-                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Search:
+                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings or NavSelection.Search:
                     // Nothing is created in the trash or on a help page: a new note goes to the Inbox, and so does the view.
                     note = await Notes.CreateAsync();
                     EndSearch();
@@ -467,6 +542,25 @@ public partial class Workspace
     {
         if (_current is not { } note || !await SaveBeforeLeavingAsync())
         {
+            return;
+        }
+
+        if (Settings.Current.ConfirmDeletion && !_confirmedDeletion)
+        {
+            OpenConfirm(new ConfirmRequest(
+                $"Move \"{note.Title}\" to the trash?", "You can restore it from the Trash later.", "Move to trash", Danger: false,
+                async () =>
+                {
+                    _confirmedDeletion = true;
+                    try
+                    {
+                        await DeleteCurrentNoteAsync();
+                    }
+                    finally
+                    {
+                        _confirmedDeletion = false;
+                    }
+                }));
             return;
         }
 
@@ -744,6 +838,25 @@ public partial class Workspace
         }
 
         var title = _notes.FirstOrDefault(n => n.Id == id)?.Title ?? "The note";
+        if (Settings.Current.ConfirmDeletion && !_confirmedDeletion)
+        {
+            OpenConfirm(new ConfirmRequest(
+                $"Move \"{title}\" to the trash?", "You can restore it from the Trash later.", "Move to trash", Danger: false,
+                async () =>
+                {
+                    _confirmedDeletion = true;
+                    try
+                    {
+                        await DeleteNoteAsync(id);
+                    }
+                    finally
+                    {
+                        _confirmedDeletion = false;
+                    }
+                }));
+            return;
+        }
+
         await RunAsync("The note could not be moved to the trash.", async () =>
         {
             await Trash.MoveToTrashAsync(id);
@@ -1218,6 +1331,7 @@ public partial class Workspace
     {
         Autosaver.StateChanged -= OnSaveStateChanged;
         Autosaver.NoteSaved -= OnNoteSaved;
+        Settings.Changed -= OnSettingsChanged;
 
         try
         {

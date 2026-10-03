@@ -187,6 +187,9 @@ export function create(element, dotNetRef, html) {
         chain.setLink({ href: address }).run();
       }
     },
+    setSpellCheck(enabled) {
+      editor.view.dom.setAttribute('spellcheck', enabled ? 'true' : 'false');
+    },
     insertImage(source, alt) {
       editor.chain().focus().setImage({ src: source, alt: alt || '' }).run();
     },

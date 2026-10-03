@@ -46,7 +46,9 @@ delete → restore.
 | KeepNote import with scan, confirmation and report; first-run welcome (Phase 11) | done |
 | History dialog: list, preview and restore earlier versions (Phase 12) | done |
 | Backup (consistent SQLite copy + files + manifest), checked restore with a safety backup, export as HTML / Markdown / JSON and a `.worriorvex` package (Phase 13) | done |
-| Mobile | Phase 14 |
+| Settings (theme, text size, spell check, autosave pause, confirm deletion, last place), sidebar toggle, compact toolbar; Linux validated under WebKitGTK (Phase 14) | done |
+| Mobile (Android, iOS) | Phase 14, not started: needs the MAUI workload and devices; design in `docs/mobile.md` |
+| Signed installers, auto-update | Phase 15, needs certificates |
 
 ## Out of scope for the MVP
 

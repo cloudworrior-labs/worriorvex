@@ -60,9 +60,8 @@ Proof of concept required by the plan: launch, initialise SQLite, create, save, 
 | --- | --- | --- |
 | macOS (arm64) | passed | passed, 2 Oct 2026: database created from migrations, notes created and edited, present after restart |
 | Windows | CI | **not yet done** |
-| Linux | CI | **not yet done** |
+| Linux | CI | passed, 3 Oct 2026: the arm64 build ran under Xvfb in an Ubuntu 24.04 container (WebKitGTK 4.1); the window rendered, a note was created by X11 input, typed, autosaved and indexed |
 
-The plan's gate ("do not proceed until the foundation is validated on all three") is still formally open.
-On 2 October 2026 the product owner chose to continue with Phases 3–5 and to publish installers before the
-two manual runs. They remain to be done and recorded here; the first run of the Windows installer and the
-Linux package is that test.
+Windows is the one platform never run by hand: CI builds and tests there, and the installer is produced
+there, but nobody has opened the window yet. The product owner chose on 2 October 2026 to continue and
+publish before that run; the first run of the Windows installer is that test.

@@ -1,0 +1,76 @@
+@using WorriorVex.Application.Settings
+@inject ISettingsService Settings
+@inject ILogger<SettingsPage> Logger
+
+<section class="wn-page wn-settings" aria-labelledby="wn-settings-title">
+    <h1 id="wn-settings-title">Settings</h1>
+    <p>Changes apply at once and are kept in <code>settings.json</code> in your data folder.</p>
+
+    <h2>Appearance</h2>
+    <div class="wn-setting">
+        <label for="wn-theme">Theme</label>
+        <select id="wn-theme" class="wn-select" value="@_draft.Theme" @onchange="e => SaveAsync(_draft with { Theme = Enum.Parse<ThemeSetting>(e.Value!.ToString()!) })">
+            <option value="@ThemeSetting.System">Follow the system</option>
+            <option value="@ThemeSetting.Light">Light</option>
+            <option value="@ThemeSetting.Dark">Dark</option>
+        </select>
+    </div>
+
+    <h2>Editor</h2>
+    <div class="wn-setting">
+        <label for="wn-font-size">Text size</label>
+        <input id="wn-font-size" type="range" min="@AppSettings.MinFontSize" max="@AppSettings.MaxFontSize" step="1" value="@_draft.EditorFontSize"
+               @oninput="e => SaveAsync(_draft with { EditorFontSize = int.Parse(e.Value!.ToString()!) })" />
+        <span class="wn-setting-value">@_draft.EditorFontSize px</span>
+    </div>
+    <div class="wn-setting">
+        <label for="wn-line-height">Line height</label>
+        <input id="wn-line-height" type="range" min="1.2" max="2.2" step="0.1" value="@_draft.EditorLineHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+               @oninput="e => SaveAsync(_draft with { EditorLineHeight = double.Parse(e.Value!.ToString()!, System.Globalization.CultureInfo.InvariantCulture) })" />
+        <span class="wn-setting-value">@_draft.EditorLineHeight.ToString("0.0")</span>
+    </div>
+    <div class="wn-setting">
+        <label><input type="checkbox" checked="@_draft.SpellCheck" @onchange="e => SaveAsync(_draft with { SpellCheck = (bool)e.Value! })" /> Check spelling while typing</label>
+    </div>
+    <div class="wn-setting">
+        <label for="wn-autosave">Save after a pause of</label>
+        <input id="wn-autosave" type="range" min="@AppSettings.MinAutosaveMilliseconds" max="@AppSettings.MaxAutosaveMilliseconds" step="100" value="@_draft.AutosaveDelayMilliseconds"
+               @oninput="e => SaveAsync(_draft with { AutosaveDelayMilliseconds = int.Parse(e.Value!.ToString()!) })" />
+        <span class="wn-setting-value">@((_draft.AutosaveDelayMilliseconds / 1000.0).ToString("0.0")) s</span>
+    </div>
+
+    <h2>Behaviour</h2>
+    <div class="wn-setting">
+        <label><input type="checkbox" checked="@_draft.ConfirmDeletion" @onchange="e => SaveAsync(_draft with { ConfirmDeletion = (bool)e.Value! })" /> Ask before moving a note to the trash</label>
+    </div>
+    <div class="wn-setting">
+        <label><input type="checkbox" checked="@_draft.OpenLastPlace" @onchange="e => SaveAsync(_draft with { OpenLastPlace = (bool)e.Value! })" /> Open where I left off (otherwise the Inbox)</label>
+    </div>
+
+    @if (_error is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_error</p>
+    }
+</section>
+
+@code {
+    private AppSettings _draft = new();
+    private string? _error;
+
+    protected override void OnInitialized() => _draft = Settings.Current;
+
+    private async Task SaveAsync(AppSettings settings)
+    {
+        _draft = settings.Clamped();
+        try
+        {
+            await Settings.SaveAsync(_draft);
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Settings could not be saved");
+            _error = "The settings could not be saved to disk. They apply until WorriorVex is closed.";
+        }
+    }
+}

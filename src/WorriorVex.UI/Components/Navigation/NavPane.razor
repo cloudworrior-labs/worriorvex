@@ -102,6 +102,10 @@
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.Data())">Import &amp; backup</button>
         </li>
         <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Settings())" aria-current="@Current(new NavSelection.Settings())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Settings())">Settings</button>
+        </li>
+        <li>
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Documentation())" aria-current="@Current(new NavSelection.Documentation())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.Documentation())">Documentation</button>
         </li>

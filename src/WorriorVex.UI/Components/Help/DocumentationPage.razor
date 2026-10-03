@@ -37,7 +37,7 @@
                 </p>
                 <h3>The window</h3>
                 <ul>
-                    <li><strong>Left:</strong> where things are. Inbox, All Notes, your notebooks and their folders, the Trash.</li>
+                    <li><strong>Left:</strong> where things are. <kbd>@Modifier</kbd> + <kbd>\</kbd> hides or shows it. Inbox, All Notes, your notebooks and their folders, the Trash.</li>
                     <li><strong>Middle:</strong> the notes in the place you selected, most recently changed first.</li>
                     <li><strong>Right:</strong> the note you are working on.</li>
                     <li><strong>Bottom:</strong> whether your work is saved.</li>
@@ -228,6 +228,7 @@
                         <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Start a new note</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Save now</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Search</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>\</kbd></td><td>Hide or show the sidebar</td></tr>
                         <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> in the search box</td><td>Move through the results and open one</td></tr>
                         <tr><td><kbd>Esc</kbd> in the search box</td><td>Leave the search</td></tr>
                         <tr><td><kbd>Enter</kbd> in the title</td><td>Move to the text</td></tr>
@@ -274,6 +275,21 @@
                 </p>
                 break;
 
+            case "settings":
+                <h2>Settings</h2>
+                <p>
+                    <strong>Settings</strong> in the navigation. Changes apply at once.
+                </p>
+                <ul>
+                    <li><strong>Theme:</strong> follow the system, or always light or dark.</li>
+                    <li><strong>Text size and line height</strong> of the note text; <strong>spell checking</strong> on or off.</li>
+                    <li><strong>Save after a pause of:</strong> how long after your last keystroke a note is saved.</li>
+                    <li><strong>Ask before moving a note to the trash</strong>, for the cautious.</li>
+                    <li><strong>Open where I left off:</strong> start in the notebook or folder you had open, instead of the Inbox.</li>
+                </ul>
+                <p>The settings are kept in <code>settings.json</code> in your data folder. Deleting that file brings the defaults back.</p>
+                break;
+
             case "data":
                 <h2>Your data</h2>
                 <p>Your notes are yours. They are kept in one folder on this computer:</p>
@@ -286,6 +302,7 @@
                     <tbody>
                         <tr><td><code>worriorvex.db</code></td><td>All notes, notebooks and folders, in a SQLite database</td></tr>
                         <tr><td><code>attachments</code></td><td>The pictures in your notes and the files attached to them</td></tr>
+                        <tr><td><code>settings.json</code></td><td>Your settings</td></tr>
                         <tr><td><code>backups</code></td><td>Backups you made, and the safety backups taken before each restore</td></tr>
                         <tr><td><code>logs</code></td><td>A daily log, useful when reporting a problem. It never contains what you wrote</td></tr>
                     </tbody>
@@ -351,6 +368,7 @@
         ("organising", "Notebooks and folders"),
         ("trash", "The Trash"),
         ("shortcuts", "Keyboard shortcuts"),
+        ("settings", "Settings"),
         ("import", "Importing from KeepNote"),
         ("data", "Your data"),
         ("coming", "What is coming"),

@@ -10,6 +10,7 @@
 | `Ctrl/⌘ + N` | New note (in the Inbox) |
 | `Ctrl/⌘ + S` | Save now |
 | `Ctrl/⌘ + K` | Search |
+| `Ctrl/⌘ + \` | Hide or show the sidebar |
 | `↑` `↓` `Enter` in the search box | Move through the results, open one |
 | `Esc` in the search box | Leave the search |
 | `Enter` in the title | Move to the note body |
@@ -39,4 +40,4 @@ the start of a line also starts the matching block.
 
 ## Planned
 
-Focus editor, toggle sidebar, tree navigation, command palette.
+Focus editor, arrow-key navigation in the tree, command palette.

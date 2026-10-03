@@ -43,4 +43,20 @@ const SHORTCUTS = {
   n: 'newNote',
   s: 'save',
   k: 'search',
+  '\\': 'toggleSidebar',
 };
+
+/**
+ * Applies the appearance settings to the page: the theme (system, light or dark) and the size of
+ * the note text. Called at start and whenever the settings change.
+ */
+export function applyAppearance(theme, fontSize, lineHeight) {
+  const root = document.documentElement;
+  if (theme === 'light' || theme === 'dark') {
+    root.dataset.theme = theme;
+  } else {
+    delete root.dataset.theme;
+  }
+  root.style.setProperty('--wn-prose-size', `${fontSize}px`);
+  root.style.setProperty('--wn-prose-line-height', String(lineHeight));
+}

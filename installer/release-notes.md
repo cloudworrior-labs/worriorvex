@@ -1,5 +1,7 @@
 WorriorVex {{VERSION}} — your personal knowledge workspace. Local-first: no account, no cloud, no telemetry.
 
+What changed: see [CHANGELOG.md](https://github.com/cloudworrior-labs/worriorvex/blob/main/CHANGELOG.md).
+
 ## Install
 
 | System | Download | Then |

@@ -23,7 +23,26 @@ public sealed class NoteAutosaver(INoteService notes, TimeProvider timeProvider,
 {
     public static readonly TimeSpan DefaultDelay = TimeSpan.FromMilliseconds(700);
 
-    private readonly TimeSpan _delay = delay ?? DefaultDelay;
+    private TimeSpan _delay = delay ?? DefaultDelay;
+
+    /// <summary>How long after the last edit a save starts. Takes effect from the next edit.</summary>
+    public TimeSpan Delay
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _delay;
+            }
+        }
+        set
+        {
+            lock (_gate)
+            {
+                _delay = value;
+            }
+        }
+    }
     private readonly Lock _gate = new();
     private readonly SemaphoreSlim _saving = new(1, 1);
     private PendingEdit? _pending;
@@ -151,7 +170,7 @@ public sealed class NoteAutosaver(INoteService notes, TimeProvider timeProvider,
     {
         try
         {
-            await Task.Delay(_delay, timeProvider, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(Delay, timeProvider, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
