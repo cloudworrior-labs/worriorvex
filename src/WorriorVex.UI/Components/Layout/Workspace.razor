@@ -1,6 +1,6 @@
 @implements IAsyncDisposable
 
-<div class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null) @(Settings.Current.ListDensity == ListDensity.Compact ? "is-compact" : null)">
+<div class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null) @(_focusMode && !IsHelpPage ? "is-focus" : null) @(Settings.Current.ListDensity == ListDensity.Compact ? "is-compact" : null)">
     <header class="wn-topbar">
         <button type="button" class="wn-iconbutton" title="Show or hide the sidebar (@_modifier+\)" aria-label="Show or hide the sidebar" aria-pressed="@(_sidebarHidden ? "true" : "false")" @onclick="() => _sidebarHidden = !_sidebarHidden">☰</button>
         <img class="wn-brand-mark" src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="20" height="20" />
@@ -8,6 +8,7 @@
         <SearchBox @ref="_searchBox" Text="@_searchText" OnChanged="SearchAsync" OnMove="MoveSearchMark" OnOpen="OpenMarkedResultAsync" OnClose="CloseSearchAsync" />
         <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
         <button type="button" class="wn-button" @onclick="() => _templatePicker = true" title="New note from a template (@_modifier+Shift+N)" aria-label="New note from a template">▾</button>
+        <button type="button" class="wn-iconbutton @(_focusMode ? "is-active" : null)" title="Focus mode: only the note (@_modifier+Shift+F)" aria-label="Focus mode" aria-pressed="@(_focusMode ? "true" : "false")" @onclick="() => _focusMode = !_focusMode">⤢</button>
     </header>
 
     <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" SavedSearches="Settings.Current.SavedSearches" Selection="_selection" Dragging="_dragging is not null"

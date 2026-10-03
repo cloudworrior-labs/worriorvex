@@ -72,7 +72,7 @@
   }
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"], :root[data-theme="highcontrastdark"] {
     --wn-bg: #1b1e22;
     --wn-bg-pane: #202428;
     --wn-bg-bar: #262b30;
@@ -820,3 +820,81 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-linkbutton { border: 0; background: none; padding: 0; color: var(--wn-accent); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
 .wn-noteitem-links { margin-left: auto; font-size: 0.78rem; color: var(--wn-text-muted); }
 .wn-input-short { width: 4.5rem; }
+
+/* Accent colours. The dark variants are lighter so they read on dark backgrounds. */
+:root[data-accent="teal"] { --wn-accent: #0f766e; --wn-focus: #0f766e; --wn-bg-selected: #cdeeea; }
+:root[data-accent="green"] { --wn-accent: #1f7a3a; --wn-focus: #1f7a3a; --wn-bg-selected: #d3efd9; }
+:root[data-accent="purple"] { --wn-accent: #6d3fc0; --wn-focus: #6d3fc0; --wn-bg-selected: #e5dcf7; }
+:root[data-accent="orange"] { --wn-accent: #b4530a; --wn-focus: #b4530a; --wn-bg-selected: #fbe3d0; }
+:root[data-accent="red"] { --wn-accent: #b3261e; --wn-focus: #b3261e; --wn-bg-selected: #f9d9d7; }
+:root[data-accent="graphite"] { --wn-accent: #4b5563; --wn-focus: #4b5563; --wn-bg-selected: #dfe3e8; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])[data-accent="teal"] { --wn-accent: #5eead4; --wn-focus: #5eead4; --wn-bg-selected: #134e4a; --wn-accent-text: #042f2e; }
+  :root:not([data-theme="light"])[data-accent="green"] { --wn-accent: #86efac; --wn-focus: #86efac; --wn-bg-selected: #14532d; --wn-accent-text: #052e16; }
+  :root:not([data-theme="light"])[data-accent="purple"] { --wn-accent: #c4b5fd; --wn-focus: #c4b5fd; --wn-bg-selected: #3b2a6b; --wn-accent-text: #1e1b4b; }
+  :root:not([data-theme="light"])[data-accent="orange"] { --wn-accent: #fdba74; --wn-focus: #fdba74; --wn-bg-selected: #5c2e0a; --wn-accent-text: #431407; }
+  :root:not([data-theme="light"])[data-accent="red"] { --wn-accent: #fca5a5; --wn-focus: #fca5a5; --wn-bg-selected: #5c1a16; --wn-accent-text: #450a0a; }
+  :root:not([data-theme="light"])[data-accent="graphite"] { --wn-accent: #cbd5e1; --wn-focus: #cbd5e1; --wn-bg-selected: #334155; --wn-accent-text: #0f172a; }
+}
+:root[data-theme="dark"][data-accent="teal"] { --wn-accent: #5eead4; --wn-focus: #5eead4; --wn-bg-selected: #134e4a; --wn-accent-text: #042f2e; }
+:root[data-theme="dark"][data-accent="green"] { --wn-accent: #86efac; --wn-focus: #86efac; --wn-bg-selected: #14532d; --wn-accent-text: #052e16; }
+:root[data-theme="dark"][data-accent="purple"] { --wn-accent: #c4b5fd; --wn-focus: #c4b5fd; --wn-bg-selected: #3b2a6b; --wn-accent-text: #1e1b4b; }
+:root[data-theme="dark"][data-accent="orange"] { --wn-accent: #fdba74; --wn-focus: #fdba74; --wn-bg-selected: #5c2e0a; --wn-accent-text: #431407; }
+:root[data-theme="dark"][data-accent="red"] { --wn-accent: #fca5a5; --wn-focus: #fca5a5; --wn-bg-selected: #5c1a16; --wn-accent-text: #450a0a; }
+:root[data-theme="dark"][data-accent="graphite"] { --wn-accent: #cbd5e1; --wn-focus: #cbd5e1; --wn-bg-selected: #334155; --wn-accent-text: #0f172a; }
+
+/* High contrast: black on white (or white on black), strong borders, no soft greys. */
+:root[data-theme="highcontrast"], :root[data-theme="highcontrast"][data-accent] {
+  --wn-bg: #ffffff;
+  --wn-bg-pane: #ffffff;
+  --wn-bg-bar: #ffffff;
+  --wn-bg-hover: #e0e0e0;
+  --wn-bg-selected: #ffff00;
+  --wn-border: #000000;
+  --wn-text: #000000;
+  --wn-text-muted: #000000;
+  --wn-accent: #0000c0;
+  --wn-accent-text: #ffffff;
+  --wn-danger: #a00000;
+  --wn-danger-bg: #ffe0e0;
+  --wn-ok: #006000;
+  --wn-code-bg: #f0f0f0;
+  --wn-focus: #0000c0;
+  --wn-mark-bg: #ffff00;
+  --wn-border-width: 2px;
+}
+
+:root[data-theme="highcontrastdark"], :root[data-theme="highcontrastdark"][data-accent] {
+  --wn-bg: #000000;
+  --wn-bg-pane: #000000;
+  --wn-bg-bar: #000000;
+  --wn-bg-hover: #333333;
+  --wn-bg-selected: #0000a0;
+  --wn-border: #ffffff;
+  --wn-text: #ffffff;
+  --wn-text-muted: #ffffff;
+  --wn-accent: #80c0ff;
+  --wn-accent-text: #000000;
+  --wn-danger: #ff8080;
+  --wn-danger-bg: #400000;
+  --wn-ok: #80ff80;
+  --wn-code-bg: #202020;
+  --wn-focus: #ffff00;
+  --wn-mark-bg: #806000;
+  --wn-border-width: 2px;
+}
+
+:root[data-theme="highcontrast"] .wn-navitem.is-selected, :root[data-theme="highcontrastdark"] .wn-navitem.is-selected,
+:root[data-theme="highcontrast"] .wn-noteitem.is-selected, :root[data-theme="highcontrastdark"] .wn-noteitem.is-selected { outline: 2px solid var(--wn-accent); outline-offset: -2px; }
+:root[data-theme="highcontrast"] :focus-visible, :root[data-theme="highcontrastdark"] :focus-visible { outline: 3px solid var(--wn-focus); outline-offset: 1px; }
+
+/* Editor font */
+:root[data-font="serif"] .wn-prose, :root[data-font="serif"] .wn-title { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Noto Serif", serif; }
+:root[data-font="sans"] .wn-prose, :root[data-font="sans"] .wn-title { font-family: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif; }
+:root[data-font="mono"] .wn-prose, :root[data-font="mono"] .wn-title { font-family: var(--wn-font-mono); }
+
+/* Focus mode: only the note */
+.wn-app.is-focus { grid-template-columns: 0 0 minmax(0, 1fr); }
+.wn-app.is-focus .wn-nav, .wn-app.is-focus .wn-notelist, .wn-app.is-focus .wn-resizer { display: none; }
+.wn-app.is-focus .wn-prose { margin: 0 auto; }
+.wn-iconbutton.is-active { background: var(--wn-bg-selected); color: var(--wn-accent); }

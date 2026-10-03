@@ -5,6 +5,27 @@ public enum ThemeSetting
     System,
     Light,
     Dark,
+    HighContrast,
+    HighContrastDark,
+}
+
+public enum AccentColor
+{
+    Blue,
+    Teal,
+    Green,
+    Purple,
+    Orange,
+    Red,
+    Graphite,
+}
+
+public enum EditorFont
+{
+    System,
+    Serif,
+    Sans,
+    Mono,
 }
 
 /// <summary>Order of notes in a list. Pinned notes always come first.</summary>
@@ -61,6 +82,10 @@ public sealed record AppSettings
 
     /// <summary>Open where the user left off instead of the Inbox.</summary>
     public bool OpenLastPlace { get; init; } = true;
+
+    public AccentColor Accent { get; init; } = AccentColor.Blue;
+
+    public EditorFont EditorFont { get; init; } = EditorFont.System;
 
     public NoteSort NoteSort { get; init; } = NoteSort.Updated;
 

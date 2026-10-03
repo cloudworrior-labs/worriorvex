@@ -42,6 +42,7 @@ public partial class Workspace
     private (Guid Id, bool IsFolder)? _dragging;
     private int _connectionsVersion;
     private bool _sidebarHidden;
+    private bool _focusMode;
     private bool _confirmedDeletion;
     private UpdateCheck? _update;
     private NavSelection _selection = new NavSelection.AllNotes();
@@ -309,6 +310,7 @@ public partial class Workspace
                 }
             }),
             "toggleSidebar" => InvokeAsync(() => _sidebarHidden = !_sidebarHidden),
+            "focusMode" => InvokeAsync(() => _focusMode = !_focusMode),
             "save" => InvokeAsync(SaveNowAsync),
             "newFromTemplate" => InvokeAsync(() => _templatePicker = true),
             "find" => InvokeAsync(async () =>
@@ -558,7 +560,8 @@ public partial class Workspace
 
         try
         {
-            await _shortcutsModule.InvokeVoidAsync("applyAppearance", settings.Theme.ToString().ToLowerInvariant(), settings.EditorFontSize, settings.EditorLineHeight);
+            await _shortcutsModule.InvokeVoidAsync("applyAppearance", settings.Theme.ToString().ToLowerInvariant(), settings.EditorFontSize, settings.EditorLineHeight,
+                settings.Accent.ToString().ToLowerInvariant(), settings.EditorFont.ToString().ToLowerInvariant());
         }
         catch (JSException ex)
         {

@@ -13,6 +13,17 @@
             <option value="@ThemeSetting.System">Follow the system</option>
             <option value="@ThemeSetting.Light">Light</option>
             <option value="@ThemeSetting.Dark">Dark</option>
+            <option value="@ThemeSetting.HighContrast">High contrast</option>
+            <option value="@ThemeSetting.HighContrastDark">High contrast, dark</option>
+        </select>
+    </div>
+    <div class="wn-setting">
+        <label for="wn-accent">Accent colour</label>
+        <select id="wn-accent" class="wn-select" value="@_draft.Accent" @onchange="e => SaveAsync(_draft with { Accent = Enum.Parse<AccentColor>(e.Value!.ToString()!) })">
+            @foreach (var accent in Enum.GetValues<AccentColor>())
+            {
+                <option value="@accent">@accent</option>
+            }
         </select>
     </div>
 
@@ -28,6 +39,15 @@
     </div>
 
     <h2>Editor</h2>
+    <div class="wn-setting">
+        <label for="wn-font">Font</label>
+        <select id="wn-font" class="wn-select" value="@_draft.EditorFont" @onchange="e => SaveAsync(_draft with { EditorFont = Enum.Parse<EditorFont>(e.Value!.ToString()!) })">
+            <option value="@EditorFont.System">System</option>
+            <option value="@EditorFont.Serif">Serif</option>
+            <option value="@EditorFont.Sans">Sans-serif</option>
+            <option value="@EditorFont.Mono">Monospace</option>
+        </select>
+    </div>
     <div class="wn-setting">
         <label for="wn-font-size">Text size</label>
         <input id="wn-font-size" type="range" min="@AppSettings.MinFontSize" max="@AppSettings.MaxFontSize" step="1" value="@_draft.EditorFontSize"

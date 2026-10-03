@@ -49,18 +49,29 @@ const SHORTCUTS = {
 
 const SHIFT_SHORTCUTS = {
   n: 'newFromTemplate',
+  f: 'focusMode',
 };
 
 /**
  * Applies the appearance settings to the page: the theme (system, light or dark) and the size of
  * the note text. Called at start and whenever the settings change.
  */
-export function applyAppearance(theme, fontSize, lineHeight) {
+export function applyAppearance(theme, fontSize, lineHeight, accent, font) {
   const root = document.documentElement;
-  if (theme === 'light' || theme === 'dark') {
+  if (theme && theme !== 'system') {
     root.dataset.theme = theme;
   } else {
     delete root.dataset.theme;
+  }
+  if (accent && accent !== 'blue') {
+    root.dataset.accent = accent;
+  } else {
+    delete root.dataset.accent;
+  }
+  if (font && font !== 'system') {
+    root.dataset.font = font;
+  } else {
+    delete root.dataset.font;
   }
   root.style.setProperty('--wn-prose-size', `${fontSize}px`);
   root.style.setProperty('--wn-prose-line-height', String(lineHeight));

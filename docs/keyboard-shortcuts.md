@@ -10,6 +10,7 @@
 | `Ctrl/⌘ + N` | New note (in the Inbox) |
 | `Ctrl/⌘ + Shift + N` | New note from a template |
 | `Ctrl/⌘ + F` | Find and replace in the open note |
+| `Ctrl/⌘ + Shift + F` | Focus mode: only the note |
 | `Ctrl/⌘ + S` | Save now |
 | `Ctrl/⌘ + K` | Search |
 | `Ctrl/⌘ + \` | Hide or show the sidebar |
