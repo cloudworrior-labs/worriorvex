@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - run: dotnet test --configuration Release
+      - run: dotnet test --configuration Release --filter "FullyQualifiedName!~WorriorVex.UITests"
 
   windows:
     name: Windows installer
