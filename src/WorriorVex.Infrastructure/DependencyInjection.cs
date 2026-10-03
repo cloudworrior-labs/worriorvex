@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddSingleton<DatabaseInitializer>();
         services.AddSingleton<INoteHtmlSanitizer, NoteHtmlSanitizer>();
         services.AddSingleton<INotebookService, NotebookService>();
+        services.AddSingleton<WorriorVex.Application.Templates.ITemplateService, Templates.TemplateService>();
         services.AddSingleton<INoteService, NoteService>();
         services.AddSingleton<ITreeService, TreeService>();
         services.AddSingleton<AttachmentFileStore>();

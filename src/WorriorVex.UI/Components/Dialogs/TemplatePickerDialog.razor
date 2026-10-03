@@ -1,0 +1,93 @@
+@using WorriorVex.Application.Templates
+@inject ITemplateService Templates
+@inject ILogger<TemplatePickerDialog> Logger
+
+@* "New from template": pick one of the notes in the Templates notebook. *@
+<div class="wn-overlay" @onclick="OnCancel" @onkeydown="OnKeyDown">
+    <div class="wn-dialog wn-dialog-picker" role="dialog" aria-modal="true" aria-labelledby="wn-template-title" @onclick:stopPropagation>
+        <h2 id="wn-template-title">New note from a template</h2>
+        @if (_templates is null)
+        {
+            <p class="wn-muted">Loading…</p>
+        }
+        else if (_templates.Count == 0)
+        {
+            <p class="wn-muted">There are no templates. Add notes to the "Templates" notebook and they appear here.</p>
+        }
+        else
+        {
+            <ul class="wn-picker-list" role="listbox" aria-label="Templates">
+                @foreach (var template in _templates)
+                {
+                    var marked = template.Id == _marked;
+                    <li>
+                        <button type="button" class="wn-noteitem @(marked ? "is-marked" : null)" role="option" aria-selected="@(marked ? "true" : "false")"
+                                @onclick="() => OnPick.InvokeAsync(template.Id)" @onfocus="() => _marked = template.Id"><span class="wn-noteitem-title">@template.Title</span></button>
+                    </li>
+                }
+            </ul>
+            <p class="wn-muted wn-dialog-hint">Templates are ordinary notes in the "Templates" notebook; edit them or add your own there. Write <code>{{date}}</code> where today's date should go.</p>
+        }
+        @if (_error is not null)
+        {
+            <p class="wn-error" role="alert">@_error</p>
+        }
+        <div class="wn-dialog-actions">
+            <button type="button" class="wn-button" @onclick="OnCancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<TemplateSummary>? _templates;
+    private Guid? _marked;
+    private string? _error;
+
+    [Parameter] public EventCallback<Guid> OnPick { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _templates = await Templates.ListAsync();
+            _marked = _templates.FirstOrDefault()?.Id;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "The templates could not be loaded");
+            _templates = [];
+            _error = "The templates could not be loaded.";
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        if (_templates is null || _templates.Count == 0)
+        {
+            if (args.Key == "Escape")
+            {
+                await OnCancel.InvokeAsync();
+            }
+
+            return;
+        }
+
+        var index = _templates.ToList().FindIndex(t => t.Id == _marked);
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                _marked = _templates[Math.Min(index + 1, _templates.Count - 1)].Id;
+                break;
+            case "ArrowUp":
+                _marked = _templates[Math.Max(index - 1, 0)].Id;
+                break;
+            case "Enter" when _marked is { } id:
+                await OnPick.InvokeAsync(id);
+                break;
+            case "Escape":
+                await OnCancel.InvokeAsync();
+                break;
+        }
+    }
+}

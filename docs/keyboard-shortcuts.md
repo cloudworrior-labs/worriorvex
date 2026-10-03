@@ -8,6 +8,8 @@
 | Shortcut | Action |
 | --- | --- |
 | `Ctrl/⌘ + N` | New note (in the Inbox) |
+| `Ctrl/⌘ + Shift + N` | New note from a template |
+| `Ctrl/⌘ + F` | Find and replace in the open note |
 | `Ctrl/⌘ + S` | Save now |
 | `Ctrl/⌘ + K` | Search |
 | `Ctrl/⌘ + \` | Hide or show the sidebar |
@@ -46,6 +48,8 @@
 | `Ctrl/⌘` + click on a link | Open it: a web page in the browser, a note in the app |
 | `Ctrl/⌘ + V` with an image copied | Paste the image into the note |
 | `Ctrl/⌘ + Z`, `Ctrl/⌘ + Shift + Z` | Undo, redo |
+| `Ctrl/⌘ + Shift + H` | Highlight (marker) |
+| `[[` | Link to another note |
 
 The editor shortcuts are TipTap's defaults. Typing `# `, `- `, `1. `, `[ ] `, `> ` or three backticks at
 the start of a line also starts the matching block.

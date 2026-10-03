@@ -77,6 +77,14 @@ internal static class HtmlToMarkdown
                 case "img":
                     Paragraph(Image(element), indent);
                     break;
+                case "div" when element.GetAttribute("data-callout") is { Length: > 0 } kind:
+                    // A callout becomes a quote that starts with its kind, the way Obsidian and GitHub write them.
+                    var callout = new Writer(rewriteHref, rewriteSrc);
+                    callout.Blocks(element, 0);
+                    var label = char.ToUpperInvariant(kind[0]) + kind[1..];
+                    var lines = callout.ToString().Trim().Split('\n').Select(line => prefix + "> " + line);
+                    _text.Append(prefix).Append("> **").Append(label).Append("**\n").Append(string.Join("\n", lines)).Append("\n\n");
+                    break;
                 case "div" or "span" or "label":
                     Blocks(element, indent);
                     break;
@@ -210,6 +218,7 @@ internal static class HtmlToMarkdown
                         "strong" or "b" => Wrap(inner, "**"),
                         "em" or "i" => Wrap(inner, "*"),
                         "s" or "strike" or "del" => Wrap(inner, "~~"),
+                        "mark" => Wrap(inner, "=="),
                         "code" => inner.Length == 0 ? string.Empty : "`" + element.TextContent + "`",
                         "br" => "  \n",
                         "a" => Link(element, inner),

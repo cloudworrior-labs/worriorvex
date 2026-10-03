@@ -31,6 +31,7 @@ public partial class Workspace
     private List<FolderSummary> _folders = [];
     private List<NoteSummary> _notes = [];
     private List<NoteSummary> _treeNotes = [];
+    private bool _templatePicker;
     private NavPane? _navPane;
     private IJSObjectReference? _treeKeysHandle;
     private List<TrashItem> _trash = [];
@@ -84,6 +85,7 @@ public partial class Workspace
     [Inject] private ITagService TagService { get; set; } = default!;
     [Inject] private IExportService Exporter { get; set; } = default!;
     [Inject] private ISettingsService Settings { get; set; } = default!;
+    [Inject] private WorriorVex.Application.Templates.ITemplateService TemplateService { get; set; } = default!;
     [Inject] private IUpdateChecker Updates { get; set; } = default!;
     [Inject] private IPlatformShell Shell { get; set; } = default!;
     [Inject] private NoteAutosaver Autosaver { get; set; } = default!;
@@ -271,6 +273,14 @@ public partial class Workspace
             }),
             "toggleSidebar" => InvokeAsync(() => _sidebarHidden = !_sidebarHidden),
             "save" => InvokeAsync(SaveNowAsync),
+            "newFromTemplate" => InvokeAsync(() => _templatePicker = true),
+            "find" => InvokeAsync(async () =>
+            {
+                if (_editor is not null && _current is not null && !IsHelpPage)
+                {
+                    await _editor.OpenFindAsync();
+                }
+            }),
             _ => Task.CompletedTask,
         };
     }
@@ -561,6 +571,42 @@ public partial class Workspace
             _focusNewNote = true;
             _firstRun = false;
             _notice = null;
+            await RecordOpenedAsync(note.Id);
+        });
+    }
+
+    /// <summary>A template was picked: a note made from it goes where a plain new note would go.</summary>
+    private async Task NewFromTemplateAsync(Guid templateId)
+    {
+        _templatePicker = false;
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        await RunAsync("The note could not be created.", async () =>
+        {
+            (Guid? notebookId, Guid? parentId) = _selection switch
+            {
+                NavSelection.Folder folder => (folder.NotebookId, folder.FolderId),
+                NavSelection.Notebook notebook => (notebook.NotebookId, (Guid?)null),
+                _ => ((Guid?)null, (Guid?)null),
+            };
+            var note = await TemplateService.CreateFromAsync(templateId, notebookId, parentId);
+            if (_selection is not (NavSelection.Folder or NavSelection.Notebook))
+            {
+                EndSearch();
+                _selection = new NavSelection.Notebook(note.NotebookId);
+                await LoadListAsync(openFirst: false);
+            }
+
+            _notes.RemoveAll(n => n.Id == note.Id);
+            _notes.Insert(0, note.ToSummary());
+            _current = note;
+            _focusNewNote = true;
+            _firstRun = false;
+            _notice = null;
+            await LoadStructureAsync();
             await RecordOpenedAsync(note.Id);
         });
     }

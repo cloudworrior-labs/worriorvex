@@ -61,6 +61,32 @@
             <button type="button" class="wn-tool" title="Earlier versions of this note" @onmousedown:preventDefault @onclick="OpenHistoryAsync">History</button>
             <button type="button" class="wn-tool" title="Insert table" @onmousedown:preventDefault @onclick="@(() => RunAsync("insertTable"))">Table</button>
         </div>
+        <div class="wn-toolbar-group">
+            <button type="button" class="wn-tool @(_active.Contains("highlight") ? "is-active" : null)" title="Highlight (marker)" aria-pressed="@(_active.Contains("highlight") ? "true" : "false")"
+                    @onmousedown:preventDefault @onclick="@(() => RunAsync("highlight"))"><mark>ab</mark></button>
+            <select class="wn-select wn-tool-select @(_active.Contains("callout") ? "is-active" : null)" aria-label="Callout box" title="Callout box: a box that stands out; choose it again to remove it"
+                    @key="_calloutKey" value="" @onchange="OnCalloutChosenAsync">
+                <option value="">@(_active.Contains("callout") ? "Callout ✓" : "Callout…")</option>
+                <option value="calloutInfo">Info</option>
+                <option value="calloutTip">Tip</option>
+                <option value="calloutWarning">Warning</option>
+                <option value="calloutDanger">Danger</option>
+            </select>
+            <button type="button" class="wn-tool @(_find ? "is-active" : null)" title="Find and replace (@Modifier+F)" aria-pressed="@(_find ? "true" : "false")"
+                    @onmousedown:preventDefault @onclick="OpenFindAsync">Find</button>
+        </div>
+        @if (_active.Contains("codeBlock"))
+        {
+            <div class="wn-toolbar-group" role="group" aria-label="Code block">
+                <select class="wn-select wn-tool-select" aria-label="Language" title="Language of the code block" value="@_codeLanguage" @onchange="e => SetCodeLanguageAsync((string)e.Value!)">
+                    <option value="">Plain</option>
+                    @foreach (var language in CodeLanguages)
+                    {
+                        <option value="@language.Id">@language.Name</option>
+                    }
+                </select>
+            </div>
+        }
         @if (_active.Contains("table"))
         {
             <div class="wn-toolbar-group" role="group" aria-label="Table">
@@ -72,6 +98,23 @@
             </div>
         }
     </div>
+
+    @if (_find)
+    {
+        <div class="wn-findbar" role="search" aria-label="Find in note">
+            <input @ref="_findInput" type="text" class="wn-input wn-find-input" placeholder="Find" aria-label="Find" value="@_findText" autocomplete="off"
+                   @oninput="e => FindAsync(e.Value?.ToString() ?? string.Empty)" @onkeydown="OnFindKeyDown" />
+            <span class="wn-find-count" aria-live="polite">@(_findCount == 0 ? (_findText.Length == 0 ? "" : "No matches") : $"{_findCurrent} of {_findCount}")</span>
+            <button type="button" class="wn-tool" title="Previous match (Shift+Enter)" aria-label="Previous match" @onclick="() => FindNextAsync(true)">↑</button>
+            <button type="button" class="wn-tool" title="Next match (Enter)" aria-label="Next match" @onclick="() => FindNextAsync(false)">↓</button>
+            <label class="wn-find-option"><input type="checkbox" checked="@_findCase" @onchange="e => SetFindCaseAsync((bool)e.Value!)" /> Match case</label>
+            <input type="text" class="wn-input wn-find-input" placeholder="Replace with" aria-label="Replace with" value="@_replaceText" autocomplete="off"
+                   @oninput="e => _replaceText = e.Value?.ToString() ?? string.Empty" @onkeydown="OnReplaceKeyDown" />
+            <button type="button" class="wn-tool" title="Replace this match" @onclick="ReplaceAsync" disabled="@(_findCount == 0)">Replace</button>
+            <button type="button" class="wn-tool" title="Replace every match" @onclick="ReplaceAllAsync" disabled="@(_findCount == 0)">All</button>
+            <button type="button" class="wn-tool" title="Close (Esc)" aria-label="Close find" @onclick="CloseFindAsync">✕</button>
+        </div>
+    }
 
     <div class="wn-editor-surface" @ref="_surface">
     </div>
@@ -110,9 +153,135 @@
         new("addColumn", "+ Column", "Add a column to the right"),
         new("deleteRow", "− Row", "Delete this row"),
         new("deleteColumn", "− Column", "Delete this column"),
+        new("mergeCells", "Merge", "Merge the selected cells"),
+        new("splitCell", "Split", "Split the cell"),
         new("toggleHeaderRow", "Header", "Turn the first row into a header or back"),
         new("deleteTable", "Delete table", "Delete the whole table"),
     ];
+
+    /// <summary>Languages the code block can colour (the "common" set of highlight.js).</summary>
+    private static readonly (string Id, string Name)[] CodeLanguages =
+    [
+        ("bash", "Bash"), ("c", "C"), ("cpp", "C++"), ("csharp", "C#"), ("css", "CSS"), ("diff", "Diff"), ("go", "Go"),
+        ("graphql", "GraphQL"), ("ini", "INI / TOML"), ("java", "Java"), ("javascript", "JavaScript"), ("json", "JSON"),
+        ("kotlin", "Kotlin"), ("less", "Less"), ("lua", "Lua"), ("makefile", "Makefile"), ("markdown", "Markdown"),
+        ("objectivec", "Objective-C"), ("perl", "Perl"), ("php", "PHP"), ("plaintext", "Plain text"), ("python", "Python"),
+        ("r", "R"), ("ruby", "Ruby"), ("rust", "Rust"), ("scss", "SCSS"), ("shell", "Shell session"), ("sql", "SQL"),
+        ("swift", "Swift"), ("typescript", "TypeScript"), ("vbnet", "VB.NET"), ("wasm", "WebAssembly"), ("xml", "HTML / XML"), ("yaml", "YAML"),
+    ];
+
+    private bool _find;
+    private string _findText = string.Empty;
+    private string _replaceText = string.Empty;
+    private bool _findCase;
+    private int _findCount;
+    private int _findCurrent;
+    private ElementReference _findInput;
+    private string _codeLanguage = string.Empty;
+
+    private int _calloutKey;
+
+    private async Task OnCalloutChosenAsync(ChangeEventArgs args)
+    {
+        // The box re-renders so it shows the placeholder again, whatever was picked.
+        _calloutKey++;
+        if (args.Value?.ToString() is { Length: > 0 } command)
+        {
+            await RunAsync(command);
+        }
+    }
+
+    private sealed record SearchState(int Count, int Current);
+
+    /// <summary>Shows the find bar (Ctrl/⌘+F) and puts the cursor in it.</summary>
+    public async Task OpenFindAsync()
+    {
+        _find = true;
+        StateHasChanged();
+        await Task.Yield();
+        try
+        {
+            await _findInput.FocusAsync();
+        }
+        catch (JSException)
+        {
+            // The bar is not rendered yet; the next key press lands in it anyway.
+        }
+    }
+
+    private async Task FindAsync(string text)
+    {
+        _findText = text;
+        await ApplySearchAsync(await EditorAsync<SearchState>("search", _findText, _findCase));
+    }
+
+    private async Task SetFindCaseAsync(bool caseSensitive)
+    {
+        _findCase = caseSensitive;
+        await ApplySearchAsync(await EditorAsync<SearchState>("search", _findText, _findCase));
+    }
+
+    private async Task FindNextAsync(bool backwards) => await ApplySearchAsync(await EditorAsync<SearchState>("findNext", backwards));
+
+    private async Task ReplaceAsync() => await ApplySearchAsync(await EditorAsync<SearchState>("replace", _replaceText));
+
+    private async Task ReplaceAllAsync() => await ApplySearchAsync(await EditorAsync<SearchState>("replaceAll", _replaceText));
+
+    private Task ApplySearchAsync(SearchState? state)
+    {
+        _findCount = state?.Count ?? 0;
+        _findCurrent = state?.Current ?? 0;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnFindKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Enter":
+                await FindNextAsync(args.ShiftKey);
+                break;
+            case "Escape":
+                await CloseFindAsync();
+                break;
+        }
+    }
+
+    private async Task OnReplaceKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Enter":
+                await ReplaceAsync();
+                break;
+            case "Escape":
+                await CloseFindAsync();
+                break;
+        }
+    }
+
+    private async Task CloseFindAsync()
+    {
+        _find = false;
+        _findCount = 0;
+        _findCurrent = 0;
+        await EditorAsync("clearSearch");
+        await EditorAsync("focus");
+    }
+
+    private async Task SetCodeLanguageAsync(string language)
+    {
+        _codeLanguage = language;
+        await EditorAsync("setCodeLanguage", language);
+    }
+
+    /// <summary>Called by the editor when "[[" is typed: pick a note to link to.</summary>
+    [JSInvokable]
+    public void OnNoteLinkTrigger()
+    {
+        _notePicker = true;
+        StateHasChanged();
+    }
 
     private static string Modifier => OperatingSystem.IsMacOS() ? "⌘" : "Ctrl";
 
@@ -232,6 +401,15 @@
     public void OnEditorSelectionChanged(string[] active)
     {
         _active = [.. active];
+        if (_active.Contains("codeBlock"))
+        {
+            _ = InvokeAsync(async () =>
+            {
+                _codeLanguage = await EditorAsync<string>("getCodeLanguage") ?? string.Empty;
+                StateHasChanged();
+            });
+        }
+
         StateHasChanged();
     }
 
@@ -473,6 +651,25 @@
     /// Calls a function of the editor module. A failure there must not take the whole page down,
     /// so it is logged and shown as a message instead.
     /// </summary>
+    private async Task<T?> EditorAsync<T>(string function, params object?[] args)
+    {
+        if (_editor is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            return await _editor.InvokeAsync<T>(function, args);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "The editor could not run {Function}", function);
+            await OnProblem.InvokeAsync("The editor did not respond. Reopen the note and try again.");
+            return default;
+        }
+    }
+
     private async Task EditorAsync(string function, params object?[] args)
     {
         if (_editor is null)

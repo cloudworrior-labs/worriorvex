@@ -15,7 +15,7 @@ public sealed partial class NoteHtmlSanitizer : INoteHtmlSanitizer
     private static readonly string[] Tags =
     [
         "p", "br", "hr", "h1", "h2", "h3", "h4", "h5", "h6",
-        "strong", "b", "em", "i", "u", "s", "strike", "del", "code", "pre", "blockquote", "span", "div",
+        "strong", "b", "em", "i", "u", "s", "strike", "del", "code", "pre", "blockquote", "span", "div", "mark",
         "ul", "ol", "li", "label", "input",
         "a", "img",
         "table", "thead", "tbody", "tfoot", "tr", "th", "td", "colgroup", "col",
@@ -24,7 +24,7 @@ public sealed partial class NoteHtmlSanitizer : INoteHtmlSanitizer
     private static readonly string[] Attributes =
     [
         "href", "target", "rel", "src", "alt", "title", "width", "height",
-        "colspan", "rowspan", "colwidth", "start", "type", "checked", "disabled", "class",
+        "colspan", "rowspan", "colwidth", "start", "type", "checked", "disabled", "class", "style",
     ];
 
     private readonly HtmlSanitizer _sanitizer;
@@ -37,7 +37,8 @@ public sealed partial class NoteHtmlSanitizer : INoteHtmlSanitizer
             AllowedAttributes = new HashSet<string>(Attributes, StringComparer.OrdinalIgnoreCase),
             AllowedSchemes = new HashSet<string>(["http", "https", "note"], StringComparer.OrdinalIgnoreCase),
             UriAttributes = new HashSet<string>(["href", "src"], StringComparer.OrdinalIgnoreCase),
-            AllowedCssProperties = new HashSet<string>(),
+            // Only a column's width (from resizing a table); any other style is dropped below.
+            AllowedCssProperties = new HashSet<string>(["width"], StringComparer.OrdinalIgnoreCase),
             AllowedAtRules = new HashSet<AngleSharp.Css.Dom.CssRuleType>(),
         })
         {
@@ -57,6 +58,11 @@ public sealed partial class NoteHtmlSanitizer : INoteHtmlSanitizer
         if (node is not IElement element)
         {
             return;
+        }
+
+        if (element.LocalName != "col" && element.HasAttribute("style"))
+        {
+            element.RemoveAttribute("style");
         }
 
         switch (element.LocalName)

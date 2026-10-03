@@ -4,8 +4,13 @@
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { TaskList, TaskItem } from '@tiptap/extension-list';
-import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import Highlight from '@tiptap/extension-highlight';
+import { common, createLowlight } from 'lowlight';
+import { Callout, Search, ResizableImage, NoteLinkTrigger, cleanPastedHtml } from './extensions.js';
+
+const lowlight = createLowlight(common);
 
 const CHANGE_DELAY_MS = 250;
 
@@ -17,7 +22,7 @@ const WEB_LINK = /^https?:\/\//i;
 // A link to another note: "note:" and the note's id. The app opens these itself.
 const NOTE_LINK = /^note:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const NoteImage = Image.extend({
+const NoteImage = ResizableImage.extend({
   parseHTML() {
     return [{ tag: 'img[src]', getAttrs: (element) => (ATTACHMENT_IMAGE.test(element.getAttribute('src') || '') ? null : false) }];
   },
@@ -28,7 +33,8 @@ const imageFiles = (transfer) => Array.from(transfer?.files || []).filter((file)
 /**
  * @param {HTMLElement} element  host element for the editor
  * @param {object} dotNetRef     .NET object with OnEditorChanged(html), OnEditorSelectionChanged(activeMarks),
- *                               OnImageFile(stream, name, type) returning the image address, and OnOpenLink(address)
+ *                               OnImageFile(stream, name, type) returning the image address, OnOpenLink(address)
+ *                               and OnNoteLinkTrigger() when "[[" is typed
  * @param {string} html          initial content
  */
 export function create(element, dotNetRef, html) {
@@ -66,6 +72,7 @@ export function create(element, dotNetRef, html) {
     element,
     extensions: [
       StarterKit.configure({
+        codeBlock: false,
         link: {
           openOnClick: false,
           autolink: true,
@@ -78,7 +85,12 @@ export function create(element, dotNetRef, html) {
       TaskList,
       TaskItem.configure({ nested: true }),
       NoteImage,
-      TableKit.configure({ table: { resizable: false } }),
+      TableKit.configure({ table: { resizable: true, lastColumnResizable: false } }),
+      CodeBlockLowlight.configure({ lowlight, defaultLanguage: null }),
+      Highlight,
+      Callout,
+      Search,
+      NoteLinkTrigger.configure({ onTrigger: () => dotNetRef.invokeMethodAsync('OnNoteLinkTrigger') }),
     ],
     content: html || '',
     editorProps: {
@@ -89,6 +101,7 @@ export function create(element, dotNetRef, html) {
         'aria-label': 'Note content',
         spellcheck: 'true',
       },
+      transformPastedHTML: cleanPastedHtml,
       handlePaste: (view, event) => {
         const files = imageFiles(event.clipboardData);
         if (files.length === 0) {
@@ -138,6 +151,8 @@ export function create(element, dotNetRef, html) {
     onSelectionUpdate: pushActive,
     onBlur: pushChange,
   });
+
+  const searchState = () => ({ count: editor.storage.search.matches.length, current: editor.storage.search.current + 1 });
 
   return {
     setContent(newHtml) {
@@ -193,6 +208,31 @@ export function create(element, dotNetRef, html) {
     insertImage(source, alt) {
       editor.chain().focus().setImage({ src: source, alt: alt || '' }).run();
     },
+    /** The language of the code block at the cursor, or an empty string. */
+    getCodeLanguage: () => editor.getAttributes('codeBlock').language || '',
+    setCodeLanguage(language) {
+      editor.chain().focus().updateAttributes('codeBlock', { language: language || null }).run();
+    },
+    /** Find & replace: returns { count, current } after the search runs. */
+    search(term, caseSensitive) {
+      editor.commands.setSearch(term || '', !!caseSensitive);
+      return searchState();
+    },
+    findNext(backwards) {
+      editor.commands.findNext(!!backwards);
+      return searchState();
+    },
+    replace(replacement) {
+      editor.chain().focus().replaceCurrent(replacement || '').run();
+      return searchState();
+    },
+    replaceAll(replacement) {
+      editor.chain().focus().replaceAll(replacement || '').run();
+      return searchState();
+    },
+    clearSearch() {
+      editor.commands.clearSearch();
+    },
     destroy() {
       if (timer !== null) {
         clearTimeout(timer);
@@ -226,6 +266,13 @@ const COMMANDS = {
   deleteColumn: (c) => c.deleteColumn(),
   toggleHeaderRow: (c) => c.toggleHeaderRow(),
   deleteTable: (c) => c.deleteTable(),
+  mergeCells: (c) => c.mergeCells(),
+  splitCell: (c) => c.splitCell(),
+  highlight: (c) => c.toggleHighlight(),
+  calloutInfo: (c) => c.toggleCallout('info'),
+  calloutTip: (c) => c.toggleCallout('tip'),
+  calloutWarning: (c) => c.toggleCallout('warning'),
+  calloutDanger: (c) => c.toggleCallout('danger'),
   unlink: (c) => c.extendMarkRange('link').unsetLink(),
   undo: (c) => c.undo(),
   redo: (c) => c.redo(),
@@ -247,4 +294,6 @@ const ACTIVE_CHECKS = [
   ['codeBlock', (e) => e.isActive('codeBlock')],
   ['link', (e) => e.isActive('link')],
   ['table', (e) => e.isActive('table')],
+  ['highlight', (e) => e.isActive('highlight')],
+  ['callout', (e) => e.isActive('callout')],
 ];

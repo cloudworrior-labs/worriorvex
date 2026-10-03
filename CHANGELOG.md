@@ -7,6 +7,12 @@
 - Keyboard navigation of the tree: arrows, Home/End, Delete.
 - Sort the note list by last change, newest or title; compact list density.
 - Word count, reading time and last-saved time in the status bar.
+- Editor: find & replace (Ctrl/⌘+F), highlight marker, callout boxes (info, tip, warning, danger),
+  code blocks coloured by language, images resized by dragging a corner, table columns resized by
+  dragging, merge and split cells, type `[[` to link to another note, cleaner paste from Word,
+  Google Docs and web pages.
+- Note templates: Ctrl/⌘+Shift+N (or the ▾ next to + New) makes a note from one of the notes in the
+  "Templates" notebook, which is created with three starters; `{{date}}` becomes today's date.
 
 ## 0.4.0 — 2026-10-03
 

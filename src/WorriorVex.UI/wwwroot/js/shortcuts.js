@@ -3,11 +3,11 @@
 export function register(dotNetRef) {
   const onKeyDown = (event) => {
     const modifier = event.metaKey || event.ctrlKey;
-    if (!modifier || event.altKey || event.shiftKey) {
+    if (!modifier || event.altKey) {
       return;
     }
 
-    const action = SHORTCUTS[event.key.toLowerCase()];
+    const action = event.shiftKey ? SHIFT_SHORTCUTS[event.key.toLowerCase()] : SHORTCUTS[event.key.toLowerCase()];
     if (action) {
       event.preventDefault();
       dotNetRef.invokeMethodAsync('OnShortcut', action);
@@ -44,6 +44,11 @@ const SHORTCUTS = {
   s: 'save',
   k: 'search',
   '\\': 'toggleSidebar',
+  f: 'find',
+};
+
+const SHIFT_SHORTCUTS = {
+  n: 'newFromTemplate',
 };
 
 /**

@@ -45,6 +45,18 @@ public class NoteHtmlSanitizerTests
     }
 
     [Theory]
+    [InlineData("<p><mark>marked</mark> text</p>", "<p><mark>marked</mark> text</p>")]
+    [InlineData("<div data-callout=\"warning\" class=\"wn-callout\"><p>mind</p></div>", "<div data-callout=\"warning\"><p>mind</p></div>")]
+    [InlineData("<img src=\"attachments/0123456789abcdef0123456789abcdef.png\" width=\"240\">", "<img src=\"attachments/0123456789abcdef0123456789abcdef.png\" width=\"240\">")]
+    [InlineData("<table><colgroup><col style=\"width: 120px\"><col></colgroup><tbody><tr><td>a</td><td>b</td></tr></tbody></table>", "<table><colgroup><col style=\"width: 120px\"><col></colgroup><tbody><tr><td>a</td><td>b</td></tr></tbody></table>")]
+    public void Marks_callouts_image_widths_and_column_widths_are_kept(string html, string expected)
+    {
+        Assert.Equal(expected, _sanitizer.Sanitize(html));
+    }
+
+    [Theory]
+    [InlineData("<table><colgroup><col style=\"width: 10px; background: url(https://x.example/y)\"></colgroup></table>", "<table><colgroup><col style=\"width: 10px\"></colgroup></table>")]
+    [InlineData("<p style=\"width: 10px\">a</p>", "<p>a</p>")]
     [InlineData("<p>a</p><script>alert(1)</script>", "<p>a</p>")]
     [InlineData("<p onclick=\"alert(1)\" onmouseover=\"x()\">a</p>", "<p>a</p>")]
     [InlineData("<p style=\"background:url(https://x.example/y)\">a</p>", "<p>a</p>")]

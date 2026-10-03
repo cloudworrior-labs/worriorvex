@@ -82,6 +82,7 @@
                     words and loses its pictures. This is deliberate, so that opening a note never contacts
                     another computer.
                 </p>
+                <p>Point at an image and drag the small square at its bottom-right corner to make it smaller or larger.</p>
                 <h3>Attached files</h3>
                 <p>
                     <strong>Attach</strong> adds any file to the note, as does dropping a file that is not a picture onto
@@ -98,7 +99,29 @@
                 <p>
                     <strong>Table</strong> inserts a table of three columns with a header row. While the cursor
                     is in a table, buttons appear to add or delete rows and columns, to switch the header row
-                    on or off, and to delete the table. <kbd>Tab</kbd> moves to the next cell and adds a row at the end.
+                    on or off, to merge selected cells or split one, and to delete the table. <kbd>Tab</kbd> moves to
+                    the next cell and adds a row at the end. Drag the line between two columns to change their widths.
+                </p>
+                <h3>Marker, callouts and code</h3>
+                <p>
+                    The <mark>ab</mark> button marks the selected words as with a highlighter. <strong>Callout…</strong>
+                    puts the current paragraph in a coloured box (Info, Tip, Warning or Danger); choose it again to
+                    take the box away. A code block gets a <strong>Language</strong> list while the cursor is in it;
+                    pick one and the code is coloured.
+                </p>
+                <h3>Find and replace</h3>
+                <p>
+                    <kbd>@Modifier</kbd> + <kbd>F</kbd> (or <strong>Find</strong> on the toolbar) opens a bar above the
+                    text. Matches are marked as you type; <kbd>Enter</kbd> goes to the next, <kbd>Shift</kbd> + <kbd>Enter</kbd>
+                    to the previous. <strong>Replace</strong> changes the current match, <strong>All</strong> every match.
+                    <kbd>Esc</kbd> closes the bar.
+                </p>
+                <h3>Templates</h3>
+                <p>
+                    <kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd>, or the <strong>▾</strong> next to <strong>+ New</strong>,
+                    makes a note from a template. Templates are ordinary notes in a notebook called <strong>Templates</strong>,
+                    created with three starters (meeting notes, a daily note, a project) the first time you use it. Edit
+                    them or add your own; write <code>{{date}}</code> where today's date should appear.
                 </p>
                 <h3>Typing shortcuts</h3>
                 <p>At the start of a line, type one of these followed by a space:</p>
@@ -111,6 +134,7 @@
                         <tr><td><code>[ ]</code></td><td>A check list</td></tr>
                         <tr><td><code>&gt;</code></td><td>A quote</td></tr>
                         <tr><td><code>```</code></td><td>A code block</td></tr>
+                        <tr><td><code>[[</code> (anywhere)</td><td>A link to another note: a picker opens</td></tr>
                     </tbody>
                 </table>
                 <h3>Saving</h3>
@@ -230,6 +254,8 @@
                     <thead><tr><th scope="col">Press</th><th scope="col">To</th></tr></thead>
                     <tbody>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>N</kbd></td><td>Start a new note</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>New note from a template</td></tr>
+                        <tr><td><kbd>@Modifier</kbd> + <kbd>F</kbd></td><td>Find and replace in the note</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>S</kbd></td><td>Save now</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>K</kbd></td><td>Search</td></tr>
                         <tr><td><kbd>@Modifier</kbd> + <kbd>\</kbd></td><td>Hide or show the sidebar</td></tr>
