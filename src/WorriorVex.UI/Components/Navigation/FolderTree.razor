@@ -6,7 +6,7 @@
         var selection = new NavSelection.Folder(folder.NotebookId, folder.Id);
         var selected = selection == Selection;
         var hasChildren = Children.Contains((NotebookId, folder.Id)) || Notes.Contains((NotebookId, folder.Id));
-        var expanded = !Collapsed.Contains(folder.Id);
+        var expanded = Expanded.Contains(folder.Id);
         <li @key="folder.Id">
             <div class="wn-navrow">
                 @if (hasChildren)
@@ -40,7 +40,7 @@
             </div>
             @if (hasChildren && expanded)
             {
-                <FolderTree NotebookId="NotebookId" ParentId="folder.Id" Children="Children" Notes="Notes" Collapsed="Collapsed" DropTarget="DropTarget"
+                <FolderTree NotebookId="NotebookId" ParentId="folder.Id" Children="Children" Notes="Notes" Expanded="Expanded" DropTarget="DropTarget"
                             Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="OnToggle" OnContextMenu="OnContextMenu"
                             OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="OnDragEnter" OnDrop="OnDrop" OnAddFolder="OnAddFolder"
                             OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
@@ -90,7 +90,8 @@
     [Parameter] public Guid? ParentId { get; set; }
     [Parameter, EditorRequired] public ILookup<(Guid NotebookId, Guid? ParentId), FolderSummary> Children { get; set; } = default!;
     [Parameter, EditorRequired] public ILookup<(Guid NotebookId, Guid? ParentId), NoteSummary> Notes { get; set; } = default!;
-    [Parameter, EditorRequired] public IReadOnlySet<Guid> Collapsed { get; set; } = default!;
+    /// <summary>Folders whose branch is open. Folders start closed, so a big tree opens quickly.</summary>
+    [Parameter, EditorRequired] public IReadOnlySet<Guid> Expanded { get; set; } = default!;
     [Parameter] public Guid? DropTarget { get; set; }
     [Parameter, EditorRequired] public NavSelection Selection { get; set; } = default!;
     [Parameter] public Guid? CurrentNoteId { get; set; }

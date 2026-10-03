@@ -92,6 +92,12 @@ public sealed record AppSettings
 
     public NoteSort NoteSort { get; init; } = NoteSort.Updated;
 
+    /// <summary>Folders whose branch is open in the navigation tree (folders start closed).</summary>
+    public IReadOnlyList<Guid> ExpandedFolders { get; init; } = [];
+
+    /// <summary>Notebooks whose branch is closed in the navigation tree (notebooks start open).</summary>
+    public IReadOnlyList<Guid> CollapsedNotebooks { get; init; } = [];
+
     /// <summary>Searches kept in the navigation pane for quick re-use.</summary>
     public IReadOnlyList<SavedSearch> SavedSearches { get; init; } = [];
 

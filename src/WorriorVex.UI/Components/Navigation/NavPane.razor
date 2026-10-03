@@ -7,7 +7,7 @@
         {
             var inbox = new NavSelection.Notebook(Inbox.Id);
             var inboxHasNotes = _notes.Contains((Inbox.Id, null));
-            var inboxExpanded = !_collapsed.Contains(Inbox.Id);
+            var inboxExpanded = !_collapsedNotebooks.Contains(Inbox.Id);
             <li>
                 <div class="wn-navrow">
                     @if (inboxHasNotes)
@@ -27,7 +27,7 @@
                 </div>
                 @if (inboxHasNotes && inboxExpanded)
                 {
-                    <FolderTree NotebookId="Inbox.Id" ParentId="null" Children="_children" Notes="_notes" Collapsed="_collapsed" DropTarget="_dropTarget"
+                    <FolderTree NotebookId="Inbox.Id" ParentId="null" Children="_children" Notes="_notes" Expanded="_expandedFolders" DropTarget="_dropTarget"
                                 Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
                                 OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder"
                                 OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
@@ -92,7 +92,7 @@
             {
                 var selection = new NavSelection.Notebook(notebook.Id);
                 var hasChildren = _children.Contains((notebook.Id, null)) || _notes.Contains((notebook.Id, null));
-                var expanded = !_collapsed.Contains(notebook.Id);
+                var expanded = !_collapsedNotebooks.Contains(notebook.Id);
                 <li @key="notebook.Id">
                     <div class="wn-navrow">
                         @if (hasChildren)
@@ -123,7 +123,7 @@
                     </div>
                     @if (hasChildren && expanded)
                     {
-                        <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Notes="_notes" Collapsed="_collapsed" DropTarget="_dropTarget"
+                        <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Notes="_notes" Expanded="_expandedFolders" DropTarget="_dropTarget"
                                     Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
                                     OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder"
                                     OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
@@ -181,7 +181,10 @@
 </nav>
 
 @code {
-    private readonly HashSet<Guid> _collapsed = [];
+    private HashSet<Guid> _collapsedNotebooks = [];
+    private HashSet<Guid> _expandedFolders = [];
+    private bool _treeStateLoaded;
+    private NavSelection? _revealedSelection;
     private ILookup<(Guid NotebookId, Guid? ParentId), FolderSummary> _children = Array.Empty<FolderSummary>().ToLookup(f => (f.NotebookId, f.ParentId));
     private ILookup<(Guid NotebookId, Guid? ParentId), NoteSummary> _notes = Array.Empty<NoteSummary>().ToLookup(n => (n.NotebookId, n.ParentId));
     private Guid? _dropTarget;
@@ -194,6 +197,11 @@
     [Parameter, EditorRequired] public IReadOnlyList<FolderSummary> Folders { get; set; } = [];
     [Parameter] public IReadOnlyList<TagSummary> Tags { get; set; } = [];
     [Parameter] public IReadOnlyList<WorriorVex.Application.Settings.SavedSearch> SavedSearches { get; set; } = [];
+    [Parameter] public IReadOnlyList<Guid> ExpandedFolders { get; set; } = [];
+    [Parameter] public IReadOnlyList<Guid> CollapsedNotebooks { get; set; } = [];
+
+    /// <summary>A branch was opened or closed; the owner remembers the state.</summary>
+    [Parameter] public EventCallback<(IReadOnlyList<Guid> ExpandedFolders, IReadOnlyList<Guid> CollapsedNotebooks)> OnTreeStateChanged { get; set; }
 
     /// <summary>Notes to show as leaves of the tree; empty when the tree shows folders only.</summary>
     [Parameter] public IReadOnlyList<NoteSummary> TreeNotes { get; set; } = [];
@@ -239,26 +247,45 @@
             _dropTarget = null;
         }
 
-        // The selected folder must be visible: open every branch above it.
-        if (Selection is NavSelection.Folder selected)
+        if (!_treeStateLoaded)
         {
-            _collapsed.Remove(selected.NotebookId);
+            // What was open last time; after that the sets are kept here and written back when they change.
+            _treeStateLoaded = true;
+            _expandedFolders = [.. ExpandedFolders];
+            _collapsedNotebooks = [.. CollapsedNotebooks];
+        }
+
+        // When the selection moves to a folder it must be visible: open every branch above it, and the
+        // folder itself. Only on a change, so a person can still fold a branch away while it is selected.
+        if (Selection is NavSelection.Folder selected && !Equals(Selection, _revealedSelection))
+        {
+            _revealedSelection = Selection;
+            _collapsedNotebooks.Remove(selected.NotebookId);
             var byId = Folders.ToDictionary(f => f.Id);
-            var at = byId.GetValueOrDefault(selected.FolderId)?.ParentId;
-            while (at is { } parentId && byId.TryGetValue(parentId, out var parent))
+            var at = (Guid?)selected.FolderId;
+            while (at is { } id && byId.TryGetValue(id, out var folder))
             {
-                _collapsed.Remove(parentId);
-                at = parent.ParentId;
+                _expandedFolders.Add(id);
+                at = folder.ParentId;
             }
         }
     }
 
-    private void Toggle(Guid id)
+    private async Task Toggle(Guid id)
     {
-        if (!_collapsed.Remove(id))
+        if (Notebooks.Any(n => n.Id == id) || Inbox?.Id == id)
         {
-            _collapsed.Add(id);
+            if (!_collapsedNotebooks.Remove(id))
+            {
+                _collapsedNotebooks.Add(id);
+            }
         }
+        else if (!_expandedFolders.Remove(id))
+        {
+            _expandedFolders.Add(id);
+        }
+
+        await OnTreeStateChanged.InvokeAsync(([.. _expandedFolders], [.. _collapsedNotebooks]));
     }
 
     private async Task CommitRenameAsync(Guid notebookId, string name)

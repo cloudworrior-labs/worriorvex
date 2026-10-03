@@ -22,9 +22,9 @@
     else
     {
         <ul class="wn-notelist-items" aria-label="@Heading">
-            @foreach (var note in Notes)
-            {
-                var selected = note.Id == SelectedId;
+            @* Only the rows in view are rendered, so a list of thousands opens at once. *@
+            <Virtualize TItem="NoteSummary" Items="_items" Context="note" ItemSize="58" OverscanCount="8">
+                @{ var selected = note.Id == SelectedId; }
                 <li @key="note.Id">
                     @if (_renamingId == note.Id)
                     {
@@ -61,13 +61,16 @@
                     </button>
                     }
                 </li>
-            }
+            </Virtualize>
         </ul>
     }
 </section>
 
 @code {
     private Guid? _renamingId;
+    private ICollection<NoteSummary> _items = [];
+
+    protected override void OnParametersSet() => _items = Notes as ICollection<NoteSummary> ?? [.. Notes];
 
     [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
     [Parameter] public EventCallback<(Guid NoteId, string Title)> OnRename { get; set; }

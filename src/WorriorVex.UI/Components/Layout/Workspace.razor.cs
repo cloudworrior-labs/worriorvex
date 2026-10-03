@@ -391,6 +391,18 @@ public partial class Workspace
         await LoadTreeNotesAsync();
     });
 
+    private async Task SaveTreeStateAsync((IReadOnlyList<Guid> ExpandedFolders, IReadOnlyList<Guid> CollapsedNotebooks) state)
+    {
+        try
+        {
+            await Settings.SaveAsync(Settings.Current with { ExpandedFolders = state.ExpandedFolders, CollapsedNotebooks = state.CollapsedNotebooks });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "The tree state could not be remembered");
+        }
+    }
+
     private async Task SetSortAsync(NoteSort sort)
     {
         await Settings.SaveAsync(Settings.Current with { NoteSort = sort });
