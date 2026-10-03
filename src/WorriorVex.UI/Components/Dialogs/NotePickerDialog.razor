@@ -98,7 +98,7 @@
         {
             var found = query.Length == 0
                 ? (await Notes.ListRecentAsync(12, cancellationToken)).Select(n => new Choice(n.Id, n.Title, string.Empty))
-                : (await Search.SearchAsync(query, 20, cancellationToken)).Select(r => new Choice(r.NoteId, r.Title, r.Location));
+                : (await Search.SearchAsync(query, null, 20, cancellationToken)).Select(r => new Choice(r.NoteId, r.Title, r.Location));
             if (!cancellationToken.IsCancellationRequested)
             {
                 _choices = [.. found.Where(c => c.Id != ExcludeId)];

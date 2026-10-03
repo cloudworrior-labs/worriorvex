@@ -11,6 +11,12 @@ public abstract record NavSelection
 
     public sealed record Recent : NavSelection;
 
+    /// <summary>Notes with no tag and no link either way: things to file or connect.</summary>
+    public sealed record LooseEnds : NavSelection;
+
+    /// <summary>A search kept in the navigation pane (by its position in the settings).</summary>
+    public sealed record SavedSearch(int Index) : NavSelection;
+
     /// <summary>Notes carrying one tag.</summary>
     public sealed record Tag(Guid TagId) : NavSelection;
 

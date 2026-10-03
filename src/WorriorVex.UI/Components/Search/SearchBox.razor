@@ -32,6 +32,17 @@
 
     public ValueTask FocusAsync() => _input.FocusAsync();
 
+    /// <summary>Puts text in the box without searching (the owner already did), e.g. a saved search.</summary>
+    public Task SetTextAsync(string text)
+    {
+        _pending?.Cancel();
+        _typed = text;
+        Text = text;
+        _generation++;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
     private async Task OnInput(ChangeEventArgs args)
     {
         _typed = args.Value?.ToString() ?? string.Empty;

@@ -89,3 +89,9 @@ None at present; the remaining phases work with the tables above.
 `attachments/*`. Restore extracts to a staging folder, writes a safety backup, clears connection pools,
 swaps the database and attachments folder in, then runs migrations and completes the search index, so a
 backup from an older version restores cleanly. A backup whose schema is newer than the app is refused.
+
+## NoteSearchVocab
+
+An `fts5vocab` virtual table over `NoteSearch` (migration `AddSearchVocabulary`). It stores nothing;
+it exposes the indexed words with their document counts, which "did you mean" suggestions read to
+find a word within an edit distance of one or two of a word that matched nothing.

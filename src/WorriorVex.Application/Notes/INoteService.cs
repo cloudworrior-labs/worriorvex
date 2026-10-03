@@ -33,6 +33,9 @@ public interface INoteService
     /// <summary>Notes carrying a tag, most recently updated first.</summary>
     Task<IReadOnlyList<NoteSummary>> ListByTagAsync(Guid tagId, CancellationToken cancellationToken = default);
 
+    /// <summary>Notes that carry no tag and are linked to nothing: candidates for tidying.</summary>
+    Task<IReadOnlyList<NoteSummary>> ListLooseEndsAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Remembers that the note was opened now. Does not count as a change to the note.</summary>
     Task RecordOpenedAsync(Guid id, CancellationToken cancellationToken = default);
 

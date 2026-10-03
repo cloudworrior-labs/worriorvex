@@ -10,7 +10,7 @@
         <button type="button" class="wn-button" @onclick="() => _templatePicker = true" title="New note from a template (@_modifier+Shift+N)" aria-label="New note from a template">▾</button>
     </header>
 
-    <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" Selection="_selection" Dragging="_dragging is not null"
+    <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" SavedSearches="Settings.Current.SavedSearches" Selection="_selection" Dragging="_dragging is not null"
              TreeNotes="_treeNotes" CurrentNoteId="_current?.Id"
              OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu" OnAddFolder="AddBranch"
              OnRenameNotebook="RenameNotebookAsync" OnDeleteNotebook="id => ConfirmDeleteNotebook(id, NotebookName(id))"
@@ -31,7 +31,8 @@
     else if (_selection is NavSelection.Search)
     {
         <SearchResults Query="@_searchText" Results="_searchResults" Searching="_searching" SelectedId="_current?.Id"
-                       MarkedIndex="_searchMark" OnSelect="OpenAsync" />
+                       MarkedIndex="_searchMark" OnSelect="OpenAsync" ScopeName="@SearchScopeName" Scoped="_searchScoped" OnScopedChanged="SetSearchScopeAsync"
+                       OnSave="PromptSaveSearch" Suggestion="@_suggestion" OnSuggestion="UseSuggestionAsync" />
     }
     else if (_selection is NavSelection.Trash)
     {

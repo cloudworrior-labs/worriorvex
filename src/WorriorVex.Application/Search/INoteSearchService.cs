@@ -15,6 +15,9 @@ public sealed record NoteSearchResult(
     IReadOnlyList<TextSegment> TitleSegments,
     IReadOnlyList<TextSegment> Snippet);
 
+/// <summary>Limits a search to one notebook, or to one folder and everything under it.</summary>
+public sealed record SearchScope(Guid NotebookId, Guid? FolderId = null);
+
 public interface INoteSearchService
 {
     /// <summary>
@@ -26,5 +29,11 @@ public interface INoteSearchService
     /// The query may contain <c>"an exact phrase"</c> and the filters <c>tag:name</c>,
     /// <c>in:notebook-or-folder</c>, <c>is:favorite</c> and <c>is:pinned</c>.
     /// </remarks>
-    Task<IReadOnlyList<NoteSearchResult>> SearchAsync(string query, int limit = 50, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<NoteSearchResult>> SearchAsync(string query, SearchScope? scope = null, int limit = 50, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// A corrected query when a word of the query occurs nowhere but a word in the notes is close to
+    /// it (one or two letters off), otherwise <c>null</c>. Filters and phrases are left as they are.
+    /// </summary>
+    Task<string?> SuggestAsync(string query, CancellationToken cancellationToken = default);
 }

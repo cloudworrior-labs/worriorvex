@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Data;
 using System.Globalization;
 using System.Text;
@@ -22,7 +23,7 @@ public sealed class NoteSearchService(IDbContextFactory<WorriorVexDbContext> con
     // bm25 weights per column of NoteSearch: NoteId (not searched), Title, Body, Tags.
     private const string Rank = "bm25(NoteSearch, 0.0, 10.0, 1.0, 5.0)";
 
-    public async Task<IReadOnlyList<NoteSearchResult>> SearchAsync(string query, int limit = 50, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<NoteSearchResult>> SearchAsync(string query, SearchScope? scope = null, int limit = 50, CancellationToken cancellationToken = default)
     {
         var parsed = SearchQuery.Parse(query);
         if (parsed.IsEmpty)
@@ -87,6 +88,27 @@ public sealed class NoteSearchService(IDbContextFactory<WorriorVexDbContext> con
             sql.Append(" AND n.IsPinned = 1");
         }
 
+        if (scope is not null)
+        {
+            sql.Append(" AND n.NotebookId = $scopeNotebook");
+            command.Parameters.AddWithValue("$scopeNotebook", scope.NotebookId.ToString().ToUpperInvariant());
+            if (scope.FolderId is { } folderId)
+            {
+                // The folder and everything below it, however deep.
+                sql.Append(
+                    """
+                     AND n.ParentId IN (
+                        WITH RECURSIVE under(Id) AS (
+                            SELECT $scopeFolder
+                            UNION ALL
+                            SELECT c.Id FROM Nodes c JOIN under ON c.ParentId = under.Id WHERE c.Type = $folderType)
+                        SELECT Id FROM under)
+                    """);
+                command.Parameters.AddWithValue("$scopeFolder", folderId.ToString().ToUpperInvariant());
+                command.Parameters.AddWithValue("$folderType", (int)NodeType.Folder);
+            }
+        }
+
         for (var i = 0; i < parsed.Places.Count; i++)
         {
             sql.Append(CultureInfo.InvariantCulture, $" AND (nb.Name = $place{i} COLLATE NOCASE OR p.Name = $place{i} COLLATE NOCASE)");
@@ -123,6 +145,109 @@ public sealed class NoteSearchService(IDbContextFactory<WorriorVexDbContext> con
             locations[r.Id],
             Segments(r.MarkedTitle),
             Segments(r.MarkedSnippet)))];
+    }
+
+    public async Task<string?> SuggestAsync(string query, CancellationToken cancellationToken = default)
+    {
+        var parsed = SearchQuery.Parse(query);
+        var words = parsed.Terms.Where(t => t.Length >= 3 && !t.Contains(' ')).Select(t => t.ToLowerInvariant()).Distinct().ToList();
+        if (words.Count == 0)
+        {
+            return null;
+        }
+
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var connection = (SqliteConnection)context.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var word in words)
+        {
+            // Only words that find nothing (not even as a prefix) are corrected.
+            await using var exists = connection.CreateCommand();
+            exists.CommandText = "SELECT 1 FROM NoteSearchVocab WHERE term >= $w AND term < $next LIMIT 1";
+            exists.Parameters.AddWithValue("$w", word);
+            exists.Parameters.AddWithValue("$next", word + "￿");
+            if (await exists.ExecuteScalarAsync(cancellationToken) is not null)
+            {
+                continue;
+            }
+
+            // Candidates: terms of a similar length, scored by edit distance, ties broken by how common they are.
+            await using var candidates = connection.CreateCommand();
+            candidates.CommandText = "SELECT term, doc FROM NoteSearchVocab WHERE length(term) BETWEEN $min AND $max";
+            candidates.Parameters.AddWithValue("$min", Math.Max(2, word.Length - 2));
+            candidates.Parameters.AddWithValue("$max", word.Length + 2);
+            string? best = null;
+            var bestScore = (Distance: int.MaxValue, Docs: 0L);
+            var allowed = word.Length <= 4 ? 1 : 2;
+            await using var reader = await candidates.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var term = reader.GetString(0);
+                var docs = reader.GetInt64(1);
+                var distance = EditDistance(word, term, allowed);
+                if (distance <= allowed && (distance < bestScore.Distance || (distance == bestScore.Distance && docs > bestScore.Docs)))
+                {
+                    best = term;
+                    bestScore = (distance, docs);
+                }
+            }
+
+            if (best is not null)
+            {
+                replacements[word] = best;
+            }
+        }
+
+        if (replacements.Count == 0)
+        {
+            return null;
+        }
+
+        // Rewrite the words in the query text itself, so filters and phrases stay as typed.
+        var corrected = Regex.Replace(query, @"[\p{L}\p{N}]+", m => replacements.TryGetValue(m.Value, out var r) ? r : m.Value);
+        return string.Equals(corrected, query, StringComparison.Ordinal) ? null : corrected;
+    }
+
+    /// <summary>Levenshtein distance, stopping early once it cannot stay within the limit.</summary>
+    private static int EditDistance(string a, string b, int limit)
+    {
+        if (Math.Abs(a.Length - b.Length) > limit)
+        {
+            return limit + 1;
+        }
+
+        var previous = new int[b.Length + 1];
+        var current = new int[b.Length + 1];
+        for (var j = 0; j <= b.Length; j++)
+        {
+            previous[j] = j;
+        }
+
+        for (var i = 1; i <= a.Length; i++)
+        {
+            current[0] = i;
+            var rowMin = i;
+            for (var j = 1; j <= b.Length; j++)
+            {
+                var cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                current[j] = Math.Min(Math.Min(current[j - 1] + 1, previous[j] + 1), previous[j - 1] + cost);
+                rowMin = Math.Min(rowMin, current[j]);
+            }
+
+            if (rowMin > limit)
+            {
+                return limit + 1;
+            }
+
+            (previous, current) = (current, previous);
+        }
+
+        return previous[b.Length];
     }
 
     /// <summary>

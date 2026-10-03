@@ -79,31 +79,29 @@ public sealed class NoteService(
     public async Task<IReadOnlyList<NoteSummary>> ListAsync(Guid notebookId, Guid? parentId = null, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await context.Nodes
-            .AsNoTracking()
-            .Where(n => n.NotebookId == notebookId && n.ParentId == parentId && n.Type == NodeType.Note && n.DeletedAt == null)
+        return await Summaries(context, LiveNotes(context)
+            .Where(n => n.NotebookId == notebookId && n.ParentId == parentId)
             .OrderByDescending(n => n.IsPinned)
-            .ThenByDescending(n => n.UpdatedAt)
-            .Select(n => new NoteSummary(n.Id, n.NotebookId, n.Name, n.CreatedAt, n.UpdatedAt, n.ParentId, n.IsFavorite, n.IsPinned, n.LastOpenedAt))
+            .ThenByDescending(n => n.UpdatedAt))
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<NoteSummary>> ListAllAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await Summaries(LiveNotes(context).OrderByDescending(n => n.UpdatedAt)).ToListAsync(cancellationToken);
+        return await Summaries(context, LiveNotes(context).OrderByDescending(n => n.UpdatedAt)).ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<NoteSummary>> ListFavoritesAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await Summaries(LiveNotes(context).Where(n => n.IsFavorite).OrderByDescending(n => n.UpdatedAt)).ToListAsync(cancellationToken);
+        return await Summaries(context, LiveNotes(context).Where(n => n.IsFavorite).OrderByDescending(n => n.UpdatedAt)).ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<NoteSummary>> ListRecentAsync(int limit = 50, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await Summaries(LiveNotes(context)
+        return await Summaries(context, LiveNotes(context)
                 .Where(n => n.LastOpenedAt != null)
                 .OrderByDescending(n => n.LastOpenedAt)
                 .Take(Math.Clamp(limit, 1, 500)))
@@ -113,7 +111,7 @@ public sealed class NoteService(
     public async Task<IReadOnlyList<NoteSummary>> ListByTagAsync(Guid tagId, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await Summaries(LiveNotes(context)
+        return await Summaries(context, LiveNotes(context)
                 .Where(n => context.NoteTags.Any(nt => nt.TagId == tagId && nt.NoteId == n.Id))
                 .OrderByDescending(n => n.UpdatedAt))
             .ToListAsync(cancellationToken);
@@ -208,8 +206,20 @@ public sealed class NoteService(
     private static IQueryable<Node> LiveNotes(WorriorVexDbContext context) =>
         context.Nodes.AsNoTracking().Where(n => n.Type == NodeType.Note && n.DeletedAt == null);
 
-    private static IQueryable<NoteSummary> Summaries(IQueryable<Node> notes) =>
-        notes.Select(n => new NoteSummary(n.Id, n.NotebookId, n.Name, n.CreatedAt, n.UpdatedAt, n.ParentId, n.IsFavorite, n.IsPinned, n.LastOpenedAt));
+    /// <summary>Rows for a list; the link count is the links to and from the note, found in the same query.</summary>
+    private static IQueryable<NoteSummary> Summaries(WorriorVexDbContext context, IQueryable<Node> notes) =>
+        notes.Select(n => new NoteSummary(n.Id, n.NotebookId, n.Name, n.CreatedAt, n.UpdatedAt, n.ParentId, n.IsFavorite, n.IsPinned, n.LastOpenedAt,
+            context.NoteLinks.Count(l => l.SourceNoteId == n.Id || l.TargetNoteId == n.Id)));
+
+    public async Task<IReadOnlyList<NoteSummary>> ListLooseEndsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var query = LiveNotes(context)
+            .Where(n => !context.NoteTags.Any(t => t.NoteId == n.Id)
+                        && !context.NoteLinks.Any(l => l.SourceNoteId == n.Id || l.TargetNoteId == n.Id))
+            .OrderByDescending(n => n.UpdatedAt);
+        return await Summaries(context, query).ToListAsync(cancellationToken);
+    }
 
     public async Task<NoteDetail> UpdateAsync(Guid id, string? title, string? content, CancellationToken cancellationToken = default)
     {

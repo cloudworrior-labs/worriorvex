@@ -813,3 +813,9 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-prose pre code .hljs-deletion { color: var(--wn-danger); }
 .wn-prose pre code .hljs-emphasis { font-style: italic; }
 .wn-prose pre code .hljs-strong { font-weight: 600; }
+
+/* Search options, suggestions, link counts */
+.wn-search-options { flex-wrap: wrap; gap: var(--wn-space-2); }
+.wn-suggestion { margin: 0; padding: var(--wn-space-1) var(--wn-space-3); font-size: 0.9rem; color: var(--wn-text-muted); }
+.wn-linkbutton { border: 0; background: none; padding: 0; color: var(--wn-accent); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
+.wn-noteitem-links { margin-left: auto; font-size: 0.78rem; color: var(--wn-text-muted); }

@@ -11,6 +11,9 @@
   code blocks coloured by language, images resized by dragging a corner, table columns resized by
   dragging, merge and split cells, type `[[` to link to another note, cleaner paste from Word,
   Google Docs and web pages.
+- Search: limit a search to the notebook or folder you were in ("Only in …"), save searches to the
+  navigation pane, and "Did you mean …?" when a word is a letter or two off.
+- Lists show how many links a note has; a "Loose ends" view lists notes with no tag and no link.
 - Note templates: Ctrl/⌘+Shift+N (or the ▾ next to + New) makes a note from one of the notes in the
   "Templates" notebook, which is created with three starters; `{{date}}` becomes today's date.
 

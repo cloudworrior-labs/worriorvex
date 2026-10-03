@@ -205,6 +205,9 @@ public class NoteAutosaverTests
         public Task<IReadOnlyList<NoteSummary>> ListByTagAsync(Guid tagId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
+        public Task<IReadOnlyList<NoteSummary>> ListLooseEndsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<NoteSummary>>([]);
+
         public Task RecordOpenedAsync(Guid id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
         public Task SetFavoriteAsync(Guid id, bool isFavorite, CancellationToken cancellationToken = default) => throw new NotSupportedException();

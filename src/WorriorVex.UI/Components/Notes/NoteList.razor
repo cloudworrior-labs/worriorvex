@@ -51,6 +51,10 @@
                                 <text>@notebook · </text>
                             }
                             @(ShowOpened && note.LastOpenedAt is { } opened ? Format("Opened", opened) : Format("Updated", note.UpdatedAt))
+                            @if (note.LinkCount > 0)
+                            {
+                                <span class="wn-noteitem-links" title="@(note.LinkCount == 1 ? "1 link to or from this note" : $"{note.LinkCount} links to or from this note")">⛓ @note.LinkCount</span>
+                            }
                         </span>
                     </button>
                 </li>

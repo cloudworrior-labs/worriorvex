@@ -8,6 +8,8 @@ public enum ThemeSetting
 }
 
 /// <summary>Order of notes in a list. Pinned notes always come first.</summary>
+public sealed record SavedSearch(string Name, string Query);
+
 public enum NoteSort
 {
     Updated,
@@ -54,6 +56,9 @@ public sealed record AppSettings
     public bool OpenLastPlace { get; init; } = true;
 
     public NoteSort NoteSort { get; init; } = NoteSort.Updated;
+
+    /// <summary>Searches kept in the navigation pane for quick re-use.</summary>
+    public IReadOnlyList<SavedSearch> SavedSearches { get; init; } = [];
 
     public ListDensity ListDensity { get; init; } = ListDensity.Comfortable;
 

@@ -53,6 +53,8 @@ public partial class Workspace
     private List<NoteSearchResult> _searchResults = [];
     private string _searchText = string.Empty;
     private NavSelection? _beforeSearch;
+    private bool _searchScoped;
+    private string? _suggestion;
     private int _searchMark = -1;
     private int _searchRun;
     private bool _searching;
@@ -103,17 +105,34 @@ public partial class Workspace
         NavSelection.Trash => "Trash",
         NavSelection.Favorites => "Favorites",
         NavSelection.Recent => "Recent",
+        NavSelection.LooseEnds => "Loose ends",
         NavSelection.Tag tag => _tags.FirstOrDefault(t => t.Id == tag.TagId)?.Name ?? "Tag",
         _ => "All Notes",
     };
 
+    /// <summary>The notebook or folder a search can be limited to: the one that was open when the search began.</summary>
+    private string? SearchScopeName => _beforeSearch switch
+    {
+        NavSelection.Notebook notebook => _notebooks.FirstOrDefault(n => n.Id == notebook.NotebookId)?.Name,
+        NavSelection.Folder folder => _folders.FirstOrDefault(f => f.Id == folder.FolderId)?.Name,
+        _ => null,
+    };
+
+    private SearchScope? CurrentSearchScope => _searchScoped ? _beforeSearch switch
+    {
+        NavSelection.Notebook notebook => new SearchScope(notebook.NotebookId),
+        NavSelection.Folder folder => new SearchScope(folder.NotebookId, folder.FolderId),
+        _ => null,
+    } : null;
+
     /// <summary>Lists that gather notes from several notebooks say which notebook each note is in.</summary>
-    private bool ShowsManyPlaces => _selection is NavSelection.AllNotes or NavSelection.Favorites or NavSelection.Recent or NavSelection.Tag;
+    private bool ShowsManyPlaces => _selection is NavSelection.AllNotes or NavSelection.Favorites or NavSelection.Recent or NavSelection.Tag or NavSelection.LooseEnds;
 
     private string? EmptyMessage => _selection switch
     {
         NavSelection.Favorites => "No favorites yet. Mark a note with ★ to find it here.",
         NavSelection.Recent => "Notes you open appear here, most recent first.",
+        NavSelection.LooseEnds => "Every note has a tag or a link. Nothing to tidy.",
         NavSelection.Tag => "No notes carry this tag.",
         _ => null,
     };
@@ -416,6 +435,9 @@ public partial class Workspace
             case NavSelection.Recent:
                 _notes = [.. await Notes.ListRecentAsync()];
                 break;
+            case NavSelection.LooseEnds:
+                _notes = [.. await Notes.ListLooseEndsAsync()];
+                break;
             case NavSelection.Tag tag:
                 _notes = [.. await Notes.ListByTagAsync(tag.TagId)];
                 break;
@@ -434,6 +456,12 @@ public partial class Workspace
 
     private async Task SelectAsync(NavSelection selection)
     {
+        if (selection is NavSelection.SavedSearch saved)
+        {
+            await RunSavedSearchAsync(saved.Index);
+            return;
+        }
+
         if (selection == _selection || !await SaveBeforeLeavingAsync())
         {
             return;
@@ -856,6 +884,7 @@ public partial class Workspace
 
         _searchText = text;
         _searchMark = -1;
+        _suggestion = null;
         var run = ++_searchRun;
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -867,11 +896,12 @@ public partial class Workspace
         _searching = true;
         try
         {
-            var results = await Search.SearchAsync(text);
+            var results = await Search.SearchAsync(text, CurrentSearchScope);
             if (run == _searchRun)
             {
                 _searchResults = [.. results];
                 _error = null;
+                _suggestion = results.Count == 0 ? await Search.SuggestAsync(text) : null;
             }
         }
         catch (Exception ex)
@@ -890,6 +920,70 @@ public partial class Workspace
                 _searching = false;
             }
         }
+    }
+
+    private async Task SetSearchScopeAsync(bool scoped)
+    {
+        _searchScoped = scoped;
+        var text = _searchText;
+        _searchText = string.Empty;
+        await SearchAsync(text);
+    }
+
+    private async Task UseSuggestionAsync(string corrected)
+    {
+        _searchText = string.Empty;
+        await SearchAsync(corrected);
+        if (_searchBox is not null)
+        {
+            await _searchBox.SetTextAsync(corrected);
+        }
+    }
+
+    private void PromptSaveSearch() => OpenPrompt(new PromptRequest(
+        "Save search", "Name", _searchText, "Save", 100,
+        async name =>
+        {
+            var saved = Settings.Current.SavedSearches.Where(s => s.Name != name).Append(new SavedSearch(name, _searchText)).ToList();
+            await Settings.SaveAsync(Settings.Current with { SavedSearches = saved });
+            _notice = $"The search was saved as \"{name}\".";
+        }));
+
+    private async Task RunSavedSearchAsync(int index)
+    {
+        if (index < 0 || index >= Settings.Current.SavedSearches.Count)
+        {
+            return;
+        }
+
+        var saved = Settings.Current.SavedSearches[index];
+        _searchText = string.Empty;
+        await SearchAsync(saved.Query);
+        if (_searchBox is not null)
+        {
+            await _searchBox.SetTextAsync(saved.Query);
+        }
+    }
+
+    private void PromptRenameSavedSearch(int index) => OpenPrompt(new PromptRequest(
+        "Rename saved search", "Name", Settings.Current.SavedSearches[index].Name, "Rename", 100,
+        async name =>
+        {
+            var list = Settings.Current.SavedSearches.ToList();
+            list[index] = list[index] with { Name = name };
+            await Settings.SaveAsync(Settings.Current with { SavedSearches = list });
+        }));
+
+    private async Task RemoveSavedSearchAsync(int index)
+    {
+        var list = Settings.Current.SavedSearches.ToList();
+        if (index < 0 || index >= list.Count)
+        {
+            return;
+        }
+
+        list.RemoveAt(index);
+        await Settings.SaveAsync(Settings.Current with { SavedSearches = list });
     }
 
     private void MoveSearchMark(int step)
@@ -962,6 +1056,10 @@ public partial class Workspace
                 items.Add(new("Rename…", () => { PromptRenameFolder(folder.FolderId, folderName); return Task.CompletedTask; }));
                 items.Add(new("Move…", () => { OpenMove(folder.FolderId, isFolder: true, folderName); return Task.CompletedTask; }));
                 items.Add(new("Delete", () => { ConfirmDeleteFolder(folder.FolderId, folderName); return Task.CompletedTask; }));
+                break;
+            case NavSelection.SavedSearch saved:
+                items.Add(new("Rename…", () => { PromptRenameSavedSearch(saved.Index); return Task.CompletedTask; }));
+                items.Add(new("Remove", () => RemoveSavedSearchAsync(saved.Index)));
                 break;
             case NavSelection.Tag tag:
                 var tagName = _tags.FirstOrDefault(t => t.Id == tag.TagId)?.Name ?? "Tag";

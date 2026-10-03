@@ -5,6 +5,20 @@
         <h2>Search</h2>
         <span class="wn-count" aria-live="polite">@(Searching ? "…" : Results.Count.ToString())</span>
     </header>
+    <div class="wn-pane-actions wn-search-options">
+        @if (ScopeName is not null)
+        {
+            <label class="wn-find-option" title="Only notes in @ScopeName"><input type="checkbox" checked="@Scoped" @onchange="e => OnScopedChanged.InvokeAsync((bool)e.Value!)" /> Only in “@ScopeName”</label>
+        }
+        @if (!string.IsNullOrWhiteSpace(Query))
+        {
+            <button type="button" class="wn-button wn-button-small" title="Keep this search in the navigation pane" @onclick="OnSave">Save search</button>
+        }
+    </div>
+    @if (Suggestion is not null && !Searching)
+    {
+        <p class="wn-suggestion">Did you mean <button type="button" class="wn-linkbutton" @onclick="() => OnSuggestion.InvokeAsync(Suggestion)">@Suggestion</button>?</p>
+    }
     @if (string.IsNullOrWhiteSpace(Query))
     {
         <div class="wn-empty wn-search-help">
@@ -58,6 +72,16 @@
     [Parameter] public int MarkedIndex { get; set; } = -1;
 
     [Parameter] public EventCallback<Guid> OnSelect { get; set; }
+
+    /// <summary>The notebook or folder the search can be limited to, when one was selected before searching.</summary>
+    [Parameter] public string? ScopeName { get; set; }
+    [Parameter] public bool Scoped { get; set; }
+    [Parameter] public EventCallback<bool> OnScopedChanged { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    /// <summary>A corrected query to offer ("did you mean").</summary>
+    [Parameter] public string? Suggestion { get; set; }
+    [Parameter] public EventCallback<string> OnSuggestion { get; set; }
 
     private static string FormatUpdated(DateTimeOffset updatedAt)
     {

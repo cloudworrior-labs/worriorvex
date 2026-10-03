@@ -10,7 +10,8 @@ public sealed record NoteSummary(
     Guid? ParentId = null,
     bool IsFavorite = false,
     bool IsPinned = false,
-    DateTimeOffset? LastOpenedAt = null);
+    DateTimeOffset? LastOpenedAt = null,
+    int LinkCount = 0);
 
 /// <summary>A note with its body, as opened in the editor.</summary>
 public sealed record NoteDetail(

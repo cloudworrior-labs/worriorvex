@@ -47,7 +47,33 @@
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Recent())" aria-current="@Current(new NavSelection.Recent())"
                     @onclick="() => OnSelect.InvokeAsync(new NavSelection.Recent())">Recent</button>
         </li>
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.LooseEnds())" aria-current="@Current(new NavSelection.LooseEnds())"
+                    title="Notes with no tag and no link to or from another note" @onclick="() => OnSelect.InvokeAsync(new NavSelection.LooseEnds())">Loose ends</button>
+        </li>
     </ul>
+
+    @if (SavedSearches.Count > 0)
+    {
+        <div class="wn-nav-section">
+            <h2 id="wn-saved-heading">Saved searches</h2>
+        </div>
+        <ul class="wn-nav-list" aria-labelledby="wn-saved-heading">
+            @for (var i = 0; i < SavedSearches.Count; i++)
+            {
+                var index = i;
+                var saved = SavedSearches[i];
+                var selection = new NavSelection.SavedSearch(index);
+                <li @key="saved">
+                    <button type="button" class="wn-navitem wn-navitem-tag @SelectedClass(selection)" aria-current="@Current(selection)" title="@saved.Query"
+                            @onclick="() => OnSelect.InvokeAsync(selection)"
+                            @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))">
+                        <span class="wn-navitem-label">@saved.Name</span>
+                    </button>
+                </li>
+            }
+        </ul>
+    }
 
     <div class="wn-nav-section">
         <h2 id="wn-notebooks-heading">Notebooks</h2>
@@ -166,6 +192,7 @@
     [Parameter, EditorRequired] public IReadOnlyList<NotebookSummary> Notebooks { get; set; } = [];
     [Parameter, EditorRequired] public IReadOnlyList<FolderSummary> Folders { get; set; } = [];
     [Parameter] public IReadOnlyList<TagSummary> Tags { get; set; } = [];
+    [Parameter] public IReadOnlyList<WorriorVex.Application.Settings.SavedSearch> SavedSearches { get; set; } = [];
 
     /// <summary>Notes to show as leaves of the tree; empty when the tree shows folders only.</summary>
     [Parameter] public IReadOnlyList<NoteSummary> TreeNotes { get; set; } = [];
