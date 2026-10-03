@@ -10,7 +10,7 @@
     </header>
 
     <NavPane Notebooks="_notebooks" Folders="_folders" Tags="_tags" Selection="_selection" Dragging="_dragging is not null"
-             OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu"
+             OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu" OnAddFolder="AddBranch"
              OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 
     <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="Width of the navigation pane"

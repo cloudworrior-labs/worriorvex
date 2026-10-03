@@ -10,8 +10,8 @@
                 @if (hasFolders)
                 {
                     <button type="button" class="wn-twisty" aria-expanded="@(expanded ? "true" : "false")"
-                            aria-label="@(expanded ? "Collapse" : "Expand") @folder.Name"
-                            @onclick="() => OnToggle.InvokeAsync(folder.Id)">@(expanded ? "▾" : "▸")</button>
+                            aria-label="@(expanded ? "Collapse" : "Expand") @folder.Name" title="@(expanded ? "Collapse" : "Expand")"
+                            @onclick="() => OnToggle.InvokeAsync(folder.Id)">@(expanded ? "−" : "+")</button>
                 }
                 else
                 {
@@ -24,12 +24,14 @@
                         @ondragstart="() => OnDragStart.InvokeAsync(folder.Id)" @ondragend="OnDragEnd"
                         @ondragenter="() => OnDragEnter.InvokeAsync(folder.Id)" @ondragover:preventDefault
                         @ondrop:preventDefault @ondrop="() => OnDrop.InvokeAsync(selection)">@folder.Name</button>
+                <button type="button" class="wn-row-add" title="New folder in @folder.Name" aria-label="New folder in @folder.Name"
+                        @onclick="() => OnAddFolder.InvokeAsync((folder.NotebookId, folder.Id))">+</button>
             </div>
             @if (hasFolders && expanded)
             {
                 <FolderTree NotebookId="NotebookId" ParentId="folder.Id" Children="Children" Collapsed="Collapsed" DropTarget="DropTarget"
                             Selection="Selection" OnSelect="OnSelect" OnToggle="OnToggle" OnContextMenu="OnContextMenu"
-                            OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="OnDragEnter" OnDrop="OnDrop" Level="Level + 1" />
+                            OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="OnDragEnter" OnDrop="OnDrop" OnAddFolder="OnAddFolder" Level="Level + 1" />
             }
         </li>
     }
@@ -49,5 +51,6 @@
     [Parameter] public EventCallback OnDragEnd { get; set; }
     [Parameter] public EventCallback<Guid> OnDragEnter { get; set; }
     [Parameter] public EventCallback<NavSelection> OnDrop { get; set; }
+    [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId)> OnAddFolder { get; set; }
     [Parameter] public int Level { get; set; } = 1;
 }

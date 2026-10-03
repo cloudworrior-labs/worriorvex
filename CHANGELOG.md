@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 — 2026-10-03
+
+- Notebooks grow like a tree: a **+** at the end of every notebook and folder row adds a folder inside it,
+  and the box at the left shows **−** when a branch is open and **+** when it is collapsed. The branch
+  that holds the selected folder always opens.
+
 ## 0.3.0 — 2026-10-03
 
 - The navigation and note-list panes can be resized by dragging their right edge (or with the arrow

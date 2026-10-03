@@ -48,8 +48,8 @@
                         @if (hasFolders)
                         {
                             <button type="button" class="wn-twisty" aria-expanded="@(expanded ? "true" : "false")"
-                                    aria-label="@(expanded ? "Collapse" : "Expand") @notebook.Name"
-                                    @onclick="() => Toggle(notebook.Id)">@(expanded ? "▾" : "▸")</button>
+                                    aria-label="@(expanded ? "Collapse" : "Expand") @notebook.Name" title="@(expanded ? "Collapse" : "Expand")"
+                                    @onclick="() => Toggle(notebook.Id)">@(expanded ? "−" : "+")</button>
                         }
                         else
                         {
@@ -59,12 +59,14 @@
                                 @onclick="() => OnSelect.InvokeAsync(selection)"
                                 @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
                                 @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>
+                        <button type="button" class="wn-row-add" title="New folder in @notebook.Name" aria-label="New folder in @notebook.Name"
+                                @onclick="() => OnAddFolder.InvokeAsync((notebook.Id, null))">+</button>
                     </div>
                     @if (hasFolders && expanded)
                     {
                         <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Collapsed="_collapsed" DropTarget="_dropTarget"
                                     Selection="Selection" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
-                                    OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" Level="1" />
+                                    OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder" Level="1" />
                     }
                 </li>
             }
@@ -133,6 +135,9 @@
     [Parameter] public EventCallback OnNewNotebook { get; set; }
     [Parameter] public EventCallback<(NavSelection Target, MouseEventArgs Mouse)> OnContextMenu { get; set; }
 
+    /// <summary>The + on a notebook or folder row: a new folder inside it.</summary>
+    [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId)> OnAddFolder { get; set; }
+
     /// <summary>A folder in the tree started being dragged.</summary>
     [Parameter] public EventCallback<Guid> OnDragStart { get; set; }
     [Parameter] public EventCallback OnDragEnd { get; set; }
@@ -149,6 +154,19 @@
         if (!Dragging)
         {
             _dropTarget = null;
+        }
+
+        // The selected folder must be visible: open every branch above it.
+        if (Selection is NavSelection.Folder selected)
+        {
+            _collapsed.Remove(selected.NotebookId);
+            var byId = Folders.ToDictionary(f => f.Id);
+            var at = byId.GetValueOrDefault(selected.FolderId)?.ParentId;
+            while (at is { } parentId && byId.TryGetValue(parentId, out var parent))
+            {
+                _collapsed.Remove(parentId);
+                at = parent.ParentId;
+            }
         }
     }
 

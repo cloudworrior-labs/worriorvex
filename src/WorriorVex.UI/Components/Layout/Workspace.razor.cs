@@ -1142,6 +1142,15 @@ public partial class Workspace
         }
     }
 
+    /// <summary>The + on a notebook or folder row.</summary>
+    private void AddBranch((Guid NotebookId, Guid? ParentId) place)
+    {
+        var name = place.ParentId is { } folderId
+            ? _folders.FirstOrDefault(f => f.Id == folderId)?.Name
+            : _notebooks.FirstOrDefault(n => n.Id == place.NotebookId)?.Name;
+        PromptNewFolderIn(place.NotebookId, place.ParentId, name ?? "this place");
+    }
+
     private void PromptNewFolderIn(Guid notebookId, Guid? parentId, string placeName) => OpenPrompt(new PromptRequest(
         "New folder", $"Name of the folder in \"{placeName}\"", string.Empty, "Create", Node.MaxNameLength,
         async name =>
