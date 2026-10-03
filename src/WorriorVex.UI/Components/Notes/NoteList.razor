@@ -25,10 +25,15 @@
             {
                 var selected = note.Id == SelectedId;
                 <li @key="note.Id">
+                    @if (_renamingId == note.Id)
+                    {
+                        <div class="wn-noteitem"><InlineRename Value="@note.Title" OnCommit="title => CommitRenameAsync(note.Id, title)" OnCancel="() => _renamingId = null" /></div>
+                        continue;
+                    }
                     <button type="button" class="wn-noteitem @(selected ? "is-selected" : null)" aria-current="@(selected ? "true" : null)"
                             draggable="true" @ondragstart="() => OnDragStart.InvokeAsync(note.Id)" @ondragend="OnDragEnd"
                             @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((note, e))"
-                            @onclick="() => OnSelect.InvokeAsync(note.Id)">
+                            @onclick="() => OnSelect.InvokeAsync(note.Id)" @ondblclick="() => _renamingId = note.Id" @onkeydown="e => OnKeyAsync(e, note.Id)">
                         <span class="wn-noteitem-title">
                             @if (note.IsPinned)
                             {
@@ -55,7 +60,11 @@
 </section>
 
 @code {
+    private Guid? _renamingId;
+
     [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
+    [Parameter] public EventCallback<(Guid NoteId, string Title)> OnRename { get; set; }
+    [Parameter] public EventCallback<Guid> OnDelete { get; set; }
     [Parameter, EditorRequired] public IReadOnlyList<NoteSummary> Notes { get; set; } = [];
     [Parameter] public Guid? SelectedId { get; set; }
 
@@ -84,5 +93,24 @@
     {
         var local = at.ToLocalTime();
         return local.Date == DateTimeOffset.Now.Date ? $"{what} {local:t}" : $"{what} {local:d}";
+    }
+
+    private async Task CommitRenameAsync(Guid noteId, string title)
+    {
+        _renamingId = null;
+        await OnRename.InvokeAsync((noteId, title));
+    }
+
+    private async Task OnKeyAsync(KeyboardEventArgs args, Guid noteId)
+    {
+        switch (args.Key)
+        {
+            case "F2":
+                _renamingId = noteId;
+                break;
+            case "Delete":
+                await OnDelete.InvokeAsync(noteId);
+                break;
+        }
     }
 }

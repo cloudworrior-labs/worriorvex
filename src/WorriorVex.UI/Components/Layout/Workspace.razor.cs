@@ -30,6 +30,9 @@ public partial class Workspace
     private List<NotebookSummary> _notebooks = [];
     private List<FolderSummary> _folders = [];
     private List<NoteSummary> _notes = [];
+    private List<NoteSummary> _treeNotes = [];
+    private NavPane? _navPane;
+    private IJSObjectReference? _treeKeysHandle;
     private List<TrashItem> _trash = [];
     private List<TagSummary> _tags = [];
     private MenuState? _menu;
@@ -184,6 +187,10 @@ public partial class Workspace
             await _shortcutsModule.InvokeVoidAsync("setPaneWidth", NavWidthVariable, Settings.Current.NavigationWidth);
             await _shortcutsModule.InvokeVoidAsync("setPaneWidth", ListWidthVariable, Settings.Current.ListWidth);
             _navResizerHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachResizer", _navResizer, NavWidthVariable, AppSettings.MinPaneWidth, AppSettings.MaxPaneWidth, true, 0, _self);
+            if (_navPane is not null)
+            {
+                _treeKeysHandle = await _shortcutsModule.InvokeAsync<IJSObjectReference>("attachTreeKeys", _navPane.Root);
+            }
         }
 
         // The list's handle comes and goes with the list pane, so it is attached whenever it is newly rendered.
@@ -274,7 +281,91 @@ public partial class Workspace
     {
         _notebooks = [.. await Notebooks.ListAsync()];
         _folders = [.. await Tree.ListFoldersAsync()];
+        await LoadTreeNotesAsync();
         await LoadTagsAsync();
+    }
+
+    /// <summary>The notes shown as leaves of the navigation tree, when that is switched on.</summary>
+    private async Task LoadTreeNotesAsync()
+    {
+        if (!Settings.Current.ShowNotesInTree)
+        {
+            _treeNotes = [];
+            return;
+        }
+
+        try
+        {
+            _treeNotes = [.. Sorted(await Notes.ListAllAsync())];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "The notes for the tree could not be loaded");
+        }
+    }
+
+    private string NotebookName(Guid id) => _notebooks.FirstOrDefault(n => n.Id == id)?.Name ?? "notebook";
+    private string FolderName(Guid id) => _folders.FirstOrDefault(f => f.Id == id)?.Name ?? "folder";
+
+    private Task RenameNotebookAsync((Guid NotebookId, string Name) rename) => RunAsync("The notebook could not be renamed.", async () =>
+    {
+        await Notebooks.RenameAsync(rename.NotebookId, rename.Name);
+        await LoadStructureAsync();
+    });
+
+    private Task RenameFolderAsync((Guid FolderId, string Name) rename) => RunAsync("The folder could not be renamed.", async () =>
+    {
+        await Tree.RenameFolderAsync(rename.FolderId, rename.Name);
+        await LoadStructureAsync();
+    });
+
+    private Task RenameNoteAsync((Guid NoteId, string Title) rename) => RunAsync("The note could not be renamed.", async () =>
+    {
+        if (_current?.Id == rename.NoteId)
+        {
+            await Autosaver.FlushAsync();
+        }
+
+        var saved = await Notes.UpdateAsync(rename.NoteId, rename.Title, null);
+        if (_current?.Id == rename.NoteId)
+        {
+            _current = saved;
+            _editor?.FocusTitleOnNextLoad();
+        }
+
+        ReplaceSummary(saved.ToSummary());
+        await LoadTreeNotesAsync();
+    });
+
+    private async Task SetSortAsync(NoteSort sort)
+    {
+        await Settings.SaveAsync(Settings.Current with { NoteSort = sort });
+        SortNotes();
+        _treeNotes = [.. Sorted(_treeNotes)];
+    }
+
+    /// <summary>Pinned first, then by the chosen order.</summary>
+    private IEnumerable<NoteSummary> Sorted(IEnumerable<NoteSummary> notes) => Settings.Current.NoteSort switch
+    {
+        NoteSort.Created => notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.CreatedAt),
+        NoteSort.Title => notes.OrderByDescending(n => n.IsPinned).ThenBy(n => n.Title, StringComparer.CurrentCultureIgnoreCase),
+        _ => notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.UpdatedAt),
+    };
+
+    private string? StatusDetail
+    {
+        get
+        {
+            if (_current is null || IsHelpPage)
+            {
+                return null;
+            }
+
+            var words = TextStats.CountWords(_current.Content);
+            var minutes = TextStats.ReadingMinutes(words);
+            var saved = _current.UpdatedAt.ToLocalTime().ToString("t");
+            return minutes == 0 ? $"{words} words · saved {saved}" : $"{words} words · {minutes} min read · saved {saved}";
+        }
     }
 
     private async Task LoadTagsAsync()
@@ -394,6 +485,11 @@ public partial class Workspace
     {
         Autosaver.Delay = TimeSpan.FromMilliseconds(settings.AutosaveDelayMilliseconds);
         await ApplyAppearanceAsync(settings);
+        if (settings.ShowNotesInTree != (_treeNotes.Count > 0 || !settings.ShowNotesInTree))
+        {
+            await LoadTreeNotesAsync();
+        }
+
         StateHasChanged();
     });
 
@@ -616,9 +712,7 @@ public partial class Workspace
 
     private void SortNotes()
     {
-        _notes = _selection is NavSelection.Notebook or NavSelection.Folder
-            ? [.. _notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.UpdatedAt)]
-            : _notes;
+        _notes = _selection is NavSelection.Notebook or NavSelection.Folder ? [.. Sorted(_notes)] : _notes;
     }
 
     private async Task DeleteCurrentNoteAsync()
@@ -1400,6 +1494,11 @@ public partial class Workspace
     private void OnNoteSaved(NoteDetail saved) => _ = InvokeAsync(() =>
     {
         _connectionsVersion++;
+        if (_current?.Id == saved.Id)
+        {
+            _current = _current with { Content = saved.Content, UpdatedAt = saved.UpdatedAt, Title = saved.Title };
+        }
+
         var index = _notes.FindIndex(n => n.Id == saved.Id);
         if (index < 0)
         {
@@ -1415,7 +1514,14 @@ public partial class Workspace
         }
 
         _notes[index] = summary;
-        _notes = [.. _notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.UpdatedAt)];
+        SortNotes();
+        var treeIndex = _treeNotes.FindIndex(n => n.Id == saved.Id);
+        if (treeIndex >= 0)
+        {
+            _treeNotes[treeIndex] = _treeNotes[treeIndex] with { Title = saved.Title, UpdatedAt = saved.UpdatedAt };
+            _treeNotes = [.. Sorted(_treeNotes)];
+        }
+
         StateHasChanged();
     });
 
@@ -1433,7 +1539,7 @@ public partial class Workspace
                 await _shortcuts.DisposeAsync();
             }
 
-            foreach (var handle in new[] { _navResizerHandle, _listResizerHandle })
+            foreach (var handle in new[] { _navResizerHandle, _listResizerHandle, _treeKeysHandle })
             {
                 if (handle is not null)
                 {

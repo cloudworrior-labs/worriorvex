@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Notes appear as leaves of the navigation tree under their notebook and folder (Settings → Appearance to turn off).
+- Rename notebooks, folders and notes in place: double-click or F2.
+- Keyboard navigation of the tree: arrows, Home/End, Delete.
+- Sort the note list by last change, newest or title; compact list density.
+- Word count, reading time and last-saved time in the status bar.
+
 ## 0.4.0 — 2026-10-03
 
 - Notebooks grow like a tree: a **+** at the end of every notebook and folder row adds a folder inside it,

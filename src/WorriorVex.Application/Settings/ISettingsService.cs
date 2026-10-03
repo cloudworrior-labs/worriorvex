@@ -7,6 +7,20 @@ public enum ThemeSetting
     Dark,
 }
 
+/// <summary>Order of notes in a list. Pinned notes always come first.</summary>
+public enum NoteSort
+{
+    Updated,
+    Created,
+    Title,
+}
+
+public enum ListDensity
+{
+    Comfortable,
+    Compact,
+}
+
 /// <summary>What the user can adjust. Kept small on purpose; nothing technical is exposed.</summary>
 public sealed record AppSettings
 {
@@ -38,6 +52,13 @@ public sealed record AppSettings
 
     /// <summary>Open where the user left off instead of the Inbox.</summary>
     public bool OpenLastPlace { get; init; } = true;
+
+    public NoteSort NoteSort { get; init; } = NoteSort.Updated;
+
+    public ListDensity ListDensity { get; init; } = ListDensity.Comfortable;
+
+    /// <summary>Show notes as leaves under their notebooks and folders in the navigation tree.</summary>
+    public bool ShowNotesInTree { get; init; } = true;
 
     public const int MinPaneWidth = 140;
     public const int MaxPaneWidth = 600;

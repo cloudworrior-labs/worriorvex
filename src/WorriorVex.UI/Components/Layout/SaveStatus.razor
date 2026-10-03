@@ -1,4 +1,8 @@
 <div class="wn-status" role="status" aria-live="polite">
+    @if (Detail is not null)
+    {
+        <span class="wn-status-detail">@Detail</span>
+    }
     @switch (State)
     {
         case SaveState.Saved:
@@ -20,4 +24,7 @@
 @code {
     [Parameter, EditorRequired] public SaveState State { get; set; }
     [Parameter] public EventCallback OnRetry { get; set; }
+
+    /// <summary>Words, reading time, last save: whatever the owner wants beside the state.</summary>
+    [Parameter] public string? Detail { get; set; }
 }

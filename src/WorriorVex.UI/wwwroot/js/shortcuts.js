@@ -117,3 +117,62 @@ export function attachResizer(handle, variable, min, max, fromLeft, offset, dotN
 export function setPaneWidth(variable, width) {
   document.documentElement.style.setProperty(variable, `${width}px`);
 }
+
+/**
+ * Arrow keys in the navigation tree: up and down move between rows, right opens a branch or steps
+ * into it, left closes a branch or steps out to its parent, Home and End jump. Rows are the buttons
+ * marked data-tree-item, in document order; branches carry data-expanded.
+ */
+export function attachTreeKeys(nav) {
+  const rows = () => Array.from(nav.querySelectorAll('[data-tree-item]'));
+  const onKeyDown = (event) => {
+    const target = event.target.closest?.('[data-tree-item]');
+    if (!target || event.altKey || event.metaKey || event.ctrlKey) {
+      return;
+    }
+    const all = rows();
+    const index = all.indexOf(target);
+    const level = Number(target.dataset.level || 0);
+    const twisty = target.closest('.wn-navrow')?.querySelector('[data-twisty]');
+    let next = null;
+    switch (event.key) {
+      case 'ArrowDown':
+        next = all[index + 1];
+        break;
+      case 'ArrowUp':
+        next = all[index - 1];
+        break;
+      case 'Home':
+        next = all[0];
+        break;
+      case 'End':
+        next = all[all.length - 1];
+        break;
+      case 'ArrowRight':
+        if (target.dataset.expanded === 'false') {
+          twisty?.click();
+        } else if (target.dataset.expanded === 'true') {
+          next = all[index + 1];
+        }
+        break;
+      case 'ArrowLeft':
+        if (target.dataset.expanded === 'true') {
+          twisty?.click();
+        } else {
+          for (let i = index - 1; i >= 0; i--) {
+            if (Number(all[i].dataset.level || 0) < level) {
+              next = all[i];
+              break;
+            }
+          }
+        }
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    next?.focus();
+  };
+  nav.addEventListener('keydown', onKeyDown);
+  return { dispose: () => nav.removeEventListener('keydown', onKeyDown) };
+}

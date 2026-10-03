@@ -1,6 +1,6 @@
 @implements IAsyncDisposable
 
-<div class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null)">
+<div class="wn-app @(_sidebarHidden ? "is-nav-hidden" : null) @(Settings.Current.ListDensity == ListDensity.Compact ? "is-compact" : null)">
     <header class="wn-topbar">
         <button type="button" class="wn-iconbutton" title="Show or hide the sidebar (@_modifier+\)" aria-label="Show or hide the sidebar" aria-pressed="@(_sidebarHidden ? "true" : "false")" @onclick="() => _sidebarHidden = !_sidebarHidden">☰</button>
         <img class="wn-brand-mark" src="_content/WorriorVex.UI/img/worriorvex.svg" alt="" width="20" height="20" />
@@ -9,8 +9,13 @@
         <button type="button" class="wn-button wn-button-primary" @onclick="NewNoteAsync" title="New note (@_modifier+N)">+ New</button>
     </header>
 
-    <NavPane Notebooks="_notebooks" Folders="_folders" Tags="_tags" Selection="_selection" Dragging="_dragging is not null"
+    <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" Selection="_selection" Dragging="_dragging is not null"
+             TreeNotes="_treeNotes" CurrentNoteId="_current?.Id"
              OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu" OnAddFolder="AddBranch"
+             OnRenameNotebook="RenameNotebookAsync" OnDeleteNotebook="id => ConfirmDeleteNotebook(id, NotebookName(id))"
+             OnRenameFolder="RenameFolderAsync" OnDeleteFolder="id => ConfirmDeleteFolder(id, FolderName(id))"
+             OnOpenNote="OpenAsync" OnNoteContextMenu="ShowNoteMenu" OnNoteDragStart="id => _dragging = (id, false)"
+             OnRenameNote="RenameNoteAsync" OnDeleteNote="DeleteNoteAsync"
              OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 
     <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="Width of the navigation pane"
@@ -35,7 +40,7 @@
     {
         <NoteList Heading="@Heading" Notes="_notes" SelectedId="_current?.Id" NotebookNames="@(ShowsManyPlaces ? NotebookNames : null)"
                   FirstEver="@(_selection is NavSelection.AllNotes)" EmptyMessage="@EmptyMessage" ShowOpened="@(_selection is NavSelection.Recent)"
-                  ShowActions="CanHoldFolders" OnSelect="OpenAsync" OnCreate="NewNoteAsync" OnContextMenu="ShowNoteMenu"
+                  ShowActions="true" OnSelect="OpenAsync" OnCreate="NewNoteAsync" OnContextMenu="ShowNoteMenu" OnRename="RenameNoteAsync" OnDelete="DeleteNoteAsync"
                   OnDragStart="id => _dragging = (id, false)" OnDragEnd="() => _dragging = null">
             @if (CanHoldFolders)
             {
@@ -46,6 +51,11 @@
                 <button type="button" class="wn-button wn-button-small" @onclick="PromptRename">Rename</button>
                 <button type="button" class="wn-button wn-button-small" @onclick="ConfirmDeleteContainer">Delete</button>
             }
+            <select class="wn-select wn-list-sort" aria-label="Sort notes" title="Sort notes" value="@Settings.Current.NoteSort" @onchange="e => SetSortAsync(Enum.Parse<NoteSort>((string)e.Value!))">
+                <option value="@NoteSort.Updated">Last changed</option>
+                <option value="@NoteSort.Created">Newest</option>
+                <option value="@NoteSort.Title">Title</option>
+            </select>
         </NoteList>
     }
 
@@ -138,7 +148,7 @@
     </main>
 
     <footer class="wn-statusbar">
-        <SaveStatus State="Autosaver.State" OnRetry="SaveNowAsync" />
+        <SaveStatus State="Autosaver.State" OnRetry="SaveNowAsync" Detail="@StatusDetail" />
     </footer>
 
     @if (_prompt is not null)

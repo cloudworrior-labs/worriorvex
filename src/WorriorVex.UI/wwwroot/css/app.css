@@ -738,3 +738,16 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-setting input[type="range"] { width: 220px; }
 .wn-setting-value { color: var(--wn-text-muted); font-variant-numeric: tabular-nums; min-width: 4em; }
 .wn-settings h2 { margin-top: var(--wn-space-5); }
+
+/* Notes as leaves of the tree, inline renaming */
+.wn-navnote { font-weight: 400; color: var(--wn-text); }
+.wn-leaf { text-align: center; color: var(--wn-text-muted); }
+.wn-inline-rename { flex: 1; min-width: 0; padding: 2px var(--wn-space-2); border: var(--wn-border-width) solid var(--wn-accent); border-radius: var(--wn-radius); background: var(--wn-bg); font: inherit; }
+
+/* List density and status detail */
+.wn-app.is-compact .wn-noteitem { padding: 2px var(--wn-space-2); }
+.wn-app.is-compact .wn-noteitem-meta { display: none; }
+.wn-app.is-compact .wn-noteitem-snippet { display: none; }
+.wn-app.is-compact .wn-navitem { padding-top: 2px; padding-bottom: 2px; }
+.wn-status-detail { color: var(--wn-text-muted); }
+.wn-list-sort { margin-left: auto; font-size: 0.86rem; padding: 1px var(--wn-space-1); }

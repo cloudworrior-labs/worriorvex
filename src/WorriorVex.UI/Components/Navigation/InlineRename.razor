@@ -1,0 +1,58 @@
+@* A text box that replaces a name for renaming in place. Enter keeps the new name, Escape or clicking away gives up. *@
+<input @ref="_input" type="text" class="wn-inline-rename" value="@Value" maxlength="@MaxLength" aria-label="New name" autocomplete="off" spellcheck="false"
+       @oninput="e => _value = e.Value?.ToString() ?? string.Empty" @onkeydown="OnKeyDown" @onkeydown:stopPropagation @onblur="CommitAsync"
+       @onclick:stopPropagation @ondblclick:stopPropagation />
+
+@code {
+    private ElementReference _input;
+    private string _value = string.Empty;
+    private bool _done;
+
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter] public int MaxLength { get; set; } = 500;
+    [Parameter] public EventCallback<string> OnCommit { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    protected override void OnInitialized() => _value = Value;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _input.FocusAsync();
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Enter" when !args.IsComposing:
+                await CommitAsync();
+                break;
+            case "Escape":
+                _done = true;
+                await OnCancel.InvokeAsync();
+                break;
+        }
+    }
+
+    private async Task CommitAsync()
+    {
+        if (_done)
+        {
+            return;
+        }
+
+        _done = true;
+        var trimmed = _value.Trim();
+        if (trimmed.Length == 0 || trimmed == Value)
+        {
+            await OnCancel.InvokeAsync();
+        }
+        else
+        {
+            await OnCommit.InvokeAsync(trimmed);
+        }
+    }
+}

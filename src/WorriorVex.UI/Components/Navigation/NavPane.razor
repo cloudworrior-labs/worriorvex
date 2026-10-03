@@ -1,15 +1,38 @@
 @using WorriorVex.Application.Tags
 
-<nav class="wn-nav" aria-label="Navigation">
+<nav class="wn-nav" aria-label="Navigation" @ref="Root">
     <ul class="wn-nav-list">
         @if (Inbox is not null)
         {
             var inbox = new NavSelection.Notebook(Inbox.Id);
+            var inboxHasNotes = _notes.Contains((Inbox.Id, null));
+            var inboxExpanded = !_collapsed.Contains(Inbox.Id);
             <li>
-                <button type="button" class="wn-navitem @SelectedClass(inbox) @DropClass(Inbox.Id)" aria-current="@Current(inbox)"
-                        @onclick="() => OnSelect.InvokeAsync(inbox)"
-                        @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((inbox, e))"
-                        @ondragenter="() => _dropTarget = Inbox.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(inbox)">Inbox</button>
+                <div class="wn-navrow">
+                    @if (inboxHasNotes)
+                    {
+                        <button type="button" class="wn-twisty" data-twisty aria-expanded="@(inboxExpanded ? "true" : "false")" aria-label="@(inboxExpanded ? "Collapse" : "Expand") Inbox" tabindex="-1"
+                                @onclick="() => Toggle(Inbox.Id)">@(inboxExpanded ? "−" : "+")</button>
+                    }
+                    else
+                    {
+                        <span class="wn-twisty" aria-hidden="true"></span>
+                    }
+                    <button type="button" class="wn-navitem @SelectedClass(inbox) @DropClass(Inbox.Id)" aria-current="@Current(inbox)"
+                            data-tree-item data-level="0" data-expanded="@(inboxHasNotes ? (inboxExpanded ? "true" : "false") : null)"
+                            @onclick="() => OnSelect.InvokeAsync(inbox)"
+                            @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((inbox, e))"
+                            @ondragenter="() => _dropTarget = Inbox.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(inbox)">Inbox</button>
+                </div>
+                @if (inboxHasNotes && inboxExpanded)
+                {
+                    <FolderTree NotebookId="Inbox.Id" ParentId="null" Children="_children" Notes="_notes" Collapsed="_collapsed" DropTarget="_dropTarget"
+                                Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
+                                OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder"
+                                OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
+                                OnOpenNote="OnOpenNote" OnNoteContextMenu="OnNoteContextMenu" OnNoteDragStart="OnNoteDragStart"
+                                OnRenameNote="OnRenameNote" OnDeleteNote="OnDeleteNote" Level="1" />
+                }
             </li>
         }
         <li>
@@ -41,32 +64,44 @@
             @foreach (var notebook in UserNotebooks)
             {
                 var selection = new NavSelection.Notebook(notebook.Id);
-                var hasFolders = _children.Contains((notebook.Id, null));
+                var hasChildren = _children.Contains((notebook.Id, null)) || _notes.Contains((notebook.Id, null));
                 var expanded = !_collapsed.Contains(notebook.Id);
                 <li @key="notebook.Id">
                     <div class="wn-navrow">
-                        @if (hasFolders)
+                        @if (hasChildren)
                         {
-                            <button type="button" class="wn-twisty" aria-expanded="@(expanded ? "true" : "false")"
-                                    aria-label="@(expanded ? "Collapse" : "Expand") @notebook.Name" title="@(expanded ? "Collapse" : "Expand")"
+                            <button type="button" class="wn-twisty" data-twisty aria-expanded="@(expanded ? "true" : "false")"
+                                    aria-label="@(expanded ? "Collapse" : "Expand") @notebook.Name" title="@(expanded ? "Collapse" : "Expand")" tabindex="-1"
                                     @onclick="() => Toggle(notebook.Id)">@(expanded ? "−" : "+")</button>
                         }
                         else
                         {
                             <span class="wn-twisty" aria-hidden="true"></span>
                         }
-                        <button type="button" class="wn-navitem @SelectedClass(selection) @DropClass(notebook.Id)" aria-current="@Current(selection)" title="@notebook.Name"
-                                @onclick="() => OnSelect.InvokeAsync(selection)"
-                                @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
-                                @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>
-                        <button type="button" class="wn-row-add" title="New folder in @notebook.Name" aria-label="New folder in @notebook.Name"
+                        @if (_renamingId == notebook.Id)
+                        {
+                            <InlineRename Value="@notebook.Name" MaxLength="200" OnCommit="name => CommitRenameAsync(notebook.Id, name)" OnCancel="() => _renamingId = null" />
+                        }
+                        else
+                        {
+                            <button type="button" class="wn-navitem @SelectedClass(selection) @DropClass(notebook.Id)" aria-current="@Current(selection)" title="@notebook.Name"
+                                    data-tree-item data-level="0" data-expanded="@(hasChildren ? (expanded ? "true" : "false") : null)"
+                                    @onclick="() => OnSelect.InvokeAsync(selection)" @ondblclick="() => _renamingId = notebook.Id"
+                                    @onkeydown="e => OnNotebookKeyAsync(e, notebook.Id)"
+                                    @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
+                                    @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>
+                        }
+                        <button type="button" class="wn-row-add" title="New folder in @notebook.Name" aria-label="New folder in @notebook.Name" tabindex="-1"
                                 @onclick="() => OnAddFolder.InvokeAsync((notebook.Id, null))">+</button>
                     </div>
-                    @if (hasFolders && expanded)
+                    @if (hasChildren && expanded)
                     {
-                        <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Collapsed="_collapsed" DropTarget="_dropTarget"
-                                    Selection="Selection" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
-                                    OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder" Level="1" />
+                        <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Notes="_notes" Collapsed="_collapsed" DropTarget="_dropTarget"
+                                    Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
+                                    OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder"
+                                    OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
+                                    OnOpenNote="OnOpenNote" OnNoteContextMenu="OnNoteContextMenu" OnNoteDragStart="OnNoteDragStart"
+                                    OnRenameNote="OnRenameNote" OnDeleteNote="OnDeleteNote" Level="1" />
                     }
                 </li>
             }
@@ -121,11 +156,30 @@
 @code {
     private readonly HashSet<Guid> _collapsed = [];
     private ILookup<(Guid NotebookId, Guid? ParentId), FolderSummary> _children = Array.Empty<FolderSummary>().ToLookup(f => (f.NotebookId, f.ParentId));
+    private ILookup<(Guid NotebookId, Guid? ParentId), NoteSummary> _notes = Array.Empty<NoteSummary>().ToLookup(n => (n.NotebookId, n.ParentId));
     private Guid? _dropTarget;
+    private Guid? _renamingId;
+
+    /// <summary>The element, for the host to attach keyboard handling to.</summary>
+    public ElementReference Root { get; private set; }
 
     [Parameter, EditorRequired] public IReadOnlyList<NotebookSummary> Notebooks { get; set; } = [];
     [Parameter, EditorRequired] public IReadOnlyList<FolderSummary> Folders { get; set; } = [];
     [Parameter] public IReadOnlyList<TagSummary> Tags { get; set; } = [];
+
+    /// <summary>Notes to show as leaves of the tree; empty when the tree shows folders only.</summary>
+    [Parameter] public IReadOnlyList<NoteSummary> TreeNotes { get; set; } = [];
+
+    [Parameter] public Guid? CurrentNoteId { get; set; }
+    [Parameter] public EventCallback<(Guid NotebookId, string Name)> OnRenameNotebook { get; set; }
+    [Parameter] public EventCallback<Guid> OnDeleteNotebook { get; set; }
+    [Parameter] public EventCallback<(Guid FolderId, string Name)> OnRenameFolder { get; set; }
+    [Parameter] public EventCallback<Guid> OnDeleteFolder { get; set; }
+    [Parameter] public EventCallback<Guid> OnOpenNote { get; set; }
+    [Parameter] public EventCallback<(NoteSummary Note, MouseEventArgs Mouse)> OnNoteContextMenu { get; set; }
+    [Parameter] public EventCallback<Guid> OnNoteDragStart { get; set; }
+    [Parameter] public EventCallback<(Guid NoteId, string Title)> OnRenameNote { get; set; }
+    [Parameter] public EventCallback<Guid> OnDeleteNote { get; set; }
     [Parameter, EditorRequired] public NavSelection Selection { get; set; } = new NavSelection.AllNotes();
 
     /// <summary>Something is being dragged; notebooks and folders light up as it passes over them.</summary>
@@ -151,6 +205,7 @@
     protected override void OnParametersSet()
     {
         _children = Folders.ToLookup(f => (f.NotebookId, f.ParentId));
+        _notes = TreeNotes.ToLookup(n => (n.NotebookId, n.ParentId));
         if (!Dragging)
         {
             _dropTarget = null;
@@ -175,6 +230,30 @@
         if (!_collapsed.Remove(id))
         {
             _collapsed.Add(id);
+        }
+    }
+
+    private async Task CommitRenameAsync(Guid notebookId, string name)
+    {
+        _renamingId = null;
+        await OnRenameNotebook.InvokeAsync((notebookId, name));
+    }
+
+    private async Task OnNotebookKeyAsync(KeyboardEventArgs args, Guid notebookId)
+    {
+        if (notebookId == Inbox?.Id)
+        {
+            return;
+        }
+
+        switch (args.Key)
+        {
+            case "F2":
+                _renamingId = notebookId;
+                break;
+            case "Delete":
+                await OnDeleteNotebook.InvokeAsync(notebookId);
+                break;
         }
     }
 

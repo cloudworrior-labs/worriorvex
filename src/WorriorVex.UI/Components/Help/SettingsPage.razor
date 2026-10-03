@@ -16,6 +16,17 @@
         </select>
     </div>
 
+    <div class="wn-setting">
+        <label for="wn-density">Lists</label>
+        <select id="wn-density" class="wn-select" value="@_draft.ListDensity" @onchange="e => SaveAsync(_draft with { ListDensity = Enum.Parse<ListDensity>(e.Value!.ToString()!) })">
+            <option value="@ListDensity.Comfortable">Comfortable</option>
+            <option value="@ListDensity.Compact">Compact</option>
+        </select>
+    </div>
+    <div class="wn-setting">
+        <label><input type="checkbox" checked="@_draft.ShowNotesInTree" @onchange="e => SaveAsync(_draft with { ShowNotesInTree = (bool)e.Value! })" /> Show notes in the navigation tree, under their notebooks and folders</label>
+    </div>
+
     <h2>Editor</h2>
     <div class="wn-setting">
         <label for="wn-font-size">Text size</label>

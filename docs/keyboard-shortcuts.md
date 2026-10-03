@@ -18,6 +18,18 @@
 | `Enter` / `Backspace` in the tag row | Add a tag / remove the last tag |
 | `Enter` in a dialog | Confirm the name |
 
+## Navigation tree and note list
+
+| Shortcut | Action |
+| --- | --- |
+| `↑` `↓` | Previous / next row |
+| `→` | Open a branch, or step into it |
+| `←` | Close a branch, or step out to its parent |
+| `Home` / `End` | First / last row |
+| `Enter` or `Space` | Select the row |
+| `F2` or double-click | Rename in place (`Enter` keeps, `Esc` gives up) |
+| `Delete` | Move the row to the trash |
+
 ## Editor
 
 | Shortcut | Action |
