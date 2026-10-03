@@ -377,6 +377,11 @@
             _contentNeedsPush = false;
             Settings.Changed += OnSettingsChanged;
             await EditorAsync("setSpellCheck", Settings.Current.SpellCheck);
+            if (_focusBodyWhenReady)
+            {
+                _focusBodyWhenReady = false;
+                await EditorAsync("focus");
+            }
         }
         else if (_contentNeedsPush && _editor is not null)
         {
@@ -634,11 +639,25 @@
     /// <summary>Enter in the title continues in the body, as it would on paper.</summary>
     private async Task OnTitleKeyDown(KeyboardEventArgs args)
     {
-        if (args.Key == "Enter" && !args.IsComposing && _editor is not null)
+        if (args.Key != "Enter" || args.IsComposing)
+        {
+            return;
+        }
+
+        // The person has moved on from the title; a pending "focus the title of this new note" must not pull them back.
+        _focusTitle = false;
+        if (_editor is not null)
         {
             await EditorAsync("focus");
         }
+        else
+        {
+            // Enter came before the editor finished loading (a fast typist on a fresh note): focus it once it exists.
+            _focusBodyWhenReady = true;
+        }
     }
+
+    private bool _focusBodyWhenReady;
 
         private async Task RunAsync(string command)
     {
