@@ -201,4 +201,29 @@ public sealed class DeletionTests(BrowserFixture browser) : UITest(browser)
         var leaves = await Page.Locator(".wn-nav .wn-navnote").AllInnerTextsAsync();
         Assert.Equal(["Monday", "Tuesday"], leaves.Select(t => t.Trim()));
     }
+
+    [Fact]
+    public async Task A_note_grows_into_a_folder_when_something_is_added_under_it()
+    {
+        var notes = App.Get<INoteService>();
+        var notebook = await App.Get<INotebookService>().CreateAsync("Course");
+        var chapter = await notes.CreateAsync(notebook.Id, null, "2.0 Data Preparation", "<p>overview</p>");
+        await Page.ReloadAsync();
+        await Nav("Course").WaitForAsync();
+
+        await Nav("2.0 Data Preparation").HoverAsync();
+        await Page.ClickAsync(".wn-navrow:has(.wn-navnote:has-text('2.0 Data Preparation')) .wn-row-add");
+        await Page.ClickAsync(".wn-menu button:has-text('New note under it')");
+        await Page.FillAsync(".wn-title", "Cleaning");
+        await Expect(Page.Locator(".wn-notelist .wn-noteitem-title", new PageLocatorOptions { HasTextString = "Cleaning" })).ToHaveCountAsync(1);
+
+        // A folder of the same name now holds the original note (text intact) and the new one below it.
+        var folder = Assert.Single(await App.Get<WorriorVex.Application.Tree.ITreeService>().ListFoldersAsync(notebook.Id));
+        Assert.Equal("2.0 Data Preparation", folder.Name);
+        var inside = await notes.ListAsync(notebook.Id, folder.Id);
+        Assert.Equal(["2.0 Data Preparation", "Cleaning"], inside.OrderBy(n => n.CreatedAt).Select(n => n.Title));
+        Assert.Equal("<p>overview</p>", (await notes.GetAsync(chapter.Id))!.Content);
+        var titles = await Page.Locator(".wn-notelist .wn-noteitem-title").AllInnerTextsAsync();
+        Assert.Equal(["2.0 Data Preparation", "Cleaning"], titles.Select(t => t.Trim()));
+    }
 }

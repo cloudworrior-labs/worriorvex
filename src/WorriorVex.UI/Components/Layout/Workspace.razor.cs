@@ -1489,6 +1489,43 @@ public partial class Workspace
         _menu = new MenuState(items, place.Mouse.ClientX, place.Mouse.ClientY, T["Add to {0}", name]);
     }
 
+    /// <summary>The + on a note row: a note cannot hold notes, so it becomes a folder of its name with the note inside, then the new thing goes in there.</summary>
+    private void AddUnderNote((NoteSummary Note, MouseEventArgs Mouse) at)
+    {
+        var items = new List<ContextMenu.Item>
+        {
+            new(T["New note under it"], () => GrowFromNoteAsync(at.Note, addFolder: false)),
+            new(T["New folder under it"], () => GrowFromNoteAsync(at.Note, addFolder: true)),
+        };
+        _menu = new MenuState(items, at.Mouse.ClientX, at.Mouse.ClientY, T["Grow “{0}” into a folder", at.Note.Title]);
+    }
+
+    private async Task GrowFromNoteAsync(NoteSummary note, bool addFolder)
+    {
+        if (!await SaveBeforeLeavingAsync())
+        {
+            return;
+        }
+
+        await RunAsync(T["The note could not be turned into a folder."], async () =>
+        {
+            // The same name, in the same place; the note itself moves inside as its first entry.
+            var folder = await Tree.CreateFolderAsync(note.NotebookId, note.ParentId, note.Title);
+            await Tree.MoveAsync(note.Id, note.NotebookId, folder.Id);
+            await LoadStructureAsync();
+            _notice = T["“{0}” is now a folder with the note inside it.", note.Title];
+            if (addFolder)
+            {
+                await SelectAsync(new NavSelection.Folder(note.NotebookId, folder.Id));
+                PromptNewFolderIn(note.NotebookId, folder.Id, note.Title);
+            }
+            else
+            {
+                await NewNoteInAsync(note.NotebookId, folder.Id);
+            }
+        });
+    }
+
     /// <summary>A note was chosen in the tree: its folder becomes the place, so the list and "+ New" follow it.</summary>
     private async Task OpenFromTreeAsync(Guid id)
     {

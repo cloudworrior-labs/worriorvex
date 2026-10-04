@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.6 — 2026-10-04
+
+- Every row in the tree has a **+** now. On a note it turns the note into a folder of the same name,
+  keeps the note inside, and adds the new note or folder under it, the way KeepNote pages could have
+  children.
+- Adjusted settings are written back at once after an upgrade.
+
 ## 0.5.5 — 2026-10-04
 
 - Deleting a note now asks for confirmation by default (Settings → Behaviour → "Ask before moving a

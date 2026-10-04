@@ -30,7 +30,7 @@
                     <FolderTree NotebookId="Inbox.Id" ParentId="null" Children="_children" Notes="_notes" Expanded="_expandedFolders" DropTarget="_dropTarget"
                                 Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
                                 OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder"
-                                OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
+                                OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder" OnAddUnderNote="OnAddUnderNote"
                                 OnOpenNote="OnOpenNote" OnNoteContextMenu="OnNoteContextMenu" OnNoteDragStart="OnNoteDragStart"
                                 OnRenameNote="OnRenameNote" OnDeleteNote="OnDeleteNote" Level="1" />
                 }
@@ -126,7 +126,7 @@
                         <FolderTree NotebookId="notebook.Id" ParentId="null" Children="_children" Notes="_notes" Expanded="_expandedFolders" DropTarget="_dropTarget"
                                     Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="Toggle" OnContextMenu="OnContextMenu"
                                     OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="id => _dropTarget = id" OnDrop="DropAsync" OnAddFolder="OnAddFolder"
-                                    OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
+                                    OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder" OnAddUnderNote="OnAddUnderNote"
                                     OnOpenNote="OnOpenNote" OnNoteContextMenu="OnNoteContextMenu" OnNoteDragStart="OnNoteDragStart"
                                     OnRenameNote="OnRenameNote" OnDeleteNote="OnDeleteNote" Level="1" />
                     }
@@ -227,6 +227,7 @@
 
     /// <summary>The + on a notebook or folder row: a new folder inside it.</summary>
     [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId, MouseEventArgs Mouse)> OnAddFolder { get; set; }
+    [Parameter] public EventCallback<(NoteSummary Note, MouseEventArgs Mouse)> OnAddUnderNote { get; set; }
 
     /// <summary>A folder in the tree started being dragged.</summary>
     [Parameter] public EventCallback<Guid> OnDragStart { get; set; }

@@ -43,7 +43,7 @@
                 <FolderTree NotebookId="NotebookId" ParentId="folder.Id" Children="Children" Notes="Notes" Expanded="Expanded" DropTarget="DropTarget"
                             Selection="Selection" CurrentNoteId="CurrentNoteId" OnSelect="OnSelect" OnToggle="OnToggle" OnContextMenu="OnContextMenu"
                             OnDragStart="OnDragStart" OnDragEnd="OnDragEnd" OnDragEnter="OnDragEnter" OnDrop="OnDrop" OnAddFolder="OnAddFolder"
-                            OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder"
+                            OnRenameFolder="OnRenameFolder" OnDeleteFolder="OnDeleteFolder" OnAddUnderNote="OnAddUnderNote"
                             OnOpenNote="OnOpenNote" OnNoteContextMenu="OnNoteContextMenu" OnNoteDragStart="OnNoteDragStart"
                             OnRenameNote="OnRenameNote" OnDeleteNote="OnDeleteNote" Level="Level + 1" />
             }
@@ -78,6 +78,8 @@
                         @note.Title
                     </button>
                 }
+                <button type="button" class="wn-row-add" title="@T["Add a note under {0} (it becomes a folder with this note inside)", note.Title]" aria-label="@T["Add a note under {0} (it becomes a folder with this note inside)", note.Title]" tabindex="-1"
+                        @onclick="e => OnAddUnderNote.InvokeAsync((note, e))">+</button>
             </div>
         </li>
     }
@@ -103,6 +105,9 @@
     [Parameter] public EventCallback<Guid> OnDragEnter { get; set; }
     [Parameter] public EventCallback<NavSelection> OnDrop { get; set; }
     [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId, MouseEventArgs Mouse)> OnAddFolder { get; set; }
+
+    /// <summary>The + on a note row: the note becomes a folder of its own name and something new goes inside.</summary>
+    [Parameter] public EventCallback<(NoteSummary Note, MouseEventArgs Mouse)> OnAddUnderNote { get; set; }
     [Parameter] public EventCallback<(Guid FolderId, string Name)> OnRenameFolder { get; set; }
     [Parameter] public EventCallback<Guid> OnDeleteFolder { get; set; }
     [Parameter] public EventCallback<Guid> OnOpenNote { get; set; }

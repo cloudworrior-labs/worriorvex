@@ -18,7 +18,7 @@
              OnRenameNotebook="RenameNotebookAsync" OnDeleteNotebook="id => ConfirmDeleteNotebook(id, NotebookName(id))"
              OnRenameFolder="RenameFolderAsync" OnDeleteFolder="id => ConfirmDeleteFolder(id, FolderName(id))"
              OnOpenNote="OpenFromTreeAsync" OnNoteContextMenu="ShowNoteMenu" OnNoteDragStart="id => _dragging = (id, false)"
-             OnRenameNote="RenameNoteAsync" OnDeleteNote="DeleteNoteAsync"
+             OnRenameNote="RenameNoteAsync" OnDeleteNote="DeleteNoteAsync" OnAddUnderNote="AddUnderNote"
              OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 
     <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="@T["Width of the navigation pane"]"
