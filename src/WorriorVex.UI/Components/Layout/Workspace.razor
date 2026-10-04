@@ -52,10 +52,12 @@
             }
             @if (CanChangeContainer)
             {
-                <button type="button" class="wn-button wn-button-small" @onclick="PromptRename">@T["Rename"]</button>
-                <button type="button" class="wn-button wn-button-small" @onclick="ConfirmDeleteContainer">@T["Delete"]</button>
+                @* These act on the place itself (the folder or notebook), never on a note: the words say so. *@
+                <button type="button" class="wn-button wn-button-small" title="@(_selection is NavSelection.Folder ? T["Rename this folder"] : T["Rename this notebook"])" @onclick="PromptRename">@(_selection is NavSelection.Folder ? T["Rename folder…"] : T["Rename notebook…"])</button>
+                <button type="button" class="wn-button wn-button-small wn-button-quiet-danger" title="@(_selection is NavSelection.Folder ? T["Move this folder and everything in it to the trash"] : T["Move this notebook and everything in it to the trash"])" @onclick="ConfirmDeleteContainer">@(_selection is NavSelection.Folder ? T["Delete folder…"] : T["Delete notebook…"])</button>
             }
             <select class="wn-select wn-list-sort" aria-label="@T["Sort notes"]" title="@T["Sort notes"]" value="@Settings.Current.NoteSort" @onchange="e => SetSortAsync(Enum.Parse<NoteSort>((string)e.Value!))">
+                <option value="@NoteSort.Added">@T["In the order added"]</option>
                 <option value="@NoteSort.Updated">@T["Last changed"]</option>
                 <option value="@NoteSort.Created">@T["Newest"]</option>
                 <option value="@NoteSort.Title">@T["Title"]</option>

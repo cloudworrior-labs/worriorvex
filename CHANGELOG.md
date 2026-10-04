@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.3 — 2026-10-04
+
+- Deleting is unmistakable now: the buttons above the note list read **Delete folder…** / **Delete
+  notebook…** (and **Rename folder…** / **Rename notebook…**), the confirmation says "the whole folder,
+  not one note" and counts what goes, and the note's own button reads **Delete note**. Nothing is ever
+  lost either way: everything deleted sits in the Trash until you restore or remove it.
+- New notes join at the bottom of their notebook or folder: the list and the tree now default to
+  "In the order added"; the other orders remain in the list's dropdown.
+- The tree drops a deleted note at once.
+
 ## 0.5.2 — 2026-10-04
 
 - The + on a notebook or folder row now offers **New note** as well as **New folder**, so any place can

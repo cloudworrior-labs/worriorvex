@@ -463,6 +463,7 @@ public partial class Workspace
     /// <summary>Pinned first, then by the chosen order.</summary>
     private IEnumerable<NoteSummary> Sorted(IEnumerable<NoteSummary> notes) => Settings.Current.NoteSort switch
     {
+        NoteSort.Added => notes.OrderByDescending(n => n.IsPinned).ThenBy(n => n.CreatedAt),
         NoteSort.Created => notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.CreatedAt),
         NoteSort.Title => notes.OrderByDescending(n => n.IsPinned).ThenBy(n => n.Title, StringComparer.CurrentCultureIgnoreCase),
         _ => notes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.UpdatedAt),
@@ -682,11 +683,13 @@ public partial class Workspace
             }
 
             _notes.RemoveAll(n => n.Id == note.Id);
-            _notes.Insert(0, note.ToSummary());
+            _notes.Add(note.ToSummary());
+            SortNotes();
             _current = note;
             _focusNewNote = true;
             _firstRun = false;
             _notice = null;
+            await LoadTreeNotesAsync();
             await RecordOpenedAsync(note.Id);
         });
     }
@@ -717,7 +720,8 @@ public partial class Workspace
             }
 
             _notes.RemoveAll(n => n.Id == note.Id);
-            _notes.Insert(0, note.ToSummary());
+            _notes.Add(note.ToSummary());
+            SortNotes();
             _current = note;
             _focusNewNote = true;
             _firstRun = false;
@@ -911,6 +915,7 @@ public partial class Workspace
             _notes.RemoveAll(n => n.Id == note.Id);
             var next = _notes.Count == 0 ? null : _notes[Math.Clamp(index, 0, _notes.Count - 1)];
             _current = next is null ? null : await Notes.GetAsync(next.Id);
+            _treeNotes.RemoveAll(n => n.Id == note.Id);
             _notice = T["“{0}” was moved to the trash.", note.Title];
         });
     }
@@ -1270,6 +1275,7 @@ public partial class Workspace
         {
             await Trash.MoveToTrashAsync(id);
             _notes.RemoveAll(n => n.Id == id);
+            _treeNotes.RemoveAll(n => n.Id == id);
             _searchResults.RemoveAll(r => r.NoteId == id);
             await LoadTagsAsync();
             _notice = T["“{0}” was moved to the trash.", title];
@@ -1568,10 +1574,10 @@ public partial class Workspace
     }
 
     private void ConfirmDeleteFolder(Guid folderId, string name) => OpenConfirm(new ConfirmRequest(
-        T["Delete folder “{0}”?", name],
-        T["The folder and everything in it move to the trash. You can restore them from there."],
-        T["Move to trash"],
-        Danger: false,
+        T["Delete the folder “{0}” and everything in it?", name],
+        T["This is the whole folder, not one note: {0} and all its notes and sub-folders move to the trash. You can restore them from there.", CountInside(folderId)],
+        T["Delete the whole folder"],
+        Danger: true,
         async () =>
         {
             await Trash.MoveToTrashAsync(folderId);
@@ -1579,10 +1585,10 @@ public partial class Workspace
         }));
 
     private void ConfirmDeleteNotebook(Guid notebookId, string name) => OpenConfirm(new ConfirmRequest(
-        T["Delete notebook “{0}”?", name],
-        T["The notebook and everything in it move to the trash. You can restore them from there."],
-        T["Move to trash"],
-        Danger: false,
+        T["Delete the notebook “{0}” and everything in it?", name],
+        T["This is the whole notebook, not one note: {0} and all its notes and folders move to the trash. You can restore them from there.", CountInside(notebookId, isNotebook: true)],
+        T["Delete the whole notebook"],
+        Danger: true,
         async () =>
         {
             await Trash.MoveNotebookToTrashAsync(notebookId);
@@ -1605,6 +1611,30 @@ public partial class Workspace
 
             _notice = T["The tag “{0}” was deleted.", name];
         }));
+
+    /// <summary>"3 notes and 2 folders": what a container holds, so the person sees the size of what they are about to delete.</summary>
+    private string CountInside(Guid id, bool isNotebook = false)
+    {
+        var folderIds = new HashSet<Guid>();
+        var pending = new Queue<Guid>(isNotebook ? _folders.Where(f => f.NotebookId == id && f.ParentId is null).Select(f => f.Id) : [id]);
+        while (pending.TryDequeue(out var folder) && folderIds.Add(folder))
+        {
+            foreach (var child in _folders.Where(f => f.ParentId == folder))
+            {
+                pending.Enqueue(child.Id);
+            }
+        }
+
+        var folders = isNotebook ? folderIds.Count : folderIds.Count - 1;
+        if (!Settings.Current.ShowNotesInTree)
+        {
+            // Without the tree's note list only the folders are known here.
+            return T["{0} folder(s)", folders];
+        }
+
+        var notes = _treeNotes.Count(n => isNotebook ? n.NotebookId == id : n.ParentId is { } parent && folderIds.Contains(parent));
+        return T["{0} note(s) and {1} folder(s)", notes, folders];
+    }
 
     private async Task AfterContainerDeletedAsync(string name)
     {

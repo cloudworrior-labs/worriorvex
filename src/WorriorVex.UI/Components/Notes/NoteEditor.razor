@@ -26,7 +26,7 @@
                 aria-pressed="@(Note.IsFavorite ? "true" : "false")" @onclick="() => OnToggleFavorite.InvokeAsync()">@(Note.IsFavorite ? "★" : "☆") @T["Favorite"]</button>
         <button type="button" class="wn-tool @(Note.IsPinned ? "is-active" : null)" title="@(Note.IsPinned ? T["Unpin from the top of its list"] : T["Pin to the top of its list"])"
                 aria-pressed="@(Note.IsPinned ? "true" : "false")" @onclick="() => OnTogglePinned.InvokeAsync()">⌖ @T["Pin"]</button>
-        <button type="button" class="wn-tool" title="@T["Move this note to the trash"]" @onclick="OnDelete">@T["Delete"]</button>
+        <button type="button" class="wn-tool" title="@T["Move this note to the trash"]" @onclick="OnDelete">@T["Delete note"]</button>
     </div>
 
     <TagEditor NoteId="Note.Id" OnChanged="OnTagsChanged" />

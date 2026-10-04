@@ -40,6 +40,8 @@ public enum BackupSchedule
 
 public enum NoteSort
 {
+    /// <summary>Oldest first, so a new note joins at the bottom, under the ones already there.</summary>
+    Added,
     Updated,
     Created,
     Title,
@@ -90,7 +92,7 @@ public sealed record AppSettings
 
     public EditorFont EditorFont { get; init; } = EditorFont.System;
 
-    public NoteSort NoteSort { get; init; } = NoteSort.Updated;
+    public NoteSort NoteSort { get; init; } = NoteSort.Added;
 
     /// <summary>Folders whose branch is open in the navigation tree (folders start closed).</summary>
     public IReadOnlyList<Guid> ExpandedFolders { get; init; } = [];

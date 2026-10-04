@@ -898,3 +898,5 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-app.is-focus .wn-nav, .wn-app.is-focus .wn-notelist, .wn-app.is-focus .wn-resizer { display: none; }
 .wn-app.is-focus .wn-prose { margin: 0 auto; }
 .wn-iconbutton.is-active { background: var(--wn-bg-selected); color: var(--wn-accent); }
+.wn-button-quiet-danger { color: var(--wn-danger); }
+.wn-button-quiet-danger:hover { background: var(--wn-danger-bg); }

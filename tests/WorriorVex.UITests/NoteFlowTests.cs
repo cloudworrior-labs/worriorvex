@@ -144,3 +144,57 @@ public sealed class NoteFlowTests(BrowserFixture browser) : UITest(browser)
         Assert.Null((await notes.GetAsync(note.Id))!.DeletedAt);
     }
 }
+
+[Collection("browser")]
+public sealed class DeletionTests(BrowserFixture browser) : UITest(browser)
+{
+    [Fact]
+    public async Task Deleting_a_note_in_a_sub_folder_leaves_the_folders_and_the_other_notes()
+    {
+        var notes = App.Get<INoteService>();
+        var notebook = await App.Get<INotebookService>().CreateAsync("Course");
+        var folder = await App.Get<WorriorVex.Application.Tree.ITreeService>().CreateFolderAsync(notebook.Id, null, "Module 1");
+        var first = await notes.CreateAsync(notebook.Id, folder.Id, "Lesson A", "<p>a</p>");
+        var second = await notes.CreateAsync(notebook.Id, folder.Id, "Lesson B", "<p>b</p>");
+        await Page.ReloadAsync();
+        await Nav("Course").WaitForAsync();
+
+        // Open the second lesson from the tree, then delete just that note.
+        await Nav("Module 1").ClickAsync();
+        await Page.Locator(".wn-noteitem:has-text('Lesson B')").ClickAsync();
+        await Page.Locator(".wn-title").WaitForAsync();
+        await Page.ClickAsync(".wn-title-row button:has-text('Delete note')");
+
+        await Expect(Page.Locator(".wn-noteitem:has-text('Lesson B')")).ToHaveCountAsync(0);
+        await Expect(Page.Locator(".wn-noteitem:has-text('Lesson A')")).ToHaveCountAsync(1);
+        await Expect(Nav("Module 1")).ToHaveCountAsync(1);
+        await Expect(Nav("Course")).ToHaveCountAsync(1);
+        Assert.NotNull((await notes.GetAsync(second.Id))!.DeletedAt);
+        Assert.Null((await notes.GetAsync(first.Id))!.DeletedAt);
+
+        // The folder's own delete says what it is and how much it takes.
+        await Page.ClickAsync(".wn-pane-actions button:has-text('Delete folder…')");
+        await Expect(Page.Locator(".wn-dialog h2")).ToContainTextAsync("Module 1");
+        await Expect(Page.Locator(".wn-dialog p")).ToContainTextAsync("whole folder");
+        await Expect(Page.Locator(".wn-dialog p")).ToContainTextAsync("1 note(s) and 0 folder(s)");
+        await Page.ClickAsync(".wn-dialog button:has-text('Cancel')");
+        Assert.Null((await notes.GetAsync(first.Id))!.DeletedAt);
+    }
+
+    [Fact]
+    public async Task New_notes_join_at_the_bottom_of_their_place()
+    {
+        var notebook = await App.Get<INotebookService>().CreateAsync("Diary");
+        await App.Get<INoteService>().CreateAsync(notebook.Id, null, "Monday", "<p>1</p>");
+        await Page.ReloadAsync();
+        await Nav("Diary").ClickAsync();
+        await Page.ClickAsync(".wn-topbar .wn-button-primary");
+        await Page.FillAsync(".wn-title", "Tuesday");
+        await Expect(Page.Locator(".wn-notelist .wn-noteitem-title", new PageLocatorOptions { HasTextString = "Tuesday" })).ToHaveCountAsync(1);
+
+        var titles = await Page.Locator(".wn-notelist .wn-noteitem-title").AllInnerTextsAsync();
+        Assert.Equal(["Monday", "Tuesday"], titles.Select(t => t.Trim()));
+        var leaves = await Page.Locator(".wn-nav .wn-navnote").AllInnerTextsAsync();
+        Assert.Equal(["Monday", "Tuesday"], leaves.Select(t => t.Trim()));
+    }
+}
