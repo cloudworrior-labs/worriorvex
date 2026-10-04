@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2 — 2026-10-04
+
+- The + on a notebook or folder row now offers **New note** as well as **New folder**, so any place can
+  hold as many notes as you like straight from the tree; choosing a note in the tree selects its folder,
+  so "+ New" adds the next note beside it.
+
 ## 0.5.1 — 2026-10-03
 
 - Fixed: after changing the language (or any time the workspace was rebuilt) the navigation pane's

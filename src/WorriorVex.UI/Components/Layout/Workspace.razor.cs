@@ -1469,12 +1469,43 @@ public partial class Workspace
     }
 
     /// <summary>The + on a notebook or folder row.</summary>
-    private void AddBranch((Guid NotebookId, Guid? ParentId) place)
+    /// <summary>The + on a notebook or folder row: a small menu to add a note or a folder inside it.</summary>
+    private void AddBranch((Guid NotebookId, Guid? ParentId, MouseEventArgs Mouse) place)
     {
-        var name = place.ParentId is { } folderId
+        var name = (place.ParentId is { } folderId
             ? _folders.FirstOrDefault(f => f.Id == folderId)?.Name
-            : _notebooks.FirstOrDefault(n => n.Id == place.NotebookId)?.Name;
-        PromptNewFolderIn(place.NotebookId, place.ParentId, name ?? "this place");
+            : _notebooks.FirstOrDefault(n => n.Id == place.NotebookId)?.Name) ?? T["this place"];
+        var items = new List<ContextMenu.Item>
+        {
+            new(T["New note"], () => NewNoteInAsync(place.NotebookId, place.ParentId)),
+            new(T["New folder"], () => { PromptNewFolderIn(place.NotebookId, place.ParentId, name); return Task.CompletedTask; }),
+        };
+        _menu = new MenuState(items, place.Mouse.ClientX, place.Mouse.ClientY, T["Add to {0}", name]);
+    }
+
+    /// <summary>A note was chosen in the tree: its folder becomes the place, so the list and "+ New" follow it.</summary>
+    private async Task OpenFromTreeAsync(Guid id)
+    {
+        var note = _treeNotes.FirstOrDefault(n => n.Id == id);
+        if (note is not null)
+        {
+            NavSelection place = note.ParentId is { } parent ? new NavSelection.Folder(note.NotebookId, parent) : new NavSelection.Notebook(note.NotebookId);
+            if (place != _selection)
+            {
+                if (!await SaveBeforeLeavingAsync())
+                {
+                    return;
+                }
+
+                EndSearch();
+                _selection = place;
+                _notice = null;
+                await LoadListAsync(openFirst: false);
+                await RememberPlaceAsync();
+            }
+        }
+
+        await OpenAsync(id);
     }
 
     private void PromptNewFolderIn(Guid notebookId, Guid? parentId, string placeName) => OpenPrompt(new PromptRequest(

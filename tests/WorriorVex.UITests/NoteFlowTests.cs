@@ -34,9 +34,10 @@ public sealed class NoteFlowTests(BrowserFixture browser) : UITest(browser)
         await Page.Keyboard.PressAsync("Enter");
         await Nav("Projects").WaitForAsync();
 
-        // The + at the end of the row adds a branch.
+        // The + at the end of the row offers a note or a folder; a folder is a branch.
         await Nav("Projects").HoverAsync();
         await Page.ClickAsync(".wn-navrow:has(.wn-navitem:text-is('Projects')) .wn-row-add");
+        await Page.ClickAsync(".wn-menu button:has-text('New folder')");
         await Page.FillAsync("#wn-prompt-input", "Alpha");
         await Page.Keyboard.PressAsync("Enter");
         await Nav("Alpha").WaitForAsync();
@@ -45,6 +46,20 @@ public sealed class NoteFlowTests(BrowserFixture browser) : UITest(browser)
         // The box at the left collapses and expands it.
         var twisty = Page.Locator(".wn-navrow:has(.wn-navitem:text-is('Projects')) .wn-twisty");
         await Expect(twisty).ToHaveTextAsync("−");
+        await Expect(Nav("Alpha")).ToHaveCountAsync(1);
+
+        // And a second and third note in the same folder, from the row's + and from "+ New" while the folder is selected.
+        await Nav("Alpha").HoverAsync();
+        await Page.ClickAsync(".wn-navrow:has(.wn-navitem:text-is('Alpha')) .wn-row-add");
+        await Page.ClickAsync(".wn-menu button:has-text('New note')");
+        await Page.FillAsync(".wn-title", "First");
+        await Expect(Page.Locator(".wn-notelist .wn-noteitem-title", new PageLocatorOptions { HasTextString = "First" })).ToHaveCountAsync(1);
+        await Page.ClickAsync(".wn-topbar .wn-button-primary");
+        await Page.FillAsync(".wn-title", "Second");
+        await Expect(Page.Locator(".wn-notelist .wn-noteitem-title", new PageLocatorOptions { HasTextString = "Second" })).ToHaveCountAsync(1);
+        await Expect(Page.Locator(".wn-notelist .wn-noteitem")).ToHaveCountAsync(2);
+        var inAlpha = await App.Get<INoteService>().ListAllAsync();
+        Assert.Equal(2, inAlpha.Count(n => n.Title is "First" or "Second" && n.ParentId is not null));
         await twisty.ClickAsync();
         await Expect(Nav("Alpha")).ToHaveCountAsync(0);
         await twisty.ClickAsync();

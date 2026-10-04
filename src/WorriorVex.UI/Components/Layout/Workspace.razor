@@ -17,7 +17,7 @@
              OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu" OnAddFolder="AddBranch"
              OnRenameNotebook="RenameNotebookAsync" OnDeleteNotebook="id => ConfirmDeleteNotebook(id, NotebookName(id))"
              OnRenameFolder="RenameFolderAsync" OnDeleteFolder="id => ConfirmDeleteFolder(id, FolderName(id))"
-             OnOpenNote="OpenAsync" OnNoteContextMenu="ShowNoteMenu" OnNoteDragStart="id => _dragging = (id, false)"
+             OnOpenNote="OpenFromTreeAsync" OnNoteContextMenu="ShowNoteMenu" OnNoteDragStart="id => _dragging = (id, false)"
              OnRenameNote="RenameNoteAsync" OnDeleteNote="DeleteNoteAsync"
              OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
 

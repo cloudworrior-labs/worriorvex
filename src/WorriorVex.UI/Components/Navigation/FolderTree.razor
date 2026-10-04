@@ -35,8 +35,8 @@
                             @ondragenter="() => OnDragEnter.InvokeAsync(folder.Id)" @ondragover:preventDefault
                             @ondrop:preventDefault @ondrop="() => OnDrop.InvokeAsync(selection)">@folder.Name</button>
                 }
-                <button type="button" class="wn-row-add" title="@T["New folder in {0}", folder.Name]" aria-label="@T["New folder in {0}", folder.Name]" tabindex="-1"
-                        @onclick="() => OnAddFolder.InvokeAsync((folder.NotebookId, folder.Id))">+</button>
+                <button type="button" class="wn-row-add" title="@T["Add a note or folder in {0}", folder.Name]" aria-label="@T["Add a note or folder in {0}", folder.Name]" tabindex="-1"
+                        @onclick="e => OnAddFolder.InvokeAsync((folder.NotebookId, folder.Id, e))">+</button>
             </div>
             @if (hasChildren && expanded)
             {
@@ -102,7 +102,7 @@
     [Parameter] public EventCallback OnDragEnd { get; set; }
     [Parameter] public EventCallback<Guid> OnDragEnter { get; set; }
     [Parameter] public EventCallback<NavSelection> OnDrop { get; set; }
-    [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId)> OnAddFolder { get; set; }
+    [Parameter] public EventCallback<(Guid NotebookId, Guid? ParentId, MouseEventArgs Mouse)> OnAddFolder { get; set; }
     [Parameter] public EventCallback<(Guid FolderId, string Name)> OnRenameFolder { get; set; }
     [Parameter] public EventCallback<Guid> OnDeleteFolder { get; set; }
     [Parameter] public EventCallback<Guid> OnOpenNote { get; set; }
