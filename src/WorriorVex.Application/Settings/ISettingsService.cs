@@ -94,6 +94,14 @@ public sealed record AppSettings
 
     public NoteSort NoteSort { get; init; } = NoteSort.Added;
 
+    /// <summary>
+    /// Version of the settings layout, for one-time adjustments when an older file is read.
+    /// 1: "In the order added" became the default order and replaces an unchosen "Last changed".
+    /// </summary>
+    public int SettingsVersion { get; init; } = CurrentSettingsVersion;
+
+    public const int CurrentSettingsVersion = 1;
+
     /// <summary>Folders whose branch is open in the navigation tree (folders start closed).</summary>
     public IReadOnlyList<Guid> ExpandedFolders { get; init; } = [];
 

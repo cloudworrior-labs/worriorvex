@@ -44,4 +44,27 @@ public class SettingsTests
         await app.Get<ISettingsService>().SaveAsync(new AppSettings { SpellCheck = false });
         Assert.False(app.Get<ISettingsService>().Current.SpellCheck);
     }
+
+    [Fact]
+    public async Task An_older_file_with_the_old_default_order_moves_to_the_new_default_once()
+    {
+        using var data = new TempDataDirectory();
+        var path = Path.Combine(data.Path, "settings.json");
+        await File.WriteAllTextAsync(path, """{ "noteSort": "Updated", "editorFontSize": 17 }""");
+
+        await using (var app = await TestApp.StartAsync(data.Path))
+        {
+            var settings = app.Get<WorriorVex.Application.Settings.ISettingsService>();
+            Assert.Equal(WorriorVex.Application.Settings.NoteSort.Added, settings.Current.NoteSort);
+            Assert.Equal(17, settings.Current.EditorFontSize);
+
+            // A choice made now sticks, because the file carries the version from here on.
+            await settings.SaveAsync(settings.Current with { NoteSort = WorriorVex.Application.Settings.NoteSort.Updated });
+        }
+
+        await using (var app = await TestApp.StartAsync(data.Path))
+        {
+            Assert.Equal(WorriorVex.Application.Settings.NoteSort.Updated, app.Get<WorriorVex.Application.Settings.ISettingsService>().Current.NoteSort);
+        }
+    }
 }

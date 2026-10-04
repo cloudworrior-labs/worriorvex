@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.4 — 2026-10-04
+
+- Settings files written by earlier versions carried "Last changed" as the note order even when nobody
+  had chosen it; on first start they move to "In the order added" once. An order picked from the
+  dropdown stays as picked.
+
 ## 0.5.3 — 2026-10-04
 
 - Deleting is unmistakable now: the buttons above the note list read **Delete folder…** / **Delete

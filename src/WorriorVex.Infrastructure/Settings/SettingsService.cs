@@ -55,7 +55,17 @@ public sealed class SettingsService : ISettingsService
         {
             if (File.Exists(_path))
             {
-                return (JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_path), Json) ?? new AppSettings()).Clamped();
+                var text = File.ReadAllText(_path);
+                var loaded = JsonSerializer.Deserialize<AppSettings>(text, Json) ?? new AppSettings();
+                // A file from before the version field was written with every value filled in, so a default that
+                // changed later looks like a choice. The version says which defaults the file was written under.
+                var version = text.Contains("\"settingsVersion\"", StringComparison.OrdinalIgnoreCase) ? loaded.SettingsVersion : 0;
+                if (version < 1 && loaded.NoteSort == NoteSort.Updated)
+                {
+                    loaded = loaded with { NoteSort = NoteSort.Added };
+                }
+
+                return (loaded with { SettingsVersion = AppSettings.CurrentSettingsVersion }).Clamped();
             }
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
