@@ -49,6 +49,21 @@ public sealed class SettingsService : ISettingsService
         Changed?.Invoke(clamped);
     }
 
+    /// <summary>Writes the file without raising <see cref="Changed"/>: used while loading, before anyone listens.</summary>
+    private void Write(AppSettings settings)
+    {
+        try
+        {
+            var temporary = _path + ".tmp";
+            File.WriteAllText(temporary, JsonSerializer.Serialize(settings, Json));
+            File.Move(temporary, _path, overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger.LogWarning(ex, "The adjusted settings could not be written; they apply for this run");
+        }
+    }
+
     private AppSettings Load()
     {
         try
@@ -70,7 +85,14 @@ public sealed class SettingsService : ISettingsService
                     loaded = loaded with { ConfirmDeletion = true };
                 }
 
-                return (loaded with { SettingsVersion = AppSettings.CurrentSettingsVersion }).Clamped();
+                var current = (loaded with { SettingsVersion = AppSettings.CurrentSettingsVersion }).Clamped();
+                if (version < AppSettings.CurrentSettingsVersion)
+                {
+                    // Written back at once, so the adjustment is made exactly once and later choices are kept.
+                    Write(current);
+                }
+
+                return current;
             }
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)

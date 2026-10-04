@@ -58,6 +58,7 @@ public class SettingsTests
             Assert.Equal(WorriorVex.Application.Settings.NoteSort.Added, settings.Current.NoteSort);
             Assert.True(settings.Current.ConfirmDeletion);
             Assert.Equal(17, settings.Current.EditorFontSize);
+            Assert.Contains("\"settingsVersion\"", await File.ReadAllTextAsync(path));
 
             // A choice made now sticks, because the file carries the version from here on.
             await settings.SaveAsync(settings.Current with { NoteSort = WorriorVex.Application.Settings.NoteSort.Updated });
