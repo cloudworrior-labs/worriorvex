@@ -50,12 +50,13 @@ public class SettingsTests
     {
         using var data = new TempDataDirectory();
         var path = Path.Combine(data.Path, "settings.json");
-        await File.WriteAllTextAsync(path, """{ "noteSort": "Updated", "editorFontSize": 17 }""");
+        await File.WriteAllTextAsync(path, """{ "noteSort": "Updated", "confirmDeletion": false, "editorFontSize": 17 }""");
 
         await using (var app = await TestApp.StartAsync(data.Path))
         {
             var settings = app.Get<WorriorVex.Application.Settings.ISettingsService>();
             Assert.Equal(WorriorVex.Application.Settings.NoteSort.Added, settings.Current.NoteSort);
+            Assert.True(settings.Current.ConfirmDeletion);
             Assert.Equal(17, settings.Current.EditorFontSize);
 
             // A choice made now sticks, because the file carries the version from here on.

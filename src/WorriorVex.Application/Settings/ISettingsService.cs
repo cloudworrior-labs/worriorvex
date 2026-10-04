@@ -74,7 +74,7 @@ public sealed record AppSettings
     public int AutosaveDelayMilliseconds { get; init; } = 700;
 
     /// <summary>Ask before moving a note to the trash.</summary>
-    public bool ConfirmDeletion { get; init; }
+    public bool ConfirmDeletion { get; init; } = true;
 
     /// <summary>
     /// Ask github.com for a newer version when the app starts. Off by default: the app otherwise
@@ -97,10 +97,11 @@ public sealed record AppSettings
     /// <summary>
     /// Version of the settings layout, for one-time adjustments when an older file is read.
     /// 1: "In the order added" became the default order and replaces an unchosen "Last changed".
+    /// 2: asking before a note goes to the trash became the default and replaces an unchosen "off".
     /// </summary>
     public int SettingsVersion { get; init; } = CurrentSettingsVersion;
 
-    public const int CurrentSettingsVersion = 1;
+    public const int CurrentSettingsVersion = 2;
 
     /// <summary>Folders whose branch is open in the navigation tree (folders start closed).</summary>
     public IReadOnlyList<Guid> ExpandedFolders { get; init; } = [];

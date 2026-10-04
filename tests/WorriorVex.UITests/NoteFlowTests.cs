@@ -135,6 +135,9 @@ public sealed class NoteFlowTests(BrowserFixture browser) : UITest(browser)
         await Page.Locator(".wn-title").WaitForAsync();
 
         await Page.ClickAsync(".wn-title-row button[title='Move this note to the trash']");
+        // Deleting a note asks first, by default.
+        await Expect(Page.Locator(".wn-dialog h2")).ToContainTextAsync("Doomed");
+        await Page.ClickAsync(".wn-dialog button:has-text('Move to trash')");
         await Expect(Page.Locator(".wn-noteitem:has-text('Doomed')")).ToHaveCountAsync(0);
 
         await Nav("Trash").ClickAsync();
@@ -164,6 +167,7 @@ public sealed class DeletionTests(BrowserFixture browser) : UITest(browser)
         await Page.Locator(".wn-noteitem:has-text('Lesson B')").ClickAsync();
         await Page.Locator(".wn-title").WaitForAsync();
         await Page.ClickAsync(".wn-title-row button:has-text('Delete note')");
+        await Page.ClickAsync(".wn-dialog button:has-text('Move to trash')");
 
         await Expect(Page.Locator(".wn-noteitem:has-text('Lesson B')")).ToHaveCountAsync(0);
         await Expect(Page.Locator(".wn-noteitem:has-text('Lesson A')")).ToHaveCountAsync(1);

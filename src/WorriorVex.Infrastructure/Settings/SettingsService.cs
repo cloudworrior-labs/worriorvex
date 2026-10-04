@@ -65,6 +65,11 @@ public sealed class SettingsService : ISettingsService
                     loaded = loaded with { NoteSort = NoteSort.Added };
                 }
 
+                if (version < 2 && !loaded.ConfirmDeletion)
+                {
+                    loaded = loaded with { ConfirmDeletion = true };
+                }
+
                 return (loaded with { SettingsVersion = AppSettings.CurrentSettingsVersion }).Clamped();
             }
         }

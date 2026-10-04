@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.5 — 2026-10-04
+
+- Deleting a note now asks for confirmation by default (Settings → Behaviour → "Ask before moving a
+  note to the trash" can switch it off). Folders and notebooks always asked; they still do, naming
+  what goes.
+
 ## 0.5.4 — 2026-10-04
 
 - Settings files written by earlier versions carried "Last changed" as the note order even when nobody
