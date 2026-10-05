@@ -12,7 +12,7 @@
     </header>
 
     <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" SavedSearches="Settings.Current.SavedSearches" Selection="_selection" Dragging="_dragging is not null"
-             TreeNotes="_treeNotes" CurrentNoteId="_current?.Id"
+             TreeNotes="_treeNotes" CurrentNoteId="@(IsHelpPage ? null : _current?.Id)"
              ExpandedFolders="Settings.Current.ExpandedFolders" CollapsedNotebooks="Settings.Current.CollapsedNotebooks" OnTreeStateChanged="SaveTreeStateAsync"
              OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu" OnAddFolder="AddBranch"
              OnRenameNotebook="RenameNotebookAsync" OnDeleteNotebook="id => ConfirmDeleteNotebook(id, NotebookName(id))"
@@ -114,6 +114,10 @@
         else if (_selection is NavSelection.Settings)
         {
             <SettingsPage />
+        }
+        else if (_selection is NavSelection.Calendar)
+        {
+            <CalendarPage OnOpenNote="OpenLinkedNoteAsync" OnChanged="LoadStructureAsync" />
         }
         else if (_selection is NavSelection.About)
         {

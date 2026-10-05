@@ -95,3 +95,9 @@ backup from an older version restores cleanly. A backup whose schema is newer th
 An `fts5vocab` virtual table over `NoteSearch` (migration `AddSearchVocabulary`). It stores nothing;
 it exposes the indexed words with their document counts, which "did you mean" suggestions read to
 find a word within an edit distance of one or two of a word that matched nothing.
+
+## Calendar entries
+
+`Nodes.CalendarDate` (TEXT `yyyy-MM-dd`, nullable, indexed; migration `AddCalendarDate`) puts a note on
+a day of the calendar. Any number of notes may share a date. The calendar reads notes by this column,
+whatever notebook they are in; new entries are filed in the "Calendar" notebook.

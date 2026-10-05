@@ -147,7 +147,8 @@ public partial class Workspace
         _ => null,
     };
 
-    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings;
+    /// <summary>Pages that use the width of the list and the editor together and show no note of their own.</summary>
+    private bool IsHelpPage => _selection is NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings or NavSelection.Calendar;
 
     /// <summary>Nothing has been written yet: the Inbox is the only notebook and it is empty.</summary>
     private bool _firstRun;
@@ -655,7 +656,7 @@ public partial class Workspace
                 case NavSelection.Notebook notebook:
                     note = await Notes.CreateAsync(notebook.NotebookId);
                     break;
-                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings or NavSelection.Search:
+                case NavSelection.Trash or NavSelection.Documentation or NavSelection.About or NavSelection.Data or NavSelection.Settings or NavSelection.Search or NavSelection.Calendar:
                     // Nothing is created in the trash or on a help page: a new note goes to the Inbox, and so does the view.
                     note = await Notes.CreateAsync();
                     EndSearch();

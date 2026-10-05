@@ -14,6 +14,9 @@ public abstract record NavSelection
     /// <summary>Notes with no tag and no link either way: things to file or connect.</summary>
     public sealed record LooseEnds : NavSelection;
 
+    /// <summary>The month calendar with its dated notes.</summary>
+    public sealed record Calendar : NavSelection;
+
     /// <summary>A search kept in the navigation pane (by its position in the settings).</summary>
     public sealed record SavedSearch(int Index) : NavSelection;
 

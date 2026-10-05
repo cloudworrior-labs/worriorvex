@@ -98,6 +98,11 @@ public sealed partial class PackageImporter(
                     var note = Node.CreateNote(notebookId, newParent, packed.Name, null, packed.CreatedAt ?? now, packed.SortOrder);
                     note.SetFavorite(packed.IsFavorite);
                     note.SetPinned(packed.IsPinned);
+                    if (packed.CalendarDate is { } day)
+                    {
+                        note.SetCalendarDate(day, packed.CreatedAt ?? now);
+                    }
+
                     context.Nodes.Add(note);
                     nodeIds[packed.Id] = note.Id;
                     pendingNotes.Add((note.Id, packed));
@@ -230,7 +235,7 @@ public sealed partial class PackageImporter(
 
     private sealed record Manifest(string Format, int FormatVersion);
     private sealed record PackedNotebook(Guid Id, string Name, string Kind, int SortOrder, DateTimeOffset? DeletedAt);
-    private sealed record PackedNode(Guid Id, Guid NotebookId, Guid? ParentId, string Type, string Name, int SortOrder, DateTimeOffset? CreatedAt, DateTimeOffset? UpdatedAt, DateTimeOffset? DeletedAt, bool IsFavorite, bool IsPinned);
+    private sealed record PackedNode(Guid Id, Guid NotebookId, Guid? ParentId, string Type, string Name, int SortOrder, DateTimeOffset? CreatedAt, DateTimeOffset? UpdatedAt, DateTimeOffset? DeletedAt, bool IsFavorite, bool IsPinned, DateOnly? CalendarDate = null);
     private sealed record PackedAttachment(string FileName, string StoredFileName, string? ContentType);
     private sealed record PackedNote(string? Content, List<string>? Tags, List<PackedAttachment>? Attachments);
 }

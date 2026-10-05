@@ -1,0 +1,236 @@
+@using System.Globalization
+@using WorriorVex.Application.Calendar
+@using WorriorVex.Application.Trash
+@inject ICalendarService Calendar
+@inject INoteService Notes
+@inject ITrashService Trash
+@inject WorriorVex.Application.Settings.ISettingsService Settings
+@inject TimeProvider Clock
+@inject Translator T
+@inject ILogger<CalendarPage> Logger
+
+@* A month at a time. Each day holds any number of short notes; each is a real note that can be opened to say more. *@
+<section class="wn-page wn-calendar" aria-labelledby="wn-calendar-title">
+    <header class="wn-cal-head">
+        <h1 id="wn-calendar-title" aria-live="polite">@MonthTitle</h1>
+        <div class="wn-cal-nav">
+            <button type="button" class="wn-button" title="@T["Previous month"]" aria-label="@T["Previous month"]" @onclick="() => GoAsync(-1)">‹</button>
+            <button type="button" class="wn-button" @onclick="GoToTodayAsync">@T["Today"]</button>
+            <button type="button" class="wn-button" title="@T["Next month"]" aria-label="@T["Next month"]" @onclick="() => GoAsync(1)">›</button>
+        </div>
+    </header>
+    @if (_error is not null)
+    {
+        <p class="wn-dialog-error" role="alert">@_error</p>
+    }
+
+    <div class="wn-cal-grid" role="grid" aria-labelledby="wn-calendar-title">
+        <div class="wn-cal-row wn-cal-weekdays" role="row">
+            @foreach (var name in WeekdayNames)
+            {
+                <div class="wn-cal-weekday" role="columnheader">@name</div>
+            }
+        </div>
+        @foreach (var week in _days.Chunk(7))
+        {
+            <div class="wn-cal-row" role="row">
+                @foreach (var day in week)
+                {
+                    var entries = _entries[day];
+                    var activity = _activity.GetValueOrDefault(day);
+                    <div class="wn-cal-day @(day.Month != _month.Month ? "is-other" : null) @(day == _today ? "is-today" : null)" role="gridcell"
+                         aria-label="@day.ToString("D", CultureInfo.CurrentCulture)" @onclick="() => StartAdding(day)">
+                        <div class="wn-cal-dayhead">
+                            <span class="wn-cal-daynum">@day.Day</span>
+                            @if (activity > 0)
+                            {
+                                <span class="wn-cal-dot" title="@(activity == 1 ? T["1 other note changed this day"] : T["{0} other notes changed this day", activity])" aria-label="@(activity == 1 ? T["1 other note changed this day"] : T["{0} other notes changed this day", activity])"></span>
+                            }
+                            <button type="button" class="wn-cal-add" title="@T["Add a note to this day"]" aria-label="@T["Add a note to {0}", day.ToString("D", CultureInfo.CurrentCulture)]"
+                                    @onclick="() => StartAdding(day)" @onclick:stopPropagation>+</button>
+                        </div>
+                        <ul class="wn-cal-entries">
+                            @foreach (var entry in entries)
+                            {
+                                <li @key="entry.NoteId" class="wn-cal-entryrow" @onclick:stopPropagation>
+                                    @if (_editing == entry.NoteId)
+                                    {
+                                        <InlineRename Value="@entry.Title" OnCommit="text => RenameAsync(entry, text)" OnCancel="() => _editing = null" />
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="wn-cal-entry" title="@entry.Title" @onclick="() => { _editing = entry.NoteId; _adding = null; }">@entry.Title@(entry.HasBody ? " …" : null)</button>
+                                        <button type="button" class="wn-cal-action" title="@T["Open in the editor to write more"]" aria-label="@T["Open “{0}” in the editor", entry.Title]" @onclick="() => OnOpenNote.InvokeAsync(entry.NoteId)">↗</button>
+                                        <button type="button" class="wn-cal-action" title="@T["Move to trash"]" aria-label="@T["Move “{0}” to the trash?", entry.Title]" @onclick="() => RemoveAsync(entry)">×</button>
+                                    }
+                                </li>
+                            }
+                            @if (_adding == day)
+                            {
+                                <li class="wn-cal-entryrow" @onclick:stopPropagation>
+                                    <InlineRename @key="_addKey" Value="" OnCommit="text => AddAsync(day, text)" OnCancel="() => _adding = null" />
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    <p class="wn-dialog-hint">@T["Click a day to add a note; Enter keeps it and starts the next. Click a note to change its words, ↗ to open it in the editor."]</p>
+</section>
+
+@if (_removing is { } removing)
+{
+    <ConfirmDialog Title="@T["Move “{0}” to the trash?", removing.Title]" Message="@T["You can restore it from the Trash later."]" ConfirmText="@T["Move to trash"]"
+                   OnConfirm="() => RemoveNowAsync(removing)" OnCancel="() => _removing = null" />
+}
+
+@code {
+    private DateOnly _month;
+    private DateOnly _today;
+    private List<DateOnly> _days = [];
+    private ILookup<DateOnly, CalendarEntry> _entries = Array.Empty<CalendarEntry>().ToLookup(e => e.Date);
+    private IReadOnlyDictionary<DateOnly, int> _activity = new Dictionary<DateOnly, int>();
+    private DateOnly? _adding;
+    private int _addKey;
+    private Guid? _editing;
+    private CalendarEntry? _removing;
+    private string? _error;
+
+    /// <summary>An entry is to be opened in the editor.</summary>
+    [Parameter] public EventCallback<Guid> OnOpenNote { get; set; }
+
+    /// <summary>Entries were added, renamed or removed; the owner refreshes what else shows notes.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private string MonthTitle
+    {
+        get
+        {
+            var text = _month.ToString("MMMM yyyy", CultureInfo.CurrentCulture);
+            return char.ToUpper(text[0], CultureInfo.CurrentCulture) + text[1..];
+        }
+    }
+
+    private static DayOfWeek FirstDay => CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+
+    private static IEnumerable<string> WeekdayNames
+    {
+        get
+        {
+            var names = CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames;
+            return Enumerable.Range(0, 7).Select(i => names[((int)FirstDay + i) % 7]);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _today = DateOnly.FromDateTime(Clock.GetLocalNow().DateTime);
+        _month = new DateOnly(_today.Year, _today.Month, 1);
+        await LoadAsync();
+    }
+
+    private async Task GoAsync(int months)
+    {
+        _month = _month.AddMonths(months);
+        _adding = null;
+        _editing = null;
+        await LoadAsync();
+    }
+
+    private async Task GoToTodayAsync()
+    {
+        _today = DateOnly.FromDateTime(Clock.GetLocalNow().DateTime);
+        _month = new DateOnly(_today.Year, _today.Month, 1);
+        await LoadAsync();
+    }
+
+    /// <summary>Six weeks from the first day of the week that holds the 1st, so every month has the same shape.</summary>
+    private async Task LoadAsync()
+    {
+        var offset = ((int)_month.DayOfWeek - (int)FirstDay + 7) % 7;
+        var start = _month.AddDays(-offset);
+        _days = [.. Enumerable.Range(0, 42).Select(start.AddDays)];
+        try
+        {
+            var range = await Calendar.GetRangeAsync(_days[0], _days[^1]);
+            _entries = range.Entries.ToLookup(e => e.Date);
+            _activity = range.Activity;
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "The calendar could not be loaded");
+            _error = T["The calendar could not be loaded."];
+        }
+    }
+
+    private void StartAdding(DateOnly day)
+    {
+        _editing = null;
+        _adding = day;
+        _addKey++;
+    }
+
+    private async Task AddAsync(DateOnly day, string text)
+    {
+        try
+        {
+            await Calendar.AddAsync(day, text);
+            // A fresh box on the same day: several notes are typed one after the other.
+            _addKey++;
+            await LoadAsync();
+            await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "A calendar note could not be added");
+            _error = ex is WorriorVex.Domain.DomainException ? ex.Message : T["The note could not be created."];
+        }
+    }
+
+    private async Task RenameAsync(CalendarEntry entry, string text)
+    {
+        _editing = null;
+        try
+        {
+            await Notes.RenameAsync(entry.NoteId, text);
+            await LoadAsync();
+            await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "A calendar note could not be renamed");
+            _error = ex is WorriorVex.Domain.DomainException ? ex.Message : T["The note could not be renamed."];
+        }
+    }
+
+    private async Task RemoveAsync(CalendarEntry entry)
+    {
+        if (Settings.Current.ConfirmDeletion)
+        {
+            _removing = entry;
+        }
+        else
+        {
+            await RemoveNowAsync(entry);
+        }
+    }
+
+    private async Task RemoveNowAsync(CalendarEntry entry)
+    {
+        _removing = null;
+        try
+        {
+            await Trash.MoveToTrashAsync(entry.NoteId);
+            await LoadAsync();
+            await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "A calendar note could not be moved to the trash");
+            _error = T["The note could not be moved to the trash."];
+        }
+    }
+}

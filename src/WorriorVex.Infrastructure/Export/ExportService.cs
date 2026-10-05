@@ -120,7 +120,7 @@ public sealed class ExportService(
                     tags = tags.Count,
                 }, cancellationToken);
                 await WriteEntryAsync(zip, "notebooks.json", notebooks.Select(n => new { n.Id, n.Name, kind = n.Kind.ToString(), n.SortOrder, n.CreatedAt, n.UpdatedAt, n.DeletedAt }), cancellationToken);
-                await WriteEntryAsync(zip, "nodes.json", nodes.Select(n => new { n.Id, n.NotebookId, n.ParentId, type = n.Type.ToString(), n.Name, n.SortOrder, n.CreatedAt, n.UpdatedAt, n.DeletedAt, n.IsFavorite, n.IsPinned, n.LastOpenedAt }), cancellationToken);
+                await WriteEntryAsync(zip, "nodes.json", nodes.Select(n => new { n.Id, n.NotebookId, n.ParentId, type = n.Type.ToString(), n.Name, n.SortOrder, n.CreatedAt, n.UpdatedAt, n.DeletedAt, n.IsFavorite, n.IsPinned, n.LastOpenedAt, n.CalendarDate }), cancellationToken);
                 await WriteEntryAsync(zip, "tags.json", tags.Select(t => new { t.Id, t.Name, t.CreatedAt }), cancellationToken);
 
                 var storedFiles = new HashSet<string>();

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 — 2026-10-05
+
+- **Calendar:** a month view in the navigation. Click a day to add short notes, as many per day as
+  you like; click one to change it, ↗ to open it in the editor, × to bin it. Entries are ordinary
+  notes with a date, kept in a "Calendar" notebook, so search, tags, links, backup and export cover
+  them. A dot marks days on which other notes were changed.
+
 ## 0.5.6 — 2026-10-04
 
 - Every row in the tree has a **+** now. On a note it turns the note into a folder of the same name,

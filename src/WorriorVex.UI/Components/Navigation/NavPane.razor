@@ -52,6 +52,10 @@
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.LooseEnds())" aria-current="@Current(new NavSelection.LooseEnds())"
                     title="@T["Notes with no tag and no link to or from another note"]" @onclick="() => OnSelect.InvokeAsync(new NavSelection.LooseEnds())">@T["Loose ends"]</button>
         </li>
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Calendar())" aria-current="@Current(new NavSelection.Calendar())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Calendar())">@T["Calendar"]</button>
+        </li>
     </ul>
 
     @if (SavedSearches.Count > 0)

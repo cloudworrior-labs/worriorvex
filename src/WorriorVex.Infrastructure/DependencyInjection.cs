@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddSingleton<INoteSearchService, NoteSearchService>();
         services.AddSingleton<IKeepNoteImporter, KeepNoteImporter>();
         services.AddSingleton<IPackageImporter, Import.PackageImporter>();
+        services.AddSingleton<WorriorVex.Application.Calendar.ICalendarService, Calendar.CalendarService>();
         services.AddSingleton<IBackupScheduler, Backup.BackupScheduler>();
         services.AddSingleton<IAttachmentIntegrity, Attachments.AttachmentIntegrity>();
         services.AddSingleton<IMarkdownImporter, Import.MarkdownImporter>();

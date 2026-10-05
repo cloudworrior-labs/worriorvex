@@ -30,6 +30,9 @@ public sealed class Node
     /// <summary>Kept at the top of the list it lives in. Independent of <see cref="IsFavorite"/>.</summary>
     public bool IsPinned { get; private set; }
 
+    /// <summary>The day a note is written against in the calendar; <c>null</c> for a note that is not a calendar entry.</summary>
+    public DateOnly? CalendarDate { get; private set; }
+
     public Note? Note { get; private set; }
 
     public bool IsDeleted => DeletedAt is not null;
@@ -139,6 +142,17 @@ public sealed class Node
     {
         EnsureNote("Only a note can be a favorite.");
         IsFavorite = isFavorite;
+    }
+
+    /// <summary>Puts the note on a day of the calendar, moves it to another day, or (with <c>null</c>) takes it off.</summary>
+    public void SetCalendarDate(DateOnly? date, DateTimeOffset now)
+    {
+        EnsureNote("Only a note can be a calendar entry.");
+        if (CalendarDate != date)
+        {
+            CalendarDate = date;
+            UpdatedAt = now;
+        }
     }
 
     public void SetPinned(bool isPinned)
