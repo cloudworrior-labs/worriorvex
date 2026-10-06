@@ -96,8 +96,10 @@ public sealed class NoteFlowTests(BrowserFixture browser) : UITest(browser)
         await notes.CreateAsync(title: "Holiday plan", content: "<p>beach</p>");
         await Page.ReloadAsync();
         await Page.Locator(".wn-nav").WaitForAsync();
+        await WaitForSavedAsync();
 
         await Page.FillAsync(".wn-search-input", "budget");
+        await Expect(Page.Locator(".wn-notelist h2")).ToHaveTextAsync("Search");
         await Expect(Page.Locator(".wn-notelist .wn-noteitem")).ToHaveCountAsync(1);
         await Expect(Page.Locator(".wn-notelist .wn-noteitem-title")).ToContainTextAsync("budget");
 
