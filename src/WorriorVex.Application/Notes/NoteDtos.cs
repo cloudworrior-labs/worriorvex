@@ -29,4 +29,4 @@ public sealed record NoteDetail(
     public NoteSummary ToSummary() => new(Id, NotebookId, Title, CreatedAt, UpdatedAt, ParentId, IsFavorite, IsPinned);
 }
 
-public sealed record NotebookSummary(Guid Id, string Name, bool IsInbox);
+public sealed record NotebookSummary(Guid Id, string Name, bool IsInbox, bool IsCalendar = false);

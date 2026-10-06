@@ -28,6 +28,18 @@ public sealed class Notebook
         UpdatedAt = now,
     };
 
+    public const string CalendarName = "Calendar";
+
+    public static Notebook CreateCalendar(DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(),
+        Name = CalendarName,
+        Kind = NotebookKind.Calendar,
+        SortOrder = int.MaxValue,
+        CreatedAt = now,
+        UpdatedAt = now,
+    };
+
     public static Notebook CreateInbox(DateTimeOffset now) => new()
     {
         Id = Guid.NewGuid(),
@@ -45,6 +57,11 @@ public sealed class Notebook
             throw new DomainException("The Inbox cannot be renamed.");
         }
 
+        if (Kind == NotebookKind.Calendar)
+        {
+            throw new DomainException("The Calendar cannot be renamed.");
+        }
+
         Name = ValidateName(name);
         UpdatedAt = now;
     }
@@ -56,6 +73,11 @@ public sealed class Notebook
         if (Kind == NotebookKind.Inbox)
         {
             throw new DomainException("The Inbox cannot be deleted.");
+        }
+
+        if (Kind == NotebookKind.Calendar)
+        {
+            throw new DomainException("The Calendar cannot be deleted; delete its notes instead.");
         }
 
         DeletedAt ??= now;

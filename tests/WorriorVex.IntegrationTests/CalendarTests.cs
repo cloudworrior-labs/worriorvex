@@ -28,7 +28,8 @@ public sealed class CalendarTests
         Assert.Equal(1, range.Activity.Values.Sum());
 
         // Entries live in the Calendar notebook and are found by search like any note.
-        var notebook = Assert.Single(await app.Notebooks.ListAsync(), n => n.Name == ICalendarService.NotebookName);
+        var notebook = Assert.Single(await app.Notebooks.ListAsync(), n => n.IsCalendar);
+        Assert.Equal(ICalendarService.NotebookName, notebook.Name);
         Assert.Equal(notebook.Id, (await app.Notes.GetAsync(first.NoteId))!.NotebookId);
         Assert.Contains(await app.Search.SearchAsync("dentist"), r => r.NoteId == first.NoteId);
 

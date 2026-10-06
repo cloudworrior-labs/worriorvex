@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.2 — 2026-10-06
+
+- Fixed: after using the calendar, moving to another page or creating a notebook froze the window
+  (0.6.0) or showed "Something went wrong … ObjectDisposedException" (0.6.1). The closed note editor
+  was still being asked to save.
+- The calendar has its own **Calendar** heading in the navigation, with **Month view** and **All
+  calendar notes**; its notebook no longer appears among the notebooks and cannot be renamed or
+  deleted by accident. The notebook 0.6.0 created is taken over automatically.
+
 ## 0.6.1 — 2026-10-06
 
 - A problem inside the interface no longer leaves a frozen window: a panel says what happened, with a

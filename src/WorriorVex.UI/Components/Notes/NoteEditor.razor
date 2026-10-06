@@ -682,6 +682,11 @@
         {
             return await _editor.InvokeAsync<TResult>(function, args);
         }
+        catch (Exception ex) when (ex is ObjectDisposedException or JSDisconnectedException)
+        {
+            // The editor was closed (another page is showing, or the window is going): nothing left to ask it.
+            return default;
+        }
         catch (JSException ex)
         {
             Logger.LogError(ex, "The editor could not run {Function}", function);
@@ -701,6 +706,10 @@
         {
             await _editor.InvokeVoidAsync(function, args);
         }
+        catch (Exception ex) when (ex is ObjectDisposedException or JSDisconnectedException)
+        {
+            // The editor was closed (another page is showing, or the window is going): nothing left to ask it.
+        }
         catch (JSException ex)
         {
             Logger.LogError(ex, "The editor function {Function} failed", function);
@@ -717,20 +726,26 @@
     public async ValueTask DisposeAsync()
     {
         Settings.Changed -= OnSettingsChanged;
+
+        // Cleared first: the workspace may still hold this component and ask it to flush after it is gone.
+        var editor = _editor;
+        var module = _module;
+        _editor = null;
+        _module = null;
         try
         {
-            if (_editor is not null)
+            if (editor is not null)
             {
-                await _editor.InvokeVoidAsync("destroy");
-                await _editor.DisposeAsync();
+                await editor.InvokeVoidAsync("destroy");
+                await editor.DisposeAsync();
             }
 
-            if (_module is not null)
+            if (module is not null)
             {
-                await _module.DisposeAsync();
+                await module.DisposeAsync();
             }
         }
-        catch (JSDisconnectedException)
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or ObjectDisposedException)
         {
         }
 

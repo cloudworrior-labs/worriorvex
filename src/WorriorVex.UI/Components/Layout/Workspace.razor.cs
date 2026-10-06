@@ -110,6 +110,7 @@ public partial class Workspace
 
     private string Heading => _selection switch
     {
+        NavSelection.Notebook notebook when _notebooks.Any(n => n.Id == notebook.NotebookId && n.IsCalendar) => T["All calendar notes"],
         NavSelection.Notebook notebook => _notebooks.FirstOrDefault(n => n.Id == notebook.NotebookId)?.Name ?? T["Notebook"],
         NavSelection.Folder folder => _folders.FirstOrDefault(f => f.Id == folder.FolderId)?.Name ?? T["Folder"],
         NavSelection.Trash => T["Trash"],
@@ -156,7 +157,7 @@ public partial class Workspace
     /// <summary>Folders can be created in a user's notebook or in a folder, not in the Inbox or a combined list.</summary>
     private bool CanHoldFolders => _selection switch
     {
-        NavSelection.Notebook notebook => notebook.NotebookId != Inbox?.Id,
+        NavSelection.Notebook notebook => notebook.NotebookId != Inbox?.Id && !_notebooks.Any(n => n.Id == notebook.NotebookId && n.IsCalendar),
         NavSelection.Folder => true,
         _ => false,
     };
@@ -925,7 +926,8 @@ public partial class Workspace
 
     private async Task SaveNowAsync()
     {
-        if (_editor is not null)
+        // A help page or the calendar shows no editor; the reference to the last one is stale then.
+        if (_editor is not null && !IsHelpPage)
         {
             await _editor.FlushAsync();
         }
@@ -936,7 +938,7 @@ public partial class Workspace
     /// <summary>Leaving a note with edits that cannot be saved would lose them, so stay put and say why.</summary>
     private async Task<bool> SaveBeforeLeavingAsync()
     {
-        if (_editor is not null && _current is not null)
+        if (_editor is not null && _current is not null && !IsHelpPage)
         {
             await _editor.FlushAsync();
         }
@@ -1131,7 +1133,7 @@ public partial class Workspace
         var items = new List<ContextMenu.Item>();
         switch (at.Target)
         {
-            case NavSelection.Notebook notebook when notebook.NotebookId == Inbox?.Id:
+            case NavSelection.Notebook notebook when notebook.NotebookId == Inbox?.Id || _notebooks.Any(n => n.Id == notebook.NotebookId && n.IsCalendar):
                 items.Add(new(T["New note"], () => NewNoteInAsync(notebook.NotebookId, null)));
                 break;
             case NavSelection.Notebook notebook:

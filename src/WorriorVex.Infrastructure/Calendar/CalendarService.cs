@@ -9,7 +9,6 @@ namespace WorriorVex.Infrastructure.Calendar;
 public sealed class CalendarService(
     IDbContextFactory<WorriorVexDbContext> contextFactory,
     INoteService notes,
-    INotebookService notebooks,
     TimeProvider timeProvider) : ICalendarService
 {
     public async Task<CalendarRange> GetRangeAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
@@ -40,8 +39,8 @@ public sealed class CalendarService(
 
     public async Task<CalendarEntry> AddAsync(DateOnly date, string text, CancellationToken cancellationToken = default)
     {
-        var notebook = await CalendarNotebookAsync(cancellationToken);
-        var note = await notes.CreateAsync(notebook.Id, null, text, null, cancellationToken);
+        var notebookId = await CalendarNotebookAsync(cancellationToken);
+        var note = await notes.CreateAsync(notebookId, null, text, null, cancellationToken);
         await SetDateAsync(note.Id, date, cancellationToken);
         return new CalendarEntry(note.Id, date, note.Title, HasBody: false);
     }
@@ -57,10 +56,35 @@ public sealed class CalendarService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<NotebookSummary> CalendarNotebookAsync(CancellationToken cancellationToken)
+    /// <summary>The built-in Calendar notebook, created the first time an entry is written.</summary>
+    private async Task<Guid> CalendarNotebookAsync(CancellationToken cancellationToken)
     {
-        var existing = (await notebooks.ListAsync(cancellationToken))
-            .FirstOrDefault(n => string.Equals(n.Name, ICalendarService.NotebookName, StringComparison.OrdinalIgnoreCase));
-        return existing ?? await notebooks.CreateAsync(ICalendarService.NotebookName, cancellationToken);
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var existing = await context.Notebooks.Where(n => n.Kind == NotebookKind.Calendar).Select(n => (Guid?)n.Id).FirstOrDefaultAsync(cancellationToken);
+        if (existing is { } id)
+        {
+            var trashed = await context.Notebooks.FirstAsync(n => n.Id == id, cancellationToken);
+            if (trashed.IsDeleted)
+            {
+                trashed.Restore();
+                await context.SaveChangesAsync(cancellationToken);
+            }
+
+            return id;
+        }
+
+        var calendar = Notebook.CreateCalendar(timeProvider.GetUtcNow());
+        context.Notebooks.Add(calendar);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            return calendar.Id;
+        }
+        catch (DbUpdateException)
+        {
+            // Made at the same moment elsewhere: the unique index kept one; use that.
+            await using var again = await contextFactory.CreateDbContextAsync(cancellationToken);
+            return await again.Notebooks.Where(n => n.Kind == NotebookKind.Calendar).Select(n => n.Id).FirstAsync(cancellationToken);
+        }
     }
 }

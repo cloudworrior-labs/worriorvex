@@ -36,7 +36,7 @@ public sealed class WorriorVexDbContext(DbContextOptions<WorriorVexDbContext> op
 
             // There is exactly one Inbox; the database enforces it so two callers racing
             // to create it cannot both succeed.
-            notebook.HasIndex(n => n.Kind).IsUnique().HasFilter($"\"Kind\" = {(int)NotebookKind.Inbox}");
+            notebook.HasIndex(n => n.Kind).IsUnique().HasFilter($"\"Kind\" IN ({(int)NotebookKind.Inbox}, {(int)NotebookKind.Calendar})");
         });
 
         modelBuilder.Entity<Node>(node =>

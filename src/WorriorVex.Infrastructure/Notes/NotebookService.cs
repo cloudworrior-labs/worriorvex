@@ -27,7 +27,7 @@ public sealed class NotebookService(
             .Where(n => n.DeletedAt == null)
             .OrderBy(n => n.SortOrder)
             .ThenBy(n => n.Name)
-            .Select(n => new NotebookSummary(n.Id, n.Name, n.Kind == NotebookKind.Inbox))
+            .Select(n => new NotebookSummary(n.Id, n.Name, n.Kind == NotebookKind.Inbox, n.Kind == NotebookKind.Calendar))
             .ToListAsync(cancellationToken);
     }
 

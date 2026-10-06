@@ -52,10 +52,6 @@
             <button type="button" class="wn-navitem @SelectedClass(new NavSelection.LooseEnds())" aria-current="@Current(new NavSelection.LooseEnds())"
                     title="@T["Notes with no tag and no link to or from another note"]" @onclick="() => OnSelect.InvokeAsync(new NavSelection.LooseEnds())">@T["Loose ends"]</button>
         </li>
-        <li>
-            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Calendar())" aria-current="@Current(new NavSelection.Calendar())"
-                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Calendar())">@T["Calendar"]</button>
-        </li>
     </ul>
 
     @if (SavedSearches.Count > 0)
@@ -138,6 +134,24 @@
             }
         </ul>
     }
+
+    <div class="wn-nav-section">
+        <h2 id="wn-calendar-heading">@T["Calendar"]</h2>
+    </div>
+    <ul class="wn-nav-list" aria-labelledby="wn-calendar-heading">
+        <li>
+            <button type="button" class="wn-navitem @SelectedClass(new NavSelection.Calendar())" aria-current="@Current(new NavSelection.Calendar())"
+                    @onclick="() => OnSelect.InvokeAsync(new NavSelection.Calendar())">@T["Month view"]</button>
+        </li>
+        @if (CalendarNotebook is { } calendar)
+        {
+            var allEntries = new NavSelection.Notebook(calendar.Id);
+            <li>
+                <button type="button" class="wn-navitem @SelectedClass(allEntries)" aria-current="@Current(allEntries)"
+                        title="@T["Every calendar note as a list"]" @onclick="() => OnSelect.InvokeAsync(allEntries)">@T["All calendar notes"]</button>
+            </li>
+        }
+    </ul>
 
     @if (Tags.Count > 0)
     {
@@ -241,7 +255,8 @@
     [Parameter] public EventCallback<NavSelection> OnDrop { get; set; }
 
     private NotebookSummary? Inbox => Notebooks.FirstOrDefault(n => n.IsInbox);
-    private List<NotebookSummary> UserNotebooks => [.. Notebooks.Where(n => !n.IsInbox)];
+    private List<NotebookSummary> UserNotebooks => [.. Notebooks.Where(n => !n.IsInbox && !n.IsCalendar)];
+    private NotebookSummary? CalendarNotebook => Notebooks.FirstOrDefault(n => n.IsCalendar);
 
     protected override void OnParametersSet()
     {
