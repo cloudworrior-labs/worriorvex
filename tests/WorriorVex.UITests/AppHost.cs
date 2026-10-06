@@ -25,6 +25,7 @@ public sealed class AppHost : IAsyncDisposable
     public string DataDirectory { get; } = Path.Combine(Path.GetTempPath(), "worriorvex-uitests", Guid.NewGuid().ToString("N"));
     public string Url { get; private set; } = string.Empty;
     public FakeShell Shell { get; } = new();
+    public FakeUpdates Updates { get; } = new();
 
     /// <summary>Warnings and errors the app logged, for assertions and for reading when a test fails.</summary>
     public List<string> Logs { get; } = [];
@@ -51,6 +52,8 @@ public sealed class AppHost : IAsyncDisposable
         builder.Services.AddSingleton(new StartupStatus { DataDirectory = DataDirectory, PackageToImport = PackageToImport });
         builder.Services.AddSingleton(new AppInfo("0.0.0 (ui tests)", DataDirectory));
         builder.Services.AddSingleton<IPlatformShell>(Shell);
+        // Never the network: releases are whatever the test says.
+        builder.Services.AddSingleton<WorriorVex.Application.Updates.IUpdateChecker>(Updates);
         builder.Services.AddSingleton(p => new NoteAutosaver(p.GetRequiredService<INoteService>(), p.GetRequiredService<TimeProvider>()));
 
         _app = builder.Build();
@@ -122,5 +125,18 @@ internal sealed class ListLoggerProvider(List<string> sink) : ILoggerProvider
                 sink.Add($"[{logLevel}] {category}: {formatter(state, exception)}{(exception is null ? "" : " :: " + exception)}");
             }
         }
+    }
+}
+
+public sealed class FakeUpdates : WorriorVex.Application.Updates.IUpdateChecker
+{
+    public string Latest { get; set; } = "0.0.0";
+    public int Checks { get; private set; }
+
+    public Task<WorriorVex.Application.Updates.UpdateCheck?> CheckAsync(CancellationToken cancellationToken = default)
+    {
+        Checks++;
+        return Task.FromResult<WorriorVex.Application.Updates.UpdateCheck?>(
+            new("0.6.1", Latest, new Uri("https://example.test/releases"), Latest != "0.0.0" && Latest != "0.6.1"));
     }
 }

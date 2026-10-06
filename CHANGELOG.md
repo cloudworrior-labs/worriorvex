@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.3 — 2026-10-06
+
+- Update check: ticking "Check for a new version" now checks at once, and an open WorriorVex checks
+  again every six hours (before, it only checked when starting). A newer version shows as a badge in
+  the top bar that stays until you update, instead of a banner other messages could hide. Each check
+  is noted in the log file.
+
 ## 0.6.2 — 2026-10-06
 
 - Fixed: after using the calendar, moving to another page or creating a notebook froze the window

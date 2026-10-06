@@ -190,10 +190,8 @@ public partial class Workspace
             _loading = false;
         }
 
-        if (Settings.Current.CheckForUpdates)
-        {
-            _ = CheckForUpdatesAsync();
-        }
+        _checkingForUpdates = Settings.Current.CheckForUpdates;
+        _ = KeepCheckingForUpdatesAsync();
 
         BackupScheduler.Completed += OnAutoBackup;
         BackupScheduler.Start();
@@ -224,16 +222,48 @@ public partial class Workspace
         StateHasChanged();
     });
 
+    private static readonly TimeSpan UpdateCheckInterval = TimeSpan.FromHours(6);
+    private readonly CancellationTokenSource _stopping = new();
+    private bool _checkingForUpdates;
+
+    /// <summary>At start and every few hours while the app is open, when the setting allows. Switching the setting on checks at once.</summary>
+    private async Task KeepCheckingForUpdatesAsync()
+    {
+        try
+        {
+            while (!_stopping.IsCancellationRequested)
+            {
+                if (Settings.Current.CheckForUpdates)
+                {
+                    await CheckForUpdatesAsync();
+                }
+
+                await Task.Delay(UpdateCheckInterval, _stopping.Token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Closing.
+        }
+    }
+
     private async Task CheckForUpdatesAsync()
     {
-        var check = await Updates.CheckAsync();
-        if (check is { IsNewer: true })
+        try
         {
-            await InvokeAsync(() =>
+            var check = await Updates.CheckAsync(_stopping.Token);
+            if (check is { IsNewer: true })
             {
-                _update = check;
-                StateHasChanged();
-            });
+                await InvokeAsync(() =>
+                {
+                    _update = check;
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Logger.LogInformation(ex, "The update check did not complete");
         }
     }
 
@@ -613,6 +643,12 @@ public partial class Workspace
     {
         Autosaver.Delay = TimeSpan.FromMilliseconds(settings.AutosaveDelayMilliseconds);
         await ApplyAppearanceAsync(settings);
+        if (settings.CheckForUpdates && !_checkingForUpdates)
+        {
+            _ = CheckForUpdatesAsync();
+        }
+
+        _checkingForUpdates = settings.CheckForUpdates;
         if (settings.ShowNotesInTree != (_treeNotes.Count > 0 || !settings.ShowNotesInTree))
         {
             await LoadTreeNotesAsync();
@@ -1861,6 +1897,7 @@ public partial class Workspace
     public async ValueTask DisposeAsync()
     {
         _disposed = true;
+        await _stopping.CancelAsync();
         Autosaver.StateChanged -= OnSaveStateChanged;
         Autosaver.NoteSaved -= OnNoteSaved;
         Settings.Changed -= OnSettingsChanged;

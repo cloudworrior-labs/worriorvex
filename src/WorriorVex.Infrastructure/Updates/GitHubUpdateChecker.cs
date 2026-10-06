@@ -37,7 +37,9 @@ public sealed class GitHubUpdateChecker(ILogger<GitHubUpdateChecker> logger, Htt
             }
 
             var latest = tag.TrimStart('v', 'V');
-            return new UpdateCheck(current, latest, page, IsNewer(current, latest));
+            var newer = IsNewer(current, latest);
+            logger.LogInformation("Update check: this is {Current}, the newest release is {Latest}{Newer}", current, latest, newer ? " (newer)" : string.Empty);
+            return new UpdateCheck(current, latest, page, newer);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
         {
