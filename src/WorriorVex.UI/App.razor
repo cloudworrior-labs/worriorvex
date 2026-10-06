@@ -1,4 +1,5 @@
 @inject StartupStatus Startup
+@inject Translator T
 
 @if (Startup.Error is { } error)
 {
@@ -13,5 +14,21 @@
 }
 else
 {
-    <Workspace />
+    <WorkspaceErrorBoundary @ref="_boundary">
+        <ChildContent>
+            <Workspace />
+        </ChildContent>
+        <ErrorContent Context="exception">
+            <main class="wn-fatal" role="alert">
+                <h1>@T["Something went wrong"]</h1>
+                <p>@T["WorriorVex hit a problem it did not expect. Your notes are saved as they were; nothing has been lost. The details are in the log file in the logs folder."]</p>
+                <p><code>@exception.GetType().Name: @exception.Message</code></p>
+                <button type="button" class="wn-button wn-button-primary" @onclick="() => _boundary?.Recover()">@T["Continue"]</button>
+            </main>
+        </ErrorContent>
+    </WorkspaceErrorBoundary>
+}
+
+@code {
+    private WorkspaceErrorBoundary? _boundary;
 }
