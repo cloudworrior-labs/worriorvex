@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1 — 2026-10-06
+
+- A problem inside the interface no longer leaves a frozen window: a panel says what happened, with a
+  Continue button, and the details go to the log file.
+
 ## 0.6.0 — 2026-10-05
 
 - **Calendar:** a month view in the navigation. Click a day to add short notes, as many per day as
