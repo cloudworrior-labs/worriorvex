@@ -17,7 +17,7 @@
         <button type="button" class="wn-iconbutton @(_focusMode ? "is-active" : null)" title="@T["Focus mode: only the note"] (@_modifier+Shift+F)" aria-label="@T["Focus mode"]" aria-pressed="@(_focusMode ? "true" : "false")" @onclick="() => _focusMode = !_focusMode">⤢</button>
     </header>
 
-    <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" SavedSearches="Settings.Current.SavedSearches" Selection="_selection" Dragging="_dragging is not null"
+    <NavPane @ref="_navPane" Notebooks="_notebooks" Folders="_folders" Tags="_tags" SavedSearches="Settings.Current.SavedSearches" Selection="_selection" Dragging="@(_dragging is not null || _draggingNotebook is not null)"
              TreeNotes="_treeNotes" CurrentNoteId="@(IsHelpPage ? null : _current?.Id)"
              ExpandedFolders="Settings.Current.ExpandedFolders" CollapsedNotebooks="Settings.Current.CollapsedNotebooks" OnTreeStateChanged="SaveTreeStateAsync"
              OnSelect="SelectAsync" OnNewNotebook="PromptNewNotebook" OnContextMenu="ShowNavMenu" OnAddFolder="AddBranch"
@@ -25,7 +25,8 @@
              OnRenameFolder="RenameFolderAsync" OnDeleteFolder="id => ConfirmDeleteFolder(id, FolderName(id))"
              OnOpenNote="OpenFromTreeAsync" OnNoteContextMenu="ShowNoteMenu" OnNoteDragStart="id => _dragging = (id, false)"
              OnRenameNote="RenameNoteAsync" OnDeleteNote="DeleteNoteAsync" OnAddUnderNote="AddUnderNote"
-             OnDragStart="id => _dragging = (id, true)" OnDragEnd="() => _dragging = null" OnDrop="DropAsync" />
+             OnDragStart="id => _dragging = (id, true)" OnNotebookDragStart="id => _draggingNotebook = id"
+             OnDragEnd="() => { _dragging = null; _draggingNotebook = null; }" OnDrop="DropAsync" />
 
     <button type="button" class="wn-resizer" @ref="_navResizer" role="separator" aria-orientation="vertical" aria-label="@T["Width of the navigation pane"]"
             aria-valuemin="@AppSettings.MinPaneWidth" aria-valuemax="@AppSettings.MaxPaneWidth" aria-valuenow="@Settings.Current.NavigationWidth"

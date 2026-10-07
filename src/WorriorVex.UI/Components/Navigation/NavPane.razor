@@ -116,6 +116,7 @@
                                     @onclick="() => OnSelect.InvokeAsync(selection)" @ondblclick="() => _renamingId = notebook.Id"
                                     @onkeydown="e => OnNotebookKeyAsync(e, notebook.Id)"
                                     @oncontextmenu:preventDefault @oncontextmenu="e => OnContextMenu.InvokeAsync((selection, e))"
+                                    draggable="true" @ondragstart="() => OnNotebookDragStart.InvokeAsync(notebook.Id)" @ondragend="OnDragEnd"
                                     @ondragenter="() => _dropTarget = notebook.Id" @ondragover:preventDefault @ondrop:preventDefault @ondrop="() => DropAsync(selection)">@notebook.Name</button>
                         }
                         <button type="button" class="wn-row-add" title="@T["Add a note or folder in {0}", notebook.Name]" aria-label="@T["Add a note or folder in {0}", notebook.Name]" tabindex="-1"
@@ -249,6 +250,9 @@
 
     /// <summary>A folder in the tree started being dragged.</summary>
     [Parameter] public EventCallback<Guid> OnDragStart { get; set; }
+
+    /// <summary>A whole notebook started being dragged, to be put inside another notebook or folder.</summary>
+    [Parameter] public EventCallback<Guid> OnNotebookDragStart { get; set; }
     [Parameter] public EventCallback OnDragEnd { get; set; }
 
     /// <summary>Something was dropped on a notebook or folder.</summary>

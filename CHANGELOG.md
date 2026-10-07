@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.4 — 2026-10-07
+
+- Drag a whole notebook onto another notebook or a folder: after a confirmation it becomes a folder
+  there with all its notes and folders in place (the trash included). Notes and folders could already
+  be dragged.
+
 ## 0.6.3 — 2026-10-06
 
 - Update check: ticking "Check for a new version" now checks at once, and an open WorriorVex checks

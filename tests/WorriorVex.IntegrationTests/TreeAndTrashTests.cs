@@ -299,4 +299,51 @@ public class TreeAndTrashTests
         Assert.Equal(["Inbox"], (await app.Notebooks.ListAsync()).Select(n => n.Name));
         Assert.Equal(0, await app.Trash.EmptyAsync());
     }
+
+    [Fact]
+    public async Task A_notebook_moved_into_another_becomes_a_folder_with_everything_in_place()
+    {
+        using var data = new TempDataDirectory();
+        await using var app = await TestApp.StartAsync(data.Path);
+        var source = await app.Notebooks.CreateAsync("Databricks MI Certification");
+        var target = await app.Notebooks.CreateAsync("Databricks");
+        var chapter = await app.Tree.CreateFolderAsync(source.Id, null, "1.0 Designing");
+        var deep = await app.Tree.CreateFolderAsync(source.Id, chapter.Id, "prompts");
+        var top = await app.Notes.CreateAsync(source.Id, null, "2.0 Data Preparation", "<p>overview</p>");
+        var inner = await app.Notes.CreateAsync(source.Id, deep.Id, "Structured output", "<p>json schema</p>");
+        var binned = await app.Notes.CreateAsync(source.Id, chapter.Id, "Old draft", "<p>x</p>");
+        await app.Trash.MoveToTrashAsync(binned.Id);
+
+        var folder = await app.Tree.MoveNotebookIntoAsync(source.Id, target.Id, null);
+
+        Assert.Equal(("Databricks MI Certification", target.Id, (Guid?)null), (folder.Name, folder.NotebookId, folder.ParentId));
+        Assert.DoesNotContain(await app.Notebooks.ListAsync(), n => n.Id == source.Id);
+        var folders = await app.Tree.ListFoldersAsync(target.Id);
+        Assert.Equal(folder.Id, folders.Single(f => f.Id == chapter.Id).ParentId);
+        Assert.Equal(chapter.Id, folders.Single(f => f.Id == deep.Id).ParentId);
+        var topNote = (await app.Notes.GetAsync(top.Id))!;
+        Assert.Equal((target.Id, (Guid?)folder.Id), (topNote.NotebookId, topNote.ParentId));
+        Assert.Equal((target.Id, (Guid?)deep.Id), ((await app.Notes.GetAsync(inner.Id))!.NotebookId, (await app.Notes.GetAsync(inner.Id))!.ParentId));
+        Assert.Equal("<p>json schema</p>", (await app.Notes.GetAsync(inner.Id))!.Content);
+
+        // The trashed note moved too, and restores into the moved tree.
+        await app.Trash.RestoreAsync(binned.Id);
+        Assert.Equal((target.Id, (Guid?)chapter.Id), ((await app.Notes.GetAsync(binned.Id))!.NotebookId, (await app.Notes.GetAsync(binned.Id))!.ParentId));
+
+        // Search still finds it, now in the new place.
+        var hit = Assert.Single(await app.Search.SearchAsync("schema"));
+        Assert.StartsWith("Databricks / Databricks MI Certification", hit.Location);
+    }
+
+    [Fact]
+    public async Task The_inbox_and_a_notebook_into_itself_are_refused()
+    {
+        using var data = new TempDataDirectory();
+        await using var app = await TestApp.StartAsync(data.Path);
+        var inbox = await app.Notebooks.GetInboxAsync();
+        var notebook = await app.Notebooks.CreateAsync("Projects");
+
+        await Assert.ThrowsAsync<WorriorVex.Domain.DomainException>(() => app.Tree.MoveNotebookIntoAsync(inbox.Id, notebook.Id, null));
+        await Assert.ThrowsAsync<WorriorVex.Domain.DomainException>(() => app.Tree.MoveNotebookIntoAsync(notebook.Id, notebook.Id, null));
+    }
 }

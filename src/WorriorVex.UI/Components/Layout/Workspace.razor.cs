@@ -43,6 +43,7 @@ public partial class Workspace
     private MoveRequest? _move;
     private NoteSummary? _export;
     private (Guid Id, bool IsFolder)? _dragging;
+    private Guid? _draggingNotebook;
     private int _connectionsVersion;
     private bool _sidebarHidden;
     private bool _focusMode;
@@ -1401,6 +1402,13 @@ public partial class Workspace
     /// <summary>A note or folder was dropped on a notebook or folder in the navigation.</summary>
     private async Task DropAsync(NavSelection target)
     {
+        if (_draggingNotebook is { } movingNotebook)
+        {
+            _draggingNotebook = null;
+            ConfirmNotebookMove(movingNotebook, target);
+            return;
+        }
+
         if (_dragging is not { } dragged)
         {
             return;
@@ -1430,6 +1438,41 @@ public partial class Workspace
     }
 
     // ---- Notebooks and folders -----------------------------------------------------------------
+
+    /// <summary>A notebook was dropped on another notebook or a folder: ask, then make it a folder there.</summary>
+    private void ConfirmNotebookMove(Guid notebookId, NavSelection target)
+    {
+        var (targetNotebookId, targetFolderId) = target switch
+        {
+            NavSelection.Folder folder => (folder.NotebookId, (Guid?)folder.FolderId),
+            NavSelection.Notebook notebook => (notebook.NotebookId, null),
+            _ => (Guid.Empty, null),
+        };
+        if (targetNotebookId == Guid.Empty || targetNotebookId == notebookId)
+        {
+            return;
+        }
+
+        var name = NotebookName(notebookId);
+        var place = targetFolderId is { } folderId ? FolderName(folderId) : NotebookName(targetNotebookId);
+        OpenConfirm(new ConfirmRequest(
+            T["Move the notebook “{0}” into “{1}”?", name, place],
+            T["“{0}” becomes a folder inside “{1}”, with all its notes and folders as they are. It will no longer be a notebook of its own.", name, place],
+            T["Move it there"],
+            Danger: false,
+            async () =>
+            {
+                if (!await SaveBeforeLeavingAsync())
+                {
+                    return;
+                }
+
+                var folder = await Tree.MoveNotebookIntoAsync(notebookId, targetNotebookId, targetFolderId);
+                await LoadStructureAsync();
+                await GoToAsync(new NavSelection.Folder(folder.NotebookId, folder.Id));
+                _notice = T["“{0}” is now a folder in “{1}”.", name, place];
+            }));
+    }
 
     private void PromptNewNotebook() => OpenPrompt(new PromptRequest(
         T["New notebook"], T["Name"], string.Empty, T["Create"], Notebook.MaxNameLength,

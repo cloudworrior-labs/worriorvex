@@ -114,6 +114,42 @@ public sealed class TreeService(
     }
 
     /// <summary>A destination is a notebook outside the trash and, optionally, a folder outside the trash in it.</summary>
+    public async Task<FolderSummary> MoveNotebookIntoAsync(Guid notebookId, Guid targetNotebookId, Guid? targetParentId, CancellationToken cancellationToken = default)
+    {
+        if (notebookId == targetNotebookId)
+        {
+            throw new DomainException("A notebook cannot be moved into itself.");
+        }
+
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var notebook = await context.Notebooks.FirstOrDefaultAsync(n => n.Id == notebookId && n.DeletedAt == null, cancellationToken)
+            ?? throw new EntityNotFoundException("Notebook", notebookId);
+        if (notebook.Kind != NotebookKind.User)
+        {
+            throw new DomainException("The Inbox and the Calendar stay where they are.");
+        }
+
+        await EnsureDestinationAsync(context, targetNotebookId, targetParentId, cancellationToken);
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        var sortOrder = await NoteService.NextSortOrderAsync(context, targetNotebookId, targetParentId, cancellationToken);
+        var folder = Node.CreateFolder(targetNotebookId, targetParentId, notebook.Name, timeProvider.GetUtcNow(), sortOrder);
+        context.Nodes.Add(folder);
+
+        // Everything keeps its place relative to the others; what sat at the top of the notebook goes under the new folder.
+        var contents = await context.Nodes.Where(n => n.NotebookId == notebookId).ToListAsync(cancellationToken);
+        foreach (var node in contents)
+        {
+            node.MoveTo(targetNotebookId, node.ParentId ?? folder.Id, node.SortOrder);
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        context.Notebooks.Remove(notebook);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return ToSummary(folder);
+    }
+
     private static async Task EnsureDestinationAsync(WorriorVexDbContext context, Guid notebookId, Guid? parentId, CancellationToken cancellationToken)
     {
         if (!await context.Notebooks.AnyAsync(n => n.Id == notebookId && n.DeletedAt == null, cancellationToken))

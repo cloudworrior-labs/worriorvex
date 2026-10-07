@@ -19,4 +19,11 @@ public interface ITreeService
     /// <paramref name="index"/> is the position among the new siblings; omitted means last.
     /// </summary>
     Task MoveAsync(Guid nodeId, Guid targetNotebookId, Guid? targetParentId, int? index = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Puts a whole notebook inside another notebook or folder: it becomes a folder of the same name there,
+    /// holding everything the notebook held (in the same arrangement, the trash included), and the
+    /// notebook itself is gone. Only notebooks a person made can be moved like this.
+    /// </summary>
+    Task<FolderSummary> MoveNotebookIntoAsync(Guid notebookId, Guid targetNotebookId, Guid? targetParentId, CancellationToken cancellationToken = default);
 }
