@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.5 — 2026-10-09
+
+- The navigation tree draws its lines: a line runs down from each notebook or folder past its
+  children, with an elbow to every child, so it is plain what sits inside what.
+
 ## 0.6.4 — 2026-10-07
 
 - Drag a whole notebook onto another notebook or a folder: after a confirmation it becomes a folder

@@ -394,7 +394,32 @@ body.is-resizing .wn-editor-surface, body.is-resizing iframe { pointer-events: n
 
 .wn-navrow { display: flex; align-items: center; }
 .wn-navrow .wn-navitem { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wn-tree .wn-navrow { padding-left: calc(var(--wn-level, 1) * var(--wn-space-3)); }
+.wn-tree .wn-navrow { padding-left: calc(var(--wn-level, 1) * var(--wn-tree-step)); }
+
+/* Tree lines: from each parent's −/+ box down past its children, with an elbow to every child. */
+.wn-nav { --wn-tree-step: 18px; --wn-tree-line: color-mix(in srgb, var(--wn-text-muted) 45%, transparent); --wn-tree-mid: 14px; }
+.wn-app.is-compact .wn-nav { --wn-tree-mid: 11px; }
+.wn-tree > li { position: relative; }
+.wn-tree > li::before {
+  content: "";
+  position: absolute;
+  left: calc((var(--wn-level, 1) - 1) * var(--wn-tree-step) + 8px);
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--wn-tree-line);
+  pointer-events: none;
+}
+.wn-tree > li:last-child::before { bottom: auto; height: var(--wn-tree-mid); }
+.wn-tree > li > .wn-navrow { position: relative; }
+.wn-tree > li > .wn-navrow::before {
+  content: "";
+  position: absolute;
+  left: calc((var(--wn-level, 1) - 1) * var(--wn-tree-step) + 8px);
+  top: var(--wn-tree-mid);
+  width: calc(var(--wn-tree-step) - 8px);
+  border-top: 1px solid var(--wn-tree-line);
+  pointer-events: none;
+}
 
 .wn-twisty {
   flex: none;
