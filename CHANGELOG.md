@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.6 — 2026-10-10
+
+- A note with many attachments keeps its room: the list under the note folds to one line
+  ("▸ Attachments 15") and, when opened, takes at most a third of the window and scrolls. Open or
+  closed is remembered. The links panel under a note is capped the same way.
+
 ## 0.6.5 — 2026-10-09
 
 - The navigation tree draws its lines: a line runs down from each notebook or folder past its

@@ -109,6 +109,9 @@ public sealed record AppSettings
     /// <summary>Notebooks whose branch is closed in the navigation tree (notebooks start open).</summary>
     public IReadOnlyList<Guid> CollapsedNotebooks { get; init; } = [];
 
+    /// <summary>The list of attached files under a note is open (otherwise folded to one line).</summary>
+    public bool AttachmentsExpanded { get; init; }
+
     /// <summary>Searches kept in the navigation pane for quick re-use.</summary>
     public IReadOnlyList<SavedSearch> SavedSearches { get; init; } = [];
 

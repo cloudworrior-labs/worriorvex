@@ -7,17 +7,25 @@
 @inject IAttachmentService Attachments
 @inject IPlatformShell Shell
 @inject ILogger<AttachmentsPanel> Logger
+@inject WorriorVex.Application.Settings.ISettingsService Settings
 
 @if (_items.Count > 0)
 {
-    <section class="wn-attachments" aria-label="@T["Attachments"]">
-        <h3>@T["Attachments"] <span class="wn-count">@_items.Count</span>
+    var expanded = Settings.Current.AttachmentsExpanded;
+    <section class="wn-attachments @(expanded ? "is-open" : null)" aria-label="@T["Attachments"]">
+        <h3>
+            <button type="button" class="wn-attachments-toggle" aria-expanded="@(expanded ? "true" : "false")" aria-controls="wn-attachment-list"
+                    title="@(expanded ? T["Hide the attached files"] : T["Show the attached files"])" @onclick="ToggleAsync">
+                <span aria-hidden="true">@(expanded ? "▾" : "▸")</span> @T["Attachments"] <span class="wn-count">@_items.Count</span>
+            </button>
             @if (_unusedImages > 0)
             {
                 <button type="button" class="wn-button wn-button-small" title="@T["Remove pictures that no longer appear in the text"]" @onclick="ConfirmRemoveUnused">@T["Remove {0} unused picture(s)", _unusedImages]</button>
             }
         </h3>
-        <ul>
+        @if (expanded)
+        {
+        <ul id="wn-attachment-list">
             @foreach (var item in _items)
             {
                 var inText = IsInText(item);
@@ -33,6 +41,7 @@
                 </li>
             }
         </ul>
+        }
     </section>
 }
 
@@ -225,5 +234,17 @@
         _removing = null;
         _removingUnused = false;
         _dialogError = null;
+    }
+
+    private async Task ToggleAsync()
+    {
+        try
+        {
+            await Settings.SaveAsync(Settings.Current with { AttachmentsExpanded = !Settings.Current.AttachmentsExpanded });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "The attachments panel state could not be remembered");
+        }
     }
 }

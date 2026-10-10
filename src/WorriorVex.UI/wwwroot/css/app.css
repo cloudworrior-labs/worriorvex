@@ -956,3 +956,12 @@ mark { background: var(--wn-mark-bg); color: inherit; border-radius: 2px; paddin
 .wn-cal-action:hover { background: var(--wn-bg-hover); color: var(--wn-text); }
 .wn-cal-entryrow .wn-inline-rename { font-size: 0.86rem; padding: 1px var(--wn-space-1); }
 .wn-update-badge { background: var(--wn-bg-selected); color: var(--wn-accent); border-color: var(--wn-accent); font-weight: 600; white-space: nowrap; }
+
+/* Attachments fold to one line; open, they take at most a third of the editor and scroll. */
+.wn-attachments { flex: none; padding: var(--wn-space-2) 0; }
+.wn-attachments h3 { margin: 0; }
+.wn-attachments.is-open h3 { margin-bottom: var(--wn-space-2); }
+.wn-attachments-toggle { display: inline-flex; align-items: center; gap: var(--wn-space-1); padding: 2px var(--wn-space-1); margin-left: calc(-1 * var(--wn-space-1)); border: 0; border-radius: var(--wn-radius); background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+.wn-attachments-toggle:hover { background: var(--wn-bg-hover); color: var(--wn-text); }
+.wn-attachments #wn-attachment-list { max-height: 30vh; overflow-y: auto; }
+.wn-connections { flex: none; max-height: 22vh; overflow-y: auto; }
